@@ -1,0 +1,7 @@
+copykitten==1.2.2
+customtkinter==5.2.2
+darkdetect==0.8.0
+filedialpy==1.3.3
+packaging==24.2
+pillow==11.1.0
+plyer==2.1.0
