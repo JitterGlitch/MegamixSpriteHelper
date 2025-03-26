@@ -1,10 +1,11 @@
 from pathlib import Path
 
-from filedialpy import openFile
-from customtkinter import CTkButton, CTkImage, CTkLabel, CTk, CTkFrame
 from PIL import Image, ImageOps
 from PIL.Image import Resampling
 from copykitten import copy_image
+from customtkinter import CTkButton, CTkImage, CTkLabel, CTk, CTkFrame
+from filedialpy import openFile
+
 
 class Configurable():
     def __init__(self):
