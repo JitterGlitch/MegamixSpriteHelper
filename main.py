@@ -68,21 +68,37 @@ class App(CTk):
        return CTkImage(SceneComposer.compose_scene(ui_scene),size=self.image_size)
 
     def load_background_button_callback(self):
-        background = Image.open(openFile(title="Open background image", filter="*.png *.jpg")).convert('RGBA')
-        SceneComposer.scaled_background = ImageOps.scale(background, (1.5))
-        self.draw_image_grid()
+        try:
+            background = Image.open(openFile(title="Open background image", filter="*.png *.jpg")).convert('RGBA')
+        except:
+            print("Background image wasn't chosen")
+        else:
+            SceneComposer.scaled_background = ImageOps.scale(background, (1.5))
+            self.draw_image_grid()
 
     def load_jacket_button_callback(self):
-        SceneComposer.jacket = Image.open(openFile(title="Open jacket image", filter="*.png *.jpg")).convert('RGBA')
-        self.draw_image_grid()
+        try:
+            SceneComposer.jacket = Image.open(openFile(title="Open jacket image", filter="*.png *.jpg")).convert('RGBA')
+        except:
+            print("Jacket image wasn't chosen")
+        else:
+            self.draw_image_grid()
 
     def load_logo_button_callback(self):
-        SceneComposer.logo = Image.open(openFile(title="Open logo image", filter="*.png *.jpg")).convert('RGBA')
-        self.draw_image_grid()
+        try:
+            SceneComposer.logo = Image.open(openFile(title="Open logo image", filter="*.png *.jpg")).convert('RGBA')
+        except:
+            print("Logo image wasn't chosen")
+        else:
+            self.draw_image_grid()
 
     def load_thumbnail_button_callback(self):
-        SceneComposer.thumbnail = Image.open(openFile(title="Open thumbnail image", filter="*.png *.jpg")).convert('RGBA')
-        self.draw_image_grid()
+        try:
+            SceneComposer.thumbnail = Image.open(openFile(title="Open thumbnail image", filter="*.png *.jpg")).convert('RGBA')
+        except:
+            print("Thumbnail image wasn't chosen")
+        else:
+            self.draw_image_grid()
 
     def copy_to_clipboard_button_callback(self):
         composite = Image.new('RGBA', (3840, 2160), (0, 0, 0, 0))
