@@ -5,3 +5,5 @@ filedialpy==1.3.3
 packaging==24.2
 pillow==11.1.0
 plyer==2.1.0
+
+easygui~=0.98.3

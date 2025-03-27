@@ -1,10 +1,13 @@
+import sys
 from pathlib import Path
 
 from PIL import Image, ImageOps
 from PIL.Image import Resampling
 from copykitten import copy_image
-from customtkinter import CTkButton, CTkImage, CTkLabel, CTk, CTkFrame
+from customtkinter import CTkButton, CTkImage, CTkLabel, CTk, CTkFrame, CTkToplevel
+from easygui import msgbox
 from filedialpy import openFile
+
 
 
 class Configurable():
@@ -20,7 +23,7 @@ class App(CTk):
         self.image_size = (self.width * 0.83, self.height * 0.5)
 
         CTkFrame(self,fg_color="transparent").grid(row=0,column=2,padx=55,pady=10, sticky="nsw")
-
+        self.check_for_files()
         #Set default images for images used
         SceneComposer.scaled_background = ImageOps.scale(Image.open((config.script_directory / 'Images/Dummy/SONG_BG_DUMMY.png')), (1.5)).convert('RGBA')
         SceneComposer.jacket = Image.open((config.script_directory / 'Images/Dummy/SONG_JK_DUMMY.png')).convert('RGBA')
@@ -54,6 +57,33 @@ class App(CTk):
         self.ft_song_selector_preview.grid(row=0, column=1, padx=0, pady=0, sticky="ne")
         self.mm_result_preview.grid(row=1, column=0, padx=0, pady=0, sticky="wn")
         self.ft_result_preview.grid(row=1, column=1, padx=0, pady=0, sticky="wn")
+
+    def check_for_files(self):
+        try:
+            x = Image.open((config.script_directory / 'Images/Dummy/SONG_BG_DUMMY.png').resolve(strict=True))
+            x = Image.open((config.script_directory / 'Images/Dummy/SONG_JK_DUMMY.png').resolve(strict=True))
+            x = Image.open((config.script_directory / 'Images/Dummy/SONG_LOGO_DUMMY.png').resolve(strict=True))
+            x = Image.open((config.script_directory / 'Images/Dummy/SONG_JK_THUMBNAIL_DUMMY.png').resolve(strict=True))
+
+            x = Image.open((config.script_directory / 'Images/MM UI - Song Select/Backdrop.png').resolve(strict=True))
+            x = Image.open((config.script_directory / 'Images/MM UI - Song Select/Song Selector.png').resolve(strict=True))
+            x = Image.open((config.script_directory / 'Images/MM UI - Song Select/Middle Layer.png').resolve(strict=True))
+            x = Image.open((config.script_directory / 'Images/MM UI - Song Select/Top Layer.png').resolve(strict=True))
+
+            x = Image.open((config.script_directory / 'Images/Dummy/SONG_BG_DUMMY.png').resolve(strict=True))
+            x = Image.open((config.script_directory / 'Images/MM UI - Results Screen/Middle Layer.png').resolve(strict=True))
+            x = Image.open((config.script_directory / 'Images/MM UI - Results Screen/Top Layer.png').resolve(strict=True))
+
+            x = Image.open((config.script_directory / 'Images/FT UI - Song Select/Base.png').resolve(strict=True))
+            x = Image.open((config.script_directory / 'Images/FT UI - Song Select/Middle Layer.png').resolve(strict=True))
+            x = Image.open((config.script_directory / 'Images/FT UI - Song Select/Top Layer.png').resolve(strict=True))
+
+            x = Image.open((config.script_directory / 'Images/FT UI - Results Screen/Base.png').resolve(strict=True))
+            x = Image.open((config.script_directory / 'Images/FT UI - Results Screen/Middle Layer.png').resolve(strict=True))
+            x = Image.open((config.script_directory / 'Images/FT UI - Results Screen/Top Layer.png').resolve(strict=True))
+        except:
+            msgbox("Images are missing")
+            quit("Images are missing")
 
     def set_window_size(self) -> str:
         screen_width = self.winfo_screenwidth()
