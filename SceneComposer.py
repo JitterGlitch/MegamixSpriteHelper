@@ -119,7 +119,6 @@ def get_real_image_area(image:QImage) -> QRect:
 class QScalingGraphicsScene(QGraphicsView):
     def __init__(self):
         super().__init__()
-        self.setViewport(QOpenGLWidget())
     def resizeEvent(self,event):
         self.fitInView(self.scene().sceneRect())
 
