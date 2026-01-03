@@ -420,7 +420,7 @@ class ThumbnailWindow(QWidget):
             for thumb_data in all_thumb_data:
             #[id,id...],image
                 thumb= thumb + 1
-                thumbnail_texture.alpha_composite(Image.open(thumb_data[1]),(x,y))
+                thumbnail_texture.alpha_composite(Image.open(thumb_data[1]).convert("RGBA"),(x,y))
 
                 for thumb_id in thumb_data[0]:
                     thumbnail_positions.append([pad_number(thumb_id), (x, y)])
