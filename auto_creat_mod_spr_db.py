@@ -70,7 +70,7 @@ class Manager:
                 process = i / max_len
                 process = str(process * 100)[:5]
                 sprinfo = self.sprinfo_list[i]
-                print(f"\rCreat new mod_spr_db:{process}%", end="")
+                #print(f"\rCreat new mod_spr_db:{process}%", end="")
                 # write sprinfo
                 # write id
                 f.seek(sprinfo_start)
