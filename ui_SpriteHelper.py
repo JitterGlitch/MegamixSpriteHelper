@@ -37,7 +37,7 @@ class Ui_MainWindow(object):
         font.setKerning(True)
         MainWindow.setFont(font)
         MainWindow.setAcceptDrops(False)
-        MainWindow.setWindowTitle(u"Megamix Sprite Helper")
+        MainWindow.setWindowTitle(u"Megamix Sprite Helper 1.1.1")
         icon = QIcon()
         icon.addFile(u":/icon/Icon-red.png", QSize(), QIcon.Mode.Normal, QIcon.State.Off)
         MainWindow.setWindowIcon(icon)
