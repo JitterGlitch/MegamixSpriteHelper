@@ -596,11 +596,11 @@ class QLogo(QSpriteBase):
                     height_factor = 1
 
                 if width_factor > height_factor:
-                    return 0.10,round_up(width_factor,3)
+                    return 0.01,round_up(width_factor,3)
                 elif width_factor < height_factor:
-                    return 0.10,round_up(height_factor,3)
+                    return 0.01,round_up(height_factor,3)
                 else:
-                    return 0.10,round_up(height_factor,3)
+                    return 0.01,round_up(height_factor,3)
             case SpriteSetting.ROTATION:
                 return -360,0
 
