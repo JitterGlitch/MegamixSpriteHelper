@@ -10,6 +10,8 @@ from time import sleep
 
 import PIL.ImageShow
 
+import kkdlib
+
 import yaml
 from PIL import Image
 from PySide6.QtCore import Qt, QFileSystemWatcher, QSize, Signal, QRectF, QStandardPaths, QUrl, QFile, QIODevice
@@ -1004,4 +1006,5 @@ if __name__ == "__main__":
     app.setStyle("Fusion")
     main_window = MainWindow()
     main_window.show()
+    kkdlib.txp.init_wgpu()
     app.exec()
