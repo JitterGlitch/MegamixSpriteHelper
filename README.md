@@ -18,14 +18,9 @@ Simple program that lets you make slight adjustments to the sprites while having
 When running from binary release:
 - ImageMagick with Development headers and libraries for C and C++ needs to be installed.
 
-When running from source:
-
-- ImageMagick with Development headers and libraries for C and C++ needs to be installed.
-- Contents of requirements.txt
-
 # Special Thanks
 - [Hiki8man](https://github.com/hiki8man/): [Auto create mod_spr_db script](https://gamebanana.com/tools/15812)
-- [Vixen256](https://github.com/vixen256): [KKdLib-py](https://github.com/vixen256/KKdLib-py)
+- [Vixen256](https://github.com/vixen256): [KKdLib-sys](https://github.com/vixen256/KKdLib-sys)
 - [korenkonder](https://github.com/korenkonder): [KKdlib](https://github.com/korenkonder/KKdLib) 
 - [Microsoft](https://github.com/microsoft): [DirectXTex](https://github.com/microsoft/DirectXTex)
 - [ふらすこ](https://www.pixiv.net/en/artworks/134599002): Image I used as placeholder for thumbnail.
