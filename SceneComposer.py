@@ -315,8 +315,12 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
         h = qimage.height()
         trans_edges = get_transparent_edge_pixels(qimage)
 
-        iw = w-trans_edges["Left"]-trans_edges["Right"]
-        ih = h-trans_edges["Top"]-trans_edges["Bottom"]
+        if w-trans_edges["Left"] == 0: #Check if image is fully transparent
+            iw = 0
+            ih = 0
+        else:
+            iw = w-trans_edges["Left"]-trans_edges["Right"]
+            ih = h-trans_edges["Top"]-trans_edges["Bottom"]
 
         if (iw, ih ) < (rw, rh):
             if fallback:
@@ -552,7 +556,7 @@ class QLogo(QSpriteBase):
     def __init__(self,sprite,size):
         super().__init__(sprite,SpriteType.LOGO,size)
     def required_size(self) -> QSize:
-        return QSize(0,0)
+        return QSize(1,1)
 
 
 
