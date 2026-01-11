@@ -20,7 +20,7 @@ class Compression(Enum):
             case Compression.BC7:
                 return kkdlib.txp.Format.BC7
             case Compression.RGBA:
-                return kkdlib.txp.Format.RGBA
+                return kkdlib.txp.Format.RGBA8
 
 
 class FarcCreator:
