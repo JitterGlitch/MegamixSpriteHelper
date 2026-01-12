@@ -271,8 +271,11 @@ class ThumbnailWindow(QWidget):
                 break
 
         if not inferred_id_list:
-            if Path(image_path).stem.isdigit() and len(Path(image_path).stem) >= 3:
-                id_list = [Path(image_path).stem]
+            image_name = Path(image_path).stem
+            image_name = image_name.removeprefix("pv_")
+            print(image_name)
+            if image_name.isdigit() and len(image_name) >= 3:
+                id_list = [image_name]
                 inferred_id_list.append([image_path,id_list])
             else:
                 inferred_id_list.append((image_path,[]))
