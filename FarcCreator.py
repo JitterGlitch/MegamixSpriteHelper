@@ -66,6 +66,15 @@ class FarcCreator:
             logo.py = 2
             logo.width = 870
             logo.height = 330
+        else:
+            #Adding empty sprite as a placeholder
+            logo = kkdlib.spr.Info()
+            logo.texid = 0
+            logo.resolution_mode = kkdlib.spr.ResolutionMode.FHD
+            logo.px = 2
+            logo.py = 2
+            logo.width = 0
+            logo.height = 0
 
 
 
@@ -73,8 +82,7 @@ class FarcCreator:
         spr.ready = True
         spr.add_spr(background, str("SONG_BG" + song_id))
         spr.add_spr(jacket, str("SONG_JK" + song_id))
-        if logo_texture is not None:
-            spr.add_spr(logo, str("SONG_LOGO" + song_id))
+        spr.add_spr(logo, str("SONG_LOGO" + song_id))
 
         farc = kkdlib.farc.Farc()
         farc.add_file_data("spr_sel_pv"+song_id+".bin", spr.to_buf())
