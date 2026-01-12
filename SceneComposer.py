@@ -7,7 +7,7 @@ from typing import Callable
 import PySide6
 from PIL import Image
 from PySide6.QtCore import Qt, QRectF, QPoint, Signal, QObject, QSize, QRect, QIODevice, QFile
-from PySide6.QtGui import QImage, QPixmap, QPainter, QTransform
+from PySide6.QtGui import QImage, QPixmap, QPainter, QTransform, QColor
 from PySide6.QtOpenGLWidgets import QOpenGLWidget
 from PySide6.QtWidgets import QGraphicsPixmapItem, QFileDialog, QGraphicsScene, QLayout, QGraphicsView
 
@@ -30,6 +30,7 @@ class SpriteSetting(StrEnum):
     VERTICAL_OFFSET = "Vertical Offset"
     ROTATION = "Rotation"
     ZOOM = "Zoom"
+    BRIGHTNESS = "Brightness"
 
 class Scene(Enum):
     MEGAMIX_SONG_SELECT = auto()
@@ -200,7 +201,13 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
                 'decimals': 3,
                 'rough_step': 0.001,
                 'precise_step': 0.001
-            })
+            }),
+            (SpriteSetting.BRIGHTNESS, {
+                'initial_value': 100,
+                'decimals': 0,
+                'rough_step': 1,
+                'precise_step': 1
+            }),
         ]
         self.flipped_h = False
         self.flipped_v = False
@@ -212,6 +219,7 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
         self.update_sprite()
 
         self.edit_controls[SpriteSetting.ZOOM.value].setValue(self.edit_controls[SpriteSetting.ZOOM.value].spinbox.maximum())
+        self.edit_controls[SpriteSetting.BRIGHTNESS.value].setValue(self.edit_controls[SpriteSetting.BRIGHTNESS.value].spinbox.maximum())
 
     def create_edit_controls(self) -> dict[Callable[[], str], EditableDoubleLabel]:
         editable_values = {}
@@ -298,6 +306,8 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
 
             case SpriteSetting.ROTATION:
                 return -360,0
+            case SpriteSetting.BRIGHTNESS:
+                return 50,100
 
     def required_size(self) -> QSize:
         return self.sprite_size.size().toSize()
@@ -357,6 +367,7 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
         horizontal_offset = self.edit_controls[SpriteSetting.HORIZONTAL_OFFSET.value].value
         vertical_offset = self.edit_controls[SpriteSetting.VERTICAL_OFFSET.value].value
         rotation = self.edit_controls[SpriteSetting.ROTATION.value].value
+        brightness = self.edit_controls[SpriteSetting.BRIGHTNESS.value].value
         image_size = self.sprite_image
 
         result = QImage(self.sprite_size.size().toSize(), QImage.Format.Format_ARGB32)
@@ -400,6 +411,11 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
 
 
         transformed_rect = t_s.mapRect(self.rect)
+
+        painter.setCompositionMode(QPainter.CompositionMode.CompositionMode_SourceAtop)
+        painter.setOpacity((100-brightness)/100)
+        painter.fillRect(0 + self.offset.x(), 0 + self.offset.y(), image_size.width(), image_size.height(),
+                         QColor(0, 0, 0))
 
         painter.end()
 
@@ -607,6 +623,8 @@ class QLogo(QSpriteBase):
                     return 0.01,round_up(height_factor,3)
             case SpriteSetting.ROTATION:
                 return -360,0
+            case SpriteSetting.BRIGHTNESS:
+                return 50, 100
 
     def set_initial_values(self):
         hor_range = self.edit_controls[SpriteSetting.HORIZONTAL_OFFSET.value].range
@@ -619,6 +637,7 @@ class QLogo(QSpriteBase):
         self.edit_controls[SpriteSetting.VERTICAL_OFFSET.value].setValue(ver_center)
         self.edit_controls[SpriteSetting.ZOOM.value].setValue(self.edit_controls[SpriteSetting.ZOOM.value].range[1])
         self.edit_controls[SpriteSetting.ROTATION.value].setValue(0)
+        self.edit_controls[SpriteSetting.BRIGHTNESS.value].setValue(100)
 
 class QSpriteSlave(QGraphicsPixmapItem):
 
