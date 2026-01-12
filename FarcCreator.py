@@ -3,9 +3,9 @@ from enum import Enum, auto
 import kkdlib
 
 class Compression(Enum):
+    BC7 = "BC7"
     ATI2 = "YCbCr"
     DXT5 = "DXT5"
-    BC7 = "BC7"
     RGBA = "Uncompressed"
 
     def __str__(self):
