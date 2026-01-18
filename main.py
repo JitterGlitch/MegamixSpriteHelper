@@ -835,8 +835,8 @@ class MainWindow(QMainWindow):
         painter.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform)
         painter.setRenderHint(QPainter.RenderHint.VerticalSubpixelPositioning)
 
-        painter.drawPixmap(0,0,self.C_Sprites.background.pixmap().scaled(1282,722))
-        painter.drawPixmap(1,1,self.C_Sprites.background.pixmap())
+        painter.drawPixmap(1,1,self.C_Sprites.background.pixmap().scaled(1282,722))
+        painter.drawPixmap(2,2,self.C_Sprites.background.pixmap())
         painter.drawPixmap(1286, 2,self.C_Sprites.jacket.pixmap())
         painter.end()
 

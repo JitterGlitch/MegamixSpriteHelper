@@ -8,7 +8,6 @@ import PySide6
 from PIL import Image
 from PySide6.QtCore import Qt, QRectF, QPoint, Signal, QObject, QSize, QRect, QIODevice, QFile
 from PySide6.QtGui import QImage, QPixmap, QPainter, QTransform, QColor
-from PySide6.QtOpenGLWidgets import QOpenGLWidget
 from PySide6.QtWidgets import QGraphicsPixmapItem, QFileDialog, QGraphicsScene, QLayout, QGraphicsView
 
 from widgets import EditableDoubleLabel
