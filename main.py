@@ -708,8 +708,6 @@ class MainWindow(QMainWindow):
         self.C_Sprites.jacket.add_edit_controls_to(self.main_box.verticalLayout_10)
         self.C_Sprites.background.add_edit_controls_to(self.main_box.verticalLayout_8)
 
-        self.C_Sprites.jacket.load_new_image(u":icon/Images/Example Sprites/Jacket.png")
-
         self.main_box.graphics_scene_view1.setScene(self.P_Scenes.MM_SongSelect)
         self.main_box.graphics_scene_view3.setScene(self.P_Scenes.FT_SongSelect)
         self.main_box.graphics_scene_view.setScene(self.P_Scenes.MM_Result)
