@@ -1,20 +1,18 @@
-from PySide6.QtCore import (QCoreApplication, QDate, QDateTime, QLocale,
-    QMetaObject, QObject, QPoint, QRect,
-    QSize, QTime, QUrl, Qt)
-from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
-    QFont, QFontDatabase, QGradient, QIcon,
-    QImage, QKeySequence, QLinearGradient, QPainter,
-    QPalette, QPixmap, QRadialGradient, QTransform)
-from PySide6.QtWidgets import (QAbstractScrollArea, QApplication, QCheckBox, QComboBox,
+from PySide6.QtCore import (QCoreApplication, QLocale,
+                            QMetaObject, QRect,
+                            QSize, Qt)
+from PySide6.QtGui import (QFont, QIcon,
+                           QPainter)
+from PySide6.QtWidgets import (QAbstractScrollArea, QCheckBox, QComboBox,
                                QDoubleSpinBox, QFrame, QGridLayout, QHBoxLayout,
-                               QLabel, QLayout, QMainWindow, QPushButton,
+                               QLabel, QLayout, QPushButton,
                                QScrollArea, QSizePolicy, QSpacerItem, QStackedWidget,
-                               QTabWidget, QVBoxLayout, QWidget, QGraphicsView)
+                               QTabWidget, QVBoxLayout, QWidget)
 from superqt import QEnumComboBox
-from FarcCreator import Compression
+from Source.FarcCreator import Compression
 
-from SceneComposer import QScalingGraphicsScene
-import resources
+from Source.SceneComposer import QScalingGraphicsScene
+import Source.resources
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):

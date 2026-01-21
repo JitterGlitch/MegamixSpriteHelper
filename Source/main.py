@@ -14,9 +14,9 @@ import kkdlib
 
 import yaml
 from PIL import Image
-from PySide6.QtCore import Qt, QFileSystemWatcher, QSize, Signal, QRectF, QStandardPaths, QUrl, QFile, QIODevice
+from PySide6.QtCore import QFileSystemWatcher, QSize, Signal, QRectF, QStandardPaths, QUrl, QFile, QIODevice
 from PySide6.QtGui import QPixmap, QPalette, QColor, QImage, QPainter, QGuiApplication, QDesktopServices
-from PySide6.QtWidgets import QApplication, QMessageBox, QMainWindow, QWidget, QFileDialog
+from PySide6.QtWidgets import QApplication, QMainWindow, QWidget, QFileDialog
 
 try:
     from wand.image import Image as WImage
@@ -44,12 +44,12 @@ except ImportError:
 
 from FarcCreator import FarcCreator
 from SceneComposer import Scene, QControllableSprites, QPreviewScenes, SpriteSetting
-from auto_creat_mod_spr_db import Manager, add_farc_to_Manager, read_farc
-from ui_SpriteHelper import Ui_MainWindow
-from ui_ThumbnailIDField import Ui_ThumbnailIDField
-from ui_ThumbnailTextureCreator import Ui_ThumbnailTextureCreator
-from ui_ThumbnailWidget import Ui_ThumbnailWidget
-from widgets import Stylesheet
+from ThirdParty.auto_creat_mod_spr_db import Manager,add_farc_to_Manager,read_farc
+from Source.UI.ui_SpriteHelper import Ui_MainWindow
+from Source.UI.ui_ThumbnailIDField import Ui_ThumbnailIDField
+from Source.UI.ui_ThumbnailTextureCreator import Ui_ThumbnailTextureCreator
+from Source.UI.ui_ThumbnailWidget import Ui_ThumbnailWidget
+from Source.UI.widgets import Stylesheet
 
 
 class OutputTarget(Enum):
@@ -542,7 +542,7 @@ class ThumbnailWindow(QWidget):
                 if self.main_box.mod_name_lineedit.combo_box.currentText() not in remember_data:
                     remember_data.append(self.main_box.mod_name_lineedit.combo_box.currentText())
 
-                    with io.open('remembered_names.yaml' , 'w', encoding='utf8') as outfile:
+                    with io.open('remembered_names.yaml', 'w', encoding='utf8') as outfile:
                         yaml.dump(remember_data, outfile, default_flow_style=False, allow_unicode=True)
 
 

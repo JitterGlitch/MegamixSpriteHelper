@@ -8,7 +8,7 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
 from PySide6.QtWidgets import (QApplication, QFormLayout, QHBoxLayout, QLabel,
                                QLayout, QLineEdit, QPushButton, QScrollArea,
                                QSizePolicy, QVBoxLayout, QWidget, QDoubleSpinBox)
-from widgets import PlaceholderDoubleSpinBox
+from Source.UI.widgets import PlaceholderDoubleSpinBox
 
 class Ui_ThumbnailIDField(object):
         def setupUi(self, Form, variant):

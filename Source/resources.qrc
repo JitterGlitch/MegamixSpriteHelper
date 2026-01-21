@@ -8,7 +8,6 @@
     <file>Images/Dummy/SONG_JK_THUMBNAIL_DUMMY.png</file>
     <file>Images/Dummy/SONG_LOGO_DUMMY.png</file>
     <file>Images/Dummy/Thumbnail-Maskv3.png</file>
-    <file>Images/Example Sprites/Jacket.png</file>
     <file>Images/FT UI - Results Screen/Base.png</file>
     <file>Images/FT UI - Results Screen/Middle Layer.png</file>
     <file>Images/FT UI - Results Screen/Top Layer.png</file>
@@ -25,6 +24,6 @@
     <file>Images/MM UI - Song Select/Song Selector.png</file>
     <file>Images/MM UI - Song Select/Top Layer.png</file>
     <file>Images/MM UI - Song Select/Top Layer - New Classics.png</file>
-    <file>Icon-red.png</file>
+    <file>Images/Icon-red.png</file>
   </qresource>
 </RCC>
