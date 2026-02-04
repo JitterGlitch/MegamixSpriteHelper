@@ -68,6 +68,7 @@ class FarcCreator:
             logo.height = 330
         else:
             #Adding empty sprite as a placeholder
+            #You can't just remove it from farc because sprite database will fail to generate.
             logo = kkdlib.spr.Info()
             logo.texid = 0
             logo.resolution_mode = kkdlib.spr.ResolutionMode.FHD

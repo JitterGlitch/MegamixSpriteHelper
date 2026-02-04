@@ -14,15 +14,13 @@ import kkdlib
 
 import yaml
 from PIL import Image
-from PySide6.QtCore import QFileSystemWatcher, QSize, Signal, QRectF, QStandardPaths, QUrl, QFile, QIODevice
+from PySide6.QtCore import Qt, QFileSystemWatcher, QSize, Signal, QRectF, QStandardPaths, QUrl, QFile, QIODevice
 from PySide6.QtGui import QPixmap, QPalette, QColor, QImage, QPainter, QGuiApplication, QDesktopServices
-from PySide6.QtWidgets import QApplication, QMainWindow, QWidget, QFileDialog
+from PySide6.QtWidgets import QApplication, QMainWindow, QWidget, QFileDialog, QMessageBox
 
 try:
     from wand.image import Image as WImage
 except ImportError:
-    from PySide6.QtWidgets import QMessageBox, QApplication
-    from PySide6.QtCore import Qt
     import sys
 
     app = QApplication.instance()
@@ -45,11 +43,11 @@ except ImportError:
 from FarcCreator import FarcCreator
 from SceneComposer import Scene, QControllableSprites, QPreviewScenes, SpriteSetting
 from ThirdParty.auto_creat_mod_spr_db import Manager,add_farc_to_Manager,read_farc
-from Source.UI.ui_SpriteHelper import Ui_MainWindow
-from Source.UI.ui_ThumbnailIDField import Ui_ThumbnailIDField
-from Source.UI.ui_ThumbnailTextureCreator import Ui_ThumbnailTextureCreator
-from Source.UI.ui_ThumbnailWidget import Ui_ThumbnailWidget
-from Source.UI.widgets import Stylesheet
+from UI.ui_SpriteHelper import Ui_MainWindow
+from UI.ui_ThumbnailIDField import Ui_ThumbnailIDField
+from UI.ui_ThumbnailTextureCreator import Ui_ThumbnailTextureCreator
+from UI.ui_ThumbnailWidget import Ui_ThumbnailWidget
+from UI.widgets import Stylesheet
 
 
 class OutputTarget(Enum):

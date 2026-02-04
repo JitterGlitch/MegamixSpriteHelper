@@ -3,7 +3,7 @@ from pathlib import Path
 from pprint import pprint
 import hashlib
 from io import BytesIO
-from Source.ThirdParty.diva_lib.hash import CalculateStr
+from ThirdParty.diva_lib.hash import CalculateStr
 
 '''
 def get_hash(string):
