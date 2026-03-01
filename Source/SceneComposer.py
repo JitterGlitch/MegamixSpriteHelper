@@ -119,7 +119,7 @@ class QScalingGraphicsScene(QGraphicsView):
     def __init__(self):
         super().__init__()
     def resizeEvent(self,event):
-        self.fitInView(self.scene().sceneRect())
+        self.fitInView(self.scene().sceneRect(),Qt.AspectRatioMode.KeepAspectRatio)
 
 
 def qresource_to_bytes(location):
