@@ -43,11 +43,11 @@ except ImportError:
 from FarcCreator import FarcCreator
 from SceneComposer import Scene, QControllableSprites, QPreviewScenes, SpriteSetting
 from ThirdParty.auto_creat_mod_spr_db import Manager,add_farc_to_Manager,read_farc
-from UI.ui_SpriteHelper import Ui_MainWindow
-from UI.ui_ThumbnailIDField import Ui_ThumbnailIDField
-from UI.ui_ThumbnailTextureCreator import Ui_ThumbnailTextureCreator
-from UI.ui_ThumbnailWidget import Ui_ThumbnailWidget
-from UI.widgets import Stylesheet
+from ui_SpriteHelper import Ui_MainWindow
+from ui_ThumbnailIDField import Ui_ThumbnailIDField
+from ui_ThumbnailTextureCreator import Ui_ThumbnailTextureCreator
+from ui_ThumbnailWidget import Ui_ThumbnailWidget
+from widgets import Stylesheet
 
 
 class OutputTarget(Enum):

@@ -9,10 +9,10 @@ from PySide6.QtWidgets import (QAbstractScrollArea, QCheckBox, QComboBox,
                                QScrollArea, QSizePolicy, QSpacerItem, QStackedWidget,
                                QTabWidget, QVBoxLayout, QWidget)
 from superqt import QEnumComboBox
-from Source.FarcCreator import Compression
+from FarcCreator import Compression
 
-from Source.SceneComposer import QScalingGraphicsScene
-import Source.resources
+from SceneComposer import QScalingGraphicsScene
+import resources
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):

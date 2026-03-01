@@ -1,13 +1,3 @@
-# -*- coding: utf-8 -*-
-
-################################################################################
-## Form generated from reading UI file 'Thumbnail Texture CreatorsQXeDJ.ui'
-##
-## Created by: Qt User Interface Compiler version 6.9.2
-##
-## WARNING! All changes made in this file will be lost when recompiling UI file!
-################################################################################
-
 from PySide6.QtCore import (QCoreApplication, QMetaObject, QRect,
                             QSize, Qt)
 from PySide6.QtGui import (QIcon)
@@ -16,8 +6,8 @@ from PySide6.QtWidgets import (QAbstractScrollArea, QGridLayout,
                                QVBoxLayout, QWidget, QHBoxLayout)
 from superqt import QEnumComboBox
 
-from Source.FarcCreator import Compression
-from Source.UI.widgets import SongpackNameInput
+from FarcCreator import Compression
+from widgets import SongpackNameInput
 
 
 class Ui_ThumbnailTextureCreator(object):
