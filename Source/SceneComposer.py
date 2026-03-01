@@ -647,6 +647,9 @@ class QSpriteSlave(QGraphicsPixmapItem):
         self.scale = scale
         self.setPos(position)
         self.setTransformationMode(Qt.TransformationMode.SmoothTransformation)
+        self.zoomed_in = False
+
+
 
         self.update_sprite()
     def update_sprite(self):
@@ -660,6 +663,18 @@ class QSpriteSlave(QGraphicsPixmapItem):
             image = self.pixmap().toImage()
             image = image.transformed(QTransform().rotate(self.rotation))
             self.setPixmap(QPixmap(image))
+    def mousePressEvent(self,event):
+        if not self.tracked.type == SpriteType.BACKGROUND:
+            if not self.zoomed_in:
+                for view in self.scene().views():
+                    view.fitInView(0,0,1920/2,1080/2,Qt.AspectRatioMode.KeepAspectRatio)
+                    view.centerOn(self)
+                    self.zoomed_in = True
+            else:
+                for view in self.scene().views():
+                    view.fitInView(self.scene().sceneRect(),Qt.AspectRatioMode.KeepAspectRatio)
+                    self.zoomed_in = False
+
 class QLayer(QGraphicsPixmapItem):
     def __init__(self,
                  sprite: str,
