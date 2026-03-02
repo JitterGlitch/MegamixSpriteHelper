@@ -118,9 +118,20 @@ def get_real_image_area(image:QImage) -> QRect:
 class QScalingGraphicsScene(QGraphicsView):
     def __init__(self):
         super().__init__()
+        self.zoomed_in = False
+        self.center_on = None
     def resizeEvent(self,event):
-        self.fitInView(self.scene().sceneRect(),Qt.AspectRatioMode.KeepAspectRatio)
+        self.lock_in()
 
+    def wheelEvent(self, event, /):
+        pass
+
+    def lock_in(self):
+        if self.zoomed_in == False:
+            self.fitInView(self.scene().sceneRect(),Qt.AspectRatioMode.KeepAspectRatio)
+        else:
+            self.fitInView(0, 0, self.scene().width() / 2, self.scene().height() / 2, Qt.AspectRatioMode.KeepAspectRatio)
+            self.centerOn(self.center_on)
 
 def qresource_to_bytes(location):
     file = QFile(location)
@@ -666,14 +677,18 @@ class QSpriteSlave(QGraphicsPixmapItem):
     def mousePressEvent(self,event):
         if not self.tracked.type == SpriteType.BACKGROUND:
             if not self.zoomed_in:
+                view: QScalingGraphicsScene
                 for view in self.scene().views():
-                    view.fitInView(0,0,1920/2,1080/2,Qt.AspectRatioMode.KeepAspectRatio)
-                    view.centerOn(self)
+                    view.center_on = self
+                    view.zoomed_in = True
                     self.zoomed_in = True
+                    view.lock_in()
             else:
                 for view in self.scene().views():
-                    view.fitInView(self.scene().sceneRect(),Qt.AspectRatioMode.KeepAspectRatio)
+                    view.center_on = None
+                    view.zoomed_in = False
                     self.zoomed_in = False
+                    view.lock_in()
 
 class QLayer(QGraphicsPixmapItem):
     def __init__(self,
