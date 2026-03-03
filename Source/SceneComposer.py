@@ -662,6 +662,8 @@ class QSpriteSlave(QGraphicsPixmapItem):
         self.setPos(position)
         self.setTransformationMode(Qt.TransformationMode.SmoothTransformation)
         self.zoomed_in = False
+        if not self.tracked.type == SpriteType.BACKGROUND:
+            self.setCursor(Qt.CursorShape.PointingHandCursor)
 
 
         self.update_sprite()
