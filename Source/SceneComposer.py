@@ -7,7 +7,7 @@ import PySide6
 from PIL import Image
 from PySide6.QtCore import Qt, QRectF, QPoint, Signal, QObject, QSize, QRect, QIODevice, QFile
 from PySide6.QtGui import QImage, QPixmap, QPainter, QTransform, QColor
-from PySide6.QtWidgets import QGraphicsPixmapItem, QFileDialog, QGraphicsScene, QLayout, QGraphicsView
+from PySide6.QtWidgets import QGraphicsPixmapItem, QFileDialog, QGraphicsScene, QLayout, QGraphicsView, QWidget
 
 from Source.widgets import EditableDoubleLabel
 
@@ -173,6 +173,8 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
         self.rect = get_real_image_area(self.sprite_image)
         self.x = 0
         self.y = 0
+
+        self.sprite_slaves_list = []
 
 
         #Create a scene that will crop image to max size
@@ -654,12 +656,12 @@ class QSpriteSlave(QGraphicsPixmapItem):
         super().__init__()
         self.tracked = tracked
         tracked.SpriteUpdated.connect(self.update_sprite)
+        self.tracked.sprite_slaves_list.append(self)
         self.rotation = rotation
         self.scale = scale
         self.setPos(position)
         self.setTransformationMode(Qt.TransformationMode.SmoothTransformation)
         self.zoomed_in = False
-
 
 
         self.update_sprite()
@@ -674,9 +676,9 @@ class QSpriteSlave(QGraphicsPixmapItem):
             image = self.pixmap().toImage()
             image = image.transformed(QTransform().rotate(self.rotation))
             self.setPixmap(QPixmap(image))
-    def mousePressEvent(self,event):
+    def toggle_zoom_in(self,state):
         if not self.tracked.type == SpriteType.BACKGROUND:
-            if not self.zoomed_in:
+            if not state:
                 view: QScalingGraphicsScene
                 for view in self.scene().views():
                     view.center_on = self
@@ -689,7 +691,8 @@ class QSpriteSlave(QGraphicsPixmapItem):
                     view.zoomed_in = False
                     self.zoomed_in = False
                     view.lock_in()
-
+    def mousePressEvent(self,event):
+        self.toggle_zoom_in(self.zoomed_in)
 class QLayer(QGraphicsPixmapItem):
     def __init__(self,
                  sprite: str,

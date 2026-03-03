@@ -41,7 +41,7 @@ except ImportError:
 
 
 from FarcCreator import FarcCreator
-from SceneComposer import Scene, QControllableSprites, QPreviewScenes, SpriteSetting
+from SceneComposer import Scene, QControllableSprites, QPreviewScenes, SpriteSetting, QSpriteSlave, SpriteType
 from ThirdParty.auto_creat_mod_spr_db import Manager,add_farc_to_Manager,read_farc
 from ui_SpriteHelper import Ui_MainWindow
 from ui_ThumbnailIDField import Ui_ThumbnailIDField
@@ -767,6 +767,12 @@ class MainWindow(QMainWindow):
         else:
             state = False
             self.main_box.export_logo_button.setToolTip("Logo is disabled.")
+
+        for sprite_slave in self.C_Sprites.logo.sprite_slaves_list:
+            sprite_slave: QSpriteSlave
+            print(sprite_slave.tracked.type)
+            if sprite_slave.tracked.type == SpriteType.LOGO and sprite_slave.zoomed_in == True:
+                sprite_slave.toggle_zoom_in(True)
 
         self.C_Sprites.logo.toggle_visibility(state)
         self.main_box.export_logo_button.setEnabled(state)
