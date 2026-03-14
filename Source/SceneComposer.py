@@ -823,13 +823,13 @@ class QMMResultScene(QGraphicsScene):
 class QMMPractiseModeScene(QGraphicsScene):
     def __init__(self,jacket:QJacket, logo:QLogo, background:QSpriteBase):
         super().__init__()
-
+        brightness = 40
         ######
-        self.jacket = QSpriteSlave(jacket, QPoint(1293, 148), rotation=7, brightness=50)
-        self.logo = QSpriteSlave(logo, QPoint(825, 537), scale=0.8, brightness=50)
-        self.background = QSpriteSlave(background, QPoint(0, 0), scale=1.50, brightness=50)
+        self.jacket = QSpriteSlave(jacket, QPoint(1294, 147), rotation=7, brightness=brightness)
+        self.logo = QSpriteSlave(logo, QPoint(739, 508), brightness=brightness)
+        self.background = QSpriteSlave(background, QPoint(0, 0), scale=1.50, brightness=brightness)
         #####
-        self.grid = QLayer(str(Path.cwd() / "Images" / "MM UI - Practise Mode" / "Grid.png"), brightness=50)
+        self.grid = QLayer(str(Path.cwd() / "Images" / "MM UI - Practise Mode" / "Grid.png"), brightness=brightness+5)
         self.jacket_shadow = QLayer(str(Path.cwd() / "Images" / "MM UI - Practise Mode" / "Jacket Shadow.png"))
         self.top_layer = QLayer(str(Path.cwd() / "Images" / "MM UI - Practise Mode" / "UI.png"))
         #####
