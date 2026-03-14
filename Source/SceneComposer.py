@@ -1,6 +1,7 @@
 import io
 import math
 from enum import Enum, auto, StrEnum
+from pathlib import Path
 from typing import Callable
 
 import PySide6
@@ -652,13 +653,14 @@ class QLogo(QSpriteBase):
 
 class QSpriteSlave(QGraphicsPixmapItem):
 
-    def __init__(self, tracked: QSpriteBase, position: QPoint,scale:float=None,rotation:int=None):
+    def __init__(self, tracked: QSpriteBase, position: QPoint,scale:float=None,rotation:int=None,brightness:int=None):
         super().__init__()
         self.tracked = tracked
         tracked.SpriteUpdated.connect(self.update_sprite)
         self.tracked.sprite_slaves_list.append(self)
         self.rotation = rotation
         self.scale = scale
+        self.brightness = brightness
         self.setPos(position)
         self.setTransformationMode(Qt.TransformationMode.SmoothTransformation)
         self.zoomed_in = False
@@ -673,6 +675,16 @@ class QSpriteSlave(QGraphicsPixmapItem):
             self.setScale(self.scale)
         else:
             self.setPixmap(self.tracked.pixmap())
+
+        if self.brightness:
+            result = self.tracked.pixmap()
+            painter = QPainter(result)
+            painter.setCompositionMode(QPainter.CompositionMode.CompositionMode_SourceAtop)
+            painter.setOpacity((100 - self.brightness) / 100)
+            painter.fillRect(0 , 0, self.tracked.sprite_image.width()+300, self.tracked.sprite_image.height()+300,
+                             QColor(0, 0, 0))
+            painter.end()
+            self.setPixmap(result)
 
         if self.rotation:
             image = self.pixmap().toImage()
@@ -699,10 +711,22 @@ class QLayer(QGraphicsPixmapItem):
     def __init__(self,
                  sprite: str,
                  size: PySide6.QtCore.QRectF = QRectF(0,0,1920,1080),
-                 scale:float=1):
+                 scale:float=1,
+                 brightness:int=None):
         super().__init__()
         self.sprite_size = size
         self.setPixmap(QPixmap(sprite))
+
+        if brightness:
+            result = self.pixmap()
+            painter = QPainter(result)
+            painter.setCompositionMode(QPainter.CompositionMode.CompositionMode_SourceAtop)
+            painter.setOpacity((100 - brightness) / 100)
+            painter.fillRect(0, 0, self.pixmap().width(), self.pixmap().height(),
+                             QColor(0, 0, 0))
+            painter.end()
+            self.setPixmap(result)
+
         self.setTransformationMode(Qt.TransformationMode.SmoothTransformation)
         self.setScale(scale)
 
@@ -768,34 +792,6 @@ class QMMSongSelectScene(QGraphicsScene):
             self.top_layer.setPixmap(QPixmap(u":icon/Images/MM UI - Song Select/Top Layer - New Classics.png"))
         else:
             self.top_layer.setPixmap(QPixmap(u":icon/Images/MM UI - Song Select/Top Layer.png"))
-class QFTSongSelectScene(QGraphicsScene):
-    def __init__(self,jacket:QJacket, logo:QLogo, background:QSpriteBase):
-        super().__init__()
-        #####
-        self.jacket = QSpriteSlave(jacket, QPoint(1331, 205), rotation=-5 ,scale=0.97)
-        self.logo = QSpriteSlave(logo, QPoint(803, 515), scale=0.9)
-        self.background = QSpriteSlave(background,QPoint(0,0), scale=1.50)
-
-        ######
-        self.backdrop = QLayer(u":icon/Images/FT UI - Song Select/Base.png")
-        self.middle_layer = QLayer(u":icon/Images/FT UI - Song Select/Middle Layer.png")
-        self.top_layer = QLayer(u":icon/Images/FT UI - Song Select/Top Layer - New Classics.png")
-        ######
-        self.setSceneRect(0, 0, 1920, 1080)
-        self.setBackgroundBrush(Qt.GlobalColor.black)
-
-        self.addItem(self.backdrop)
-        self.addItem(self.background)
-        self.addItem(self.middle_layer)
-        self.addItem(self.jacket)
-        self.addItem(self.logo)
-        self.addItem(self.top_layer)
-
-    def toggle_new_classics(self, state):
-        if state:
-            self.top_layer.setPixmap(QPixmap(u":icon/Images/FT UI - Song Select/Top Layer - New Classics.png"))
-        else:
-            self.top_layer.setPixmap(QPixmap(u":icon/Images/FT UI - Song Select/Top Layer.png"))
 class QMMResultScene(QGraphicsScene):
     def __init__(self,jacket:QJacket, logo:QLogo, background:QSpriteBase):
         super().__init__()
@@ -824,6 +820,58 @@ class QMMResultScene(QGraphicsScene):
             self.top_layer.setPixmap(QPixmap(u":icon/Images/MM UI - Results Screen/Top Layer - New Classics.png"))
         else:
             self.top_layer.setPixmap(QPixmap(u":icon/Images/MM UI - Results Screen/Top Layer.png"))
+class QMMPractiseModeScene(QGraphicsScene):
+    def __init__(self,jacket:QJacket, logo:QLogo, background:QSpriteBase):
+        super().__init__()
+
+        ######
+        self.jacket = QSpriteSlave(jacket, QPoint(1293, 148), rotation=7, brightness=50)
+        self.logo = QSpriteSlave(logo, QPoint(825, 537), scale=0.8, brightness=50)
+        self.background = QSpriteSlave(background, QPoint(0, 0), scale=1.50, brightness=50)
+        #####
+        self.grid = QLayer(str(Path.cwd() / "Images" / "MM UI - Practise Mode" / "Grid.png"), brightness=50)
+        self.jacket_shadow = QLayer(str(Path.cwd() / "Images" / "MM UI - Practise Mode" / "Jacket Shadow.png"))
+        self.top_layer = QLayer(str(Path.cwd() / "Images" / "MM UI - Practise Mode" / "UI.png"))
+        #####
+        self.setSceneRect(0,0,1920,1080)
+        self.setBackgroundBrush(Qt.GlobalColor.black)
+
+        print(str(Path.cwd() / "Images" / "MM UI - Practise Mode" / "UI.png"))
+        self.addItem(self.background)
+        self.addItem(self.jacket)
+        self.addItem(self.jacket_shadow)
+        self.addItem(self.logo)
+        self.addItem(self.grid)
+        self.addItem(self.top_layer)
+
+class QFTSongSelectScene(QGraphicsScene):
+    def __init__(self,jacket:QJacket, logo:QLogo, background:QSpriteBase):
+        super().__init__()
+        #####
+        self.jacket = QSpriteSlave(jacket, QPoint(1331, 205), rotation=-5 ,scale=0.97)
+        self.logo = QSpriteSlave(logo, QPoint(803, 515), scale=0.9)
+        self.background = QSpriteSlave(background,QPoint(0,0), scale=1.50)
+
+        ######
+        self.backdrop = QLayer(u":icon/Images/FT UI - Song Select/Base.png")
+        self.middle_layer = QLayer(u":icon/Images/FT UI - Song Select/Middle Layer.png")
+        self.top_layer = QLayer(u":icon/Images/FT UI - Song Select/Top Layer - New Classics.png")
+        ######
+        self.setSceneRect(0, 0, 1920, 1080)
+        self.setBackgroundBrush(Qt.GlobalColor.black)
+
+        self.addItem(self.backdrop)
+        self.addItem(self.background)
+        self.addItem(self.middle_layer)
+        self.addItem(self.jacket)
+        self.addItem(self.logo)
+        self.addItem(self.top_layer)
+
+    def toggle_new_classics(self, state):
+        if state:
+            self.top_layer.setPixmap(QPixmap(u":icon/Images/FT UI - Song Select/Top Layer - New Classics.png"))
+        else:
+            self.top_layer.setPixmap(QPixmap(u":icon/Images/FT UI - Song Select/Top Layer.png"))
 class QFTResultScene(QGraphicsScene):
     def __init__(self,jacket:QJacket, logo:QLogo):
         super().__init__()
@@ -858,13 +906,18 @@ class QPreviewScenes:
                                                 C_Sprites.background,
                                                 C_Sprites.thumbnail)
 
+        self.MM_Result = QMMResultScene(C_Sprites.jacket,
+                                        C_Sprites.logo,
+                                        C_Sprites.background)
+
+        self.MM_PractiseMode = QMMPractiseModeScene(C_Sprites.jacket,
+                                                    C_Sprites.logo,
+                                                    C_Sprites.background)
+
         self.FT_SongSelect = QFTSongSelectScene(C_Sprites.jacket,
                                                 C_Sprites.logo,
                                                 C_Sprites.background)
 
-        self.MM_Result = QMMResultScene(C_Sprites.jacket,
-                                        C_Sprites.logo,
-                                        C_Sprites.background)
 
         self.FT_Result = QFTResultScene(C_Sprites.jacket,
                                         C_Sprites.logo)
