@@ -654,6 +654,8 @@ class MainWindow(QMainWindow):
         size = QSize(new_width,new_height)
         self.resize(size)
         self.space_out_scenes()
+        print(self.main_box.scrollArea.size())
+        #self.main_box.scrollArea.setFixedSize(QSize(1155,650))
 
 
     def current_sprite_tab_switcher(self,tab):
@@ -704,8 +706,8 @@ class MainWindow(QMainWindow):
         self.C_Sprites.jacket.add_edit_controls_to(self.main_box.verticalLayout_10)
         self.C_Sprites.background.add_edit_controls_to(self.main_box.verticalLayout_8)
 
-        self.selected_scenes = [self.P_Scenes.MM_PractiseMode]
-        #self.selected_scenes = [self.P_Scenes.MM_PractiseMode,self.P_Scenes.MM_PractiseMode,self.P_Scenes.MM_PractiseMode,self.P_Scenes.MM_PractiseMode,self.P_Scenes.MM_PractiseMode]
+        #self.selected_scenes = [self.P_Scenes.MM_PractiseMode]
+        self.selected_scenes = [self.P_Scenes.MM_PractiseMode,self.P_Scenes.MM_SongSelect,self.P_Scenes.MM_Result,self.P_Scenes.FT_SongSelect,self.P_Scenes.FT_Result]
         self.selected_scenes_views = []
         for scene in self.selected_scenes:
             scene_view = QScalingGraphicsScene()
@@ -732,11 +734,17 @@ class MainWindow(QMainWindow):
         self.space_out_scenes()
 
     def space_out_scenes(self):
+        if len(self.selected_scenes_views) > 1:
+            size = 2.15
+        else:
+            size = 1.06
+
         columns = 1
         x = 0
         y = 0
         for scene in self.selected_scenes_views:
             self.main_box.image_grid.removeWidget(scene)
+            scene.size = size
             scene.lock_in()
             self.main_box.image_grid.addWidget(scene,y,x)
             if x == columns:

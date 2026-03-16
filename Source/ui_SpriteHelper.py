@@ -70,7 +70,6 @@ class Ui_MainWindow(object):
         self.scrollArea.setWidgetResizable(True)
         self.scrollAreaWidgetContents = QWidget()
         self.scrollAreaWidgetContents.setObjectName(u"scrollAreaWidgetContents")
-        #self.scrollAreaWidgetContents.setGeometry(QRect(0, 0, 452, 299))
 
         self.image_grid = QGridLayout(self.scrollAreaWidgetContents)
         self.image_grid.setSpacing(5)
@@ -140,7 +139,6 @@ class Ui_MainWindow(object):
         self.flip_vertical_button.setObjectName(u"flip_vertical_button")
 
         self.horizontalLayout_2.addWidget(self.flip_vertical_button)
-        #self.sprite_options_v_layout.addLayout(self.horizontalLayout_2)
 
 
         self.load_buttons_box.addLayout(self.horizontalLayout_2)

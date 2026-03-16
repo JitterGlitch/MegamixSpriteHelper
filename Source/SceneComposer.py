@@ -121,6 +121,7 @@ class QScalingGraphicsScene(QGraphicsView):
         super().__init__()
         self.zoomed_in = False
         self.center_on = None
+        self.size = 2.15
 
     def resizeEvent(self,event):
         self.lock_in()
@@ -130,11 +131,9 @@ class QScalingGraphicsScene(QGraphicsView):
 
     def lock_in(self):
         min_width = self.parent().parent().parent().height() / 9
-        #size = 2.15
-        size = 1.06
 
-        self.setMaximumSize(QSize(min_width * 16 / size, min_width * 9 / size))
-        self.setMinimumSize(QSize(min_width * 16 / size, min_width * 9 / size))
+        self.setMaximumSize(QSize(min_width * 16 / self.size, min_width * 9 / self.size))
+        self.setMinimumSize(QSize(min_width * 16 / self.size, min_width * 9 / self.size))
 
         if not self.zoomed_in:
             self.fitInView(self.scene().sceneRect(), Qt.AspectRatioMode.KeepAspectRatio)
