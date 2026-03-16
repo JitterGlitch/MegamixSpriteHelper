@@ -16,7 +16,7 @@ import yaml
 from PIL import Image
 from PySide6.QtCore import Qt, QFileSystemWatcher, QSize, Signal, QRectF, QStandardPaths, QUrl, QFile, QIODevice
 from PySide6.QtGui import QPixmap, QPalette, QColor, QImage, QPainter, QGuiApplication, QDesktopServices
-from PySide6.QtWidgets import QApplication, QMainWindow, QWidget, QFileDialog, QMessageBox
+from PySide6.QtWidgets import QApplication, QMainWindow, QWidget, QFileDialog, QMessageBox, QSizePolicy
 
 try:
     from wand.image import Image as WImage
@@ -41,7 +41,7 @@ except ImportError:
 
 
 from FarcCreator import FarcCreator
-from SceneComposer import Scene, QControllableSprites, QPreviewScenes, SpriteSetting, QSpriteSlave, SpriteType
+from SceneComposer import Scene, QControllableSprites, QPreviewScenes, SpriteSetting, QSpriteSlave, SpriteType, QScalingGraphicsScene
 from ThirdParty.auto_creat_mod_spr_db import Manager,add_farc_to_Manager,read_farc
 from ui_SpriteHelper import Ui_MainWindow
 from ui_ThumbnailIDField import Ui_ThumbnailIDField
@@ -605,13 +605,9 @@ class MainWindow(QMainWindow):
 
     def __init__(self):
         super(MainWindow, self).__init__()
+        # TODO Needs adjustment for selectable previews
         self.main_box = Ui_MainWindow()
         self.main_box.setupUi(self)
-        color = self.palette().color(QPalette.ColorRole.Window)
-        self.main_box.graphics_scene_view.setBackgroundBrush(color)
-        self.main_box.graphics_scene_view1.setBackgroundBrush(color)
-        self.main_box.graphics_scene_view2.setBackgroundBrush(color)
-        self.main_box.graphics_scene_view3.setBackgroundBrush(color)
 
         #Prepare new window
         self.thumbnail_creator = ThumbnailWindow()
@@ -657,6 +653,8 @@ class MainWindow(QMainWindow):
         new_height = int(new_width / 2)
         size = QSize(new_width,new_height)
         self.resize(size)
+        self.space_out_scenes()
+
 
     def current_sprite_tab_switcher(self,tab):
         self.main_box.sprite_controls.setCurrentIndex(tab)
@@ -706,13 +704,49 @@ class MainWindow(QMainWindow):
         self.C_Sprites.jacket.add_edit_controls_to(self.main_box.verticalLayout_10)
         self.C_Sprites.background.add_edit_controls_to(self.main_box.verticalLayout_8)
 
-        self.main_box.graphics_scene_view1.setScene(self.P_Scenes.MM_SongSelect)
-        self.main_box.graphics_scene_view3.setScene(self.P_Scenes.FT_SongSelect)
-        self.main_box.graphics_scene_view.setScene(self.P_Scenes.MM_Result)
-        self.main_box.graphics_scene_view2.setScene(self.P_Scenes.FT_Result)
+        self.selected_scenes = [self.P_Scenes.MM_PractiseMode]
+        #self.selected_scenes = [self.P_Scenes.MM_PractiseMode,self.P_Scenes.MM_PractiseMode,self.P_Scenes.MM_PractiseMode,self.P_Scenes.MM_PractiseMode,self.P_Scenes.MM_PractiseMode]
+        self.selected_scenes_views = []
+        for scene in self.selected_scenes:
+            scene_view = QScalingGraphicsScene()
+            scene_view.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+            scene_view.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+            sizePolicy2 = QSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Ignored)
+            sizePolicy2.setHorizontalStretch(1)
+            sizePolicy2.setVerticalStretch(1)
+            scene_view.setSizePolicy(sizePolicy2)
+            scene_view.setMinimumSize(QSize(512, 288))
+            scene_view.setMaximumSize(QSize(512, 288))
+            scene_view.setBaseSize(QSize(512, 288))
+            scene_view.setRenderHint(QPainter.Antialiasing, True)
+            scene_view.setRenderHint(QPainter.SmoothPixmapTransform, True)
+            #scene_view.setBackgroundBrush(self.palette().color(QPalette.ColorRole.Window))
+            scene_view.setBackgroundBrush(Qt.black)
 
+
+            scene_view.setScene(scene)
+
+            self.main_box.image_grid.addWidget(scene_view)
+            self.selected_scenes_views.append(scene_view)
+
+        self.space_out_scenes()
+
+    def space_out_scenes(self):
+        columns = 1
+        x = 0
+        y = 0
+        for scene in self.selected_scenes_views:
+            self.main_box.image_grid.removeWidget(scene)
+            scene.lock_in()
+            self.main_box.image_grid.addWidget(scene,y,x)
+            if x == columns:
+                y = y + 1
+                x = 0
+            else:
+                x = x + 1
 
     def generate_preview(self,target:OutputTarget):
+        #TODO Needs adjustment for selectable previews
         #Update sprites if the zoom was changed
         if self.C_Sprites.jacket.edit_controls[SpriteSetting.ZOOM.value].value != 1.0:
             self.C_Sprites.jacket.update_sprite(hq_output=True)
@@ -723,12 +757,17 @@ class MainWindow(QMainWindow):
         if self.C_Sprites.logo.edit_controls[SpriteSetting.ZOOM.value].value != 1.0:
             self.C_Sprites.logo.update_sprite(hq_output=True)
 
-        preview = QImage(QSize(3840,2160),QImage.Format.Format_ARGB32)
+        # preview = QImage(QSize(3840,2160),QImage.Format.Format_ARGB32)
+        # painter = QPainter(preview)
+        # self.P_Scenes.MM_SongSelect.render(painter,target=QRectF(0,0,1920,1080))
+        # self.P_Scenes.FT_SongSelect.render(painter, target=QRectF(1920, 0, 1920, 1080))
+        # self.P_Scenes.MM_Result.render(painter, target=QRectF(0, 1080, 1920, 1080))
+        # self.P_Scenes.FT_Result.render(painter, target=QRectF(1920, 1080, 1920, 1080))
+        # painter.end()
+
+        preview = QImage(QSize(1920, 1080), QImage.Format.Format_ARGB32)
         painter = QPainter(preview)
-        self.P_Scenes.MM_SongSelect.render(painter,target=QRectF(0,0,1920,1080))
-        self.P_Scenes.FT_SongSelect.render(painter, target=QRectF(1920, 0, 1920, 1080))
-        self.P_Scenes.MM_Result.render(painter, target=QRectF(0, 1080, 1920, 1080))
-        self.P_Scenes.FT_Result.render(painter, target=QRectF(1920, 1080, 1920, 1080))
+        self.P_Scenes.MM_PractiseMode.render(painter, target=QRectF(0, 0, 1920, 1080))
         painter.end()
 
         match target:
@@ -930,6 +969,8 @@ class MainWindow(QMainWindow):
 
 
     def export_qimage_with_mask(self,qimage:QImage, mask:bytes, output_path:str):
+        # TODO - This reeks of AI-Genned code. Delete unnecessary checks
+
         with tempfile.NamedTemporaryFile(suffix='.png', delete=False) as temp_file:
             temp_path = temp_file.name
 

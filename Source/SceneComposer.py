@@ -121,6 +121,7 @@ class QScalingGraphicsScene(QGraphicsView):
         super().__init__()
         self.zoomed_in = False
         self.center_on = None
+
     def resizeEvent(self,event):
         self.lock_in()
 
@@ -128,8 +129,15 @@ class QScalingGraphicsScene(QGraphicsView):
         pass
 
     def lock_in(self):
-        if self.zoomed_in == False:
-            self.fitInView(self.scene().sceneRect(),Qt.AspectRatioMode.KeepAspectRatio)
+        min_width = self.parent().parent().parent().height() / 9
+        #size = 2.15
+        size = 1.06
+
+        self.setMaximumSize(QSize(min_width * 16 / size, min_width * 9 / size))
+        self.setMinimumSize(QSize(min_width * 16 / size, min_width * 9 / size))
+
+        if not self.zoomed_in:
+            self.fitInView(self.scene().sceneRect(), Qt.AspectRatioMode.KeepAspectRatio)
         else:
             self.fitInView(0, 0, self.scene().width() / 2, self.scene().height() / 2, Qt.AspectRatioMode.KeepAspectRatio)
             self.centerOn(self.center_on)
@@ -829,6 +837,11 @@ class QMMPractiseModeScene(QGraphicsScene):
         self.logo = QSpriteSlave(logo, QPoint(739, 508), brightness=brightness)
         self.background = QSpriteSlave(background, QPoint(0, 0), scale=1.50, brightness=brightness)
         #####
+        #TODO - Convert to resource paths
+        #TODO - Finish UI
+        #TODO - Add methods to toggle elements of UI
+        # Rendering should have options to choose what is visible
+
         self.grid = QLayer(str(Path.cwd() / "Images" / "MM UI - Practise Mode" / "Grid.png"), brightness=brightness+5)
         self.jacket_shadow = QLayer(str(Path.cwd() / "Images" / "MM UI - Practise Mode" / "Jacket Shadow.png"))
         self.top_layer = QLayer(str(Path.cwd() / "Images" / "MM UI - Practise Mode" / "UI.png"))

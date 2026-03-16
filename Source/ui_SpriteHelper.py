@@ -8,7 +8,7 @@ from PySide6.QtWidgets import (QAbstractScrollArea, QCheckBox, QComboBox,
                                QLabel, QLayout, QPushButton,
                                QScrollArea, QSizePolicy, QSpacerItem, QStackedWidget,
                                QTabWidget, QVBoxLayout, QWidget)
-from superqt import QEnumComboBox
+from superqt import QEnumComboBox, QFlowLayout
 from FarcCreator import Compression
 
 from SceneComposer import QScalingGraphicsScene
@@ -55,76 +55,33 @@ class Ui_MainWindow(object):
         self.grid.setSizeIncrement(QSize(0, 0))
         self.grid.setBaseSize(QSize(0, 0))
         self.grid.setAutoFillBackground(False)
-        self.horizontalLayout_5 = QHBoxLayout(self.grid)
-        self.horizontalLayout_5.setSpacing(5)
-        self.horizontalLayout_5.setObjectName(u"horizontalLayout_5")
-        self.horizontalLayout_5.setContentsMargins(5, 5, 5, 5)
-        self.image_grid = QGridLayout()
-        self.image_grid.setSpacing(5)
-        self.image_grid.setObjectName(u"image_grid")
-        self.image_grid.setSizeConstraint(QLayout.SizeConstraint.SetDefaultConstraint)
-        self.image_grid.setContentsMargins(0, 0, 0, 0)
+        self.ImageGrid_Layout = QHBoxLayout(self.grid)
+        self.ImageGrid_Layout.setSpacing(4)
+        self.ImageGrid_Layout.setSizeConstraint(QLayout.SizeConstraint.SetMinimumSize)
+        self.ImageGrid_Layout.setObjectName(u"ImageGrid_Layout")
+        self.ImageGrid_Layout.setContentsMargins(0, 0, 0, 0)
+
         sizePolicy2 = QSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Ignored)
         sizePolicy2.setHorizontalStretch(1)
         sizePolicy2.setVerticalStretch(1)
 
-        self.graphics_scene_view = QScalingGraphicsScene()
-        self.graphics_scene_view.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        self.graphics_scene_view.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        self.graphics_scene_view.setSizePolicy(sizePolicy2)
-        self.graphics_scene_view.setMinimumSize(QSize(256, 144))
-        self.graphics_scene_view.setMaximumSize(QSize(1920, 1080))
-        self.graphics_scene_view.setSizeIncrement(QSize(0, 0))
-        self.graphics_scene_view.setBaseSize(QSize(640, 360))
-        self.graphics_scene_view.setRenderHint(QPainter.Antialiasing, True)
-        self.graphics_scene_view.setRenderHint(QPainter.SmoothPixmapTransform, True)
-        self.graphics_scene_view.setBackgroundBrush(Qt.black)
-        self.image_grid.addWidget(self.graphics_scene_view,1,0,1,1)
+        self.scrollArea = QScrollArea(self.grid)
+        self.scrollArea.setObjectName(u"scrollArea")
+        self.scrollArea.setWidgetResizable(True)
+        self.scrollAreaWidgetContents = QWidget()
+        self.scrollAreaWidgetContents.setObjectName(u"scrollAreaWidgetContents")
+        #self.scrollAreaWidgetContents.setGeometry(QRect(0, 0, 452, 299))
 
-        self.graphics_scene_view1 = QScalingGraphicsScene()
-        self.graphics_scene_view1.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        self.graphics_scene_view1.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        self.graphics_scene_view1.setSizePolicy(sizePolicy2)
-        self.graphics_scene_view1.setMinimumSize(QSize(256, 144))
-        self.graphics_scene_view1.setMaximumSize(QSize(1920, 1080))
-        self.graphics_scene_view1.setSizeIncrement(QSize(0, 0))
-        self.graphics_scene_view1.setBaseSize(QSize(640, 360))
-        self.graphics_scene_view1.setRenderHint(QPainter.Antialiasing, True)
-        self.graphics_scene_view1.setRenderHint(QPainter.SmoothPixmapTransform, True)
-        self.graphics_scene_view1.setBackgroundBrush(Qt.black)
-
-        self.image_grid.addWidget(self.graphics_scene_view1, 0, 0, 1, 1)
-
-        self.graphics_scene_view2 = QScalingGraphicsScene()
-        self.graphics_scene_view2.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        self.graphics_scene_view2.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        self.graphics_scene_view2.setSizePolicy(sizePolicy2)
-        self.graphics_scene_view2.setMinimumSize(QSize(256, 144))
-        self.graphics_scene_view2.setMaximumSize(QSize(1920, 1080))
-        self.graphics_scene_view2.setSizeIncrement(QSize(0, 0))
-        self.graphics_scene_view2.setBaseSize(QSize(640, 360))
-        self.graphics_scene_view2.setRenderHint(QPainter.Antialiasing, True)
-        self.graphics_scene_view2.setRenderHint(QPainter.SmoothPixmapTransform, True)
-        self.graphics_scene_view2.setBackgroundBrush(Qt.black)
-
-        self.image_grid.addWidget(self.graphics_scene_view2, 1, 1, 1, 1)
-
-        self.graphics_scene_view3 = QScalingGraphicsScene()
-        self.graphics_scene_view3.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        self.graphics_scene_view3.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        self.graphics_scene_view3.setSizePolicy(sizePolicy2)
-        self.graphics_scene_view3.setMinimumSize(QSize(256, 144))
-        self.graphics_scene_view3.setMaximumSize(QSize(1920, 1080))
-        self.graphics_scene_view3.setSizeIncrement(QSize(0, 0))
-        self.graphics_scene_view3.setBaseSize(QSize(640, 360))
-        self.graphics_scene_view3.setRenderHint(QPainter.Antialiasing, True)
-        self.graphics_scene_view3.setRenderHint(QPainter.SmoothPixmapTransform, True)
-        self.graphics_scene_view3.setBackgroundBrush(Qt.black)
-
-        self.image_grid.addWidget(self.graphics_scene_view3, 0, 1, 1, 1)
+        self.image_grid = QGridLayout(self.scrollAreaWidgetContents)
+        self.image_grid.setSpacing(5)
+        self.image_grid.setObjectName(u"image_grid")
+        self.image_grid.setSizeConstraint(QLayout.SizeConstraint.SetDefaultConstraint)
+        self.image_grid.setContentsMargins(0, 0, 0, 0)
 
 
-        self.horizontalLayout_5.addLayout(self.image_grid)
+
+        self.ImageGrid_Layout.addWidget(self.scrollArea)
+        self.scrollArea.setWidget(self.scrollAreaWidgetContents)
 
         self.load_buttons_box = QVBoxLayout()
         self.load_buttons_box.setSpacing(5)
@@ -461,7 +418,7 @@ class Ui_MainWindow(object):
         self.load_buttons_box.addLayout(self.image_tab_vertical_layout)
 
 
-        self.horizontalLayout_5.addLayout(self.load_buttons_box)
+        self.ImageGrid_Layout.addLayout(self.load_buttons_box)
 
         MainWindow.setCentralWidget(self.grid)
 
