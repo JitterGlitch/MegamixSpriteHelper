@@ -127,7 +127,7 @@ class QScalingGraphicsScene(QGraphicsView):
         self.lock_in()
 
     def wheelEvent(self, event, /):
-        pass
+        event.ignore()
 
     def lock_in(self):
         min_width = self.parent().parent().parent().height() / 9
