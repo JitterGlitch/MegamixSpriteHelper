@@ -14,8 +14,8 @@ import kkdlib
 
 import yaml
 from PIL import Image
-from PySide6.QtCore import Qt, QFileSystemWatcher, QSize, Signal, QRectF, QStandardPaths, QUrl, QFile, QIODevice
-from PySide6.QtGui import QPixmap, QPalette, QColor, QImage, QPainter, QGuiApplication, QDesktopServices
+from PySide6.QtCore import Qt, QFileSystemWatcher, QSize, Signal, QRectF, QStandardPaths, QUrl, QFile, QIODevice, QByteArray
+from PySide6.QtGui import QPixmap, QPalette, QColor, QImage, QPainter, QGuiApplication, QDesktopServices, QImageWriter
 from PySide6.QtWidgets import QApplication, QMainWindow, QWidget, QFileDialog, QMessageBox, QSizePolicy
 
 try:
@@ -58,6 +58,7 @@ class OutputTarget(Enum):
 class Configurable:
     def __init__(self):
         self.script_directory = Path.cwd()
+        self.version = 1.2
 
         extensions = Image.registered_extensions()
         self.readable_extensions = [ext for ext, fmt in extensions.items() if fmt in Image.OPEN]
@@ -992,6 +993,12 @@ class MainWindow(QMainWindow):
                         mask_img.resize(img.width, img.height)
 
                     img.composite(mask_img, operator='copy_alpha')
+
+                    img.background_color = "rgb(255, 255, 255)"
+                    img.compression = 'zip'
+                    img.colorspace = 'srgb'
+
+                    img.metadata['MegaMix Sprite Helper version'] = str(config.version)
 
                     img.save(filename=output_path)
 
