@@ -610,6 +610,15 @@ class MainWindow(QMainWindow):
         self.main_box = Ui_MainWindow()
         self.main_box.setupUi(self)
 
+        self.menu = self.menuBar()
+        self.file_menu = self.menu.addMenu("File")
+        self.export_menu = self.menu.addMenu("Export")
+        self.config_scenes_menu = self.menu.addMenu("Configure Scenes")
+        self.display_scenes_menu = self.menu.addMenu("Display Scenes")
+
+        self.open_project = self.file_menu.addAction("Open Project...", self.close)
+        self.save_project = self.file_menu.addAction("Save Project", self.close)
+
         #Prepare new window
         self.thumbnail_creator = ThumbnailWindow()
 
@@ -702,14 +711,52 @@ class MainWindow(QMainWindow):
         self.C_Sprites = QControllableSprites()
         self.P_Scenes = QPreviewScenes(self.C_Sprites)
 
+        self.populate_display_scene_menu()
+
         self.C_Sprites.thumbnail.add_edit_controls_to(self.main_box.verticalLayout_12)
         self.C_Sprites.logo.add_edit_controls_to(self.main_box.verticalLayout_11)
         self.C_Sprites.jacket.add_edit_controls_to(self.main_box.verticalLayout_10)
         self.C_Sprites.background.add_edit_controls_to(self.main_box.verticalLayout_8)
-
-        #self.selected_scenes = [self.P_Scenes.MM_PractiseMode]
-        self.selected_scenes = [self.P_Scenes.MM_PractiseMode,self.P_Scenes.MM_SongSelect,self.P_Scenes.MM_Result,self.P_Scenes.FT_SongSelect,self.P_Scenes.FT_Result]
         self.selected_scenes_views = []
+
+
+        self.display_selected_scenes()
+
+    def populate_display_scene_menu(self):
+        self.mm_song_select_toggle = self.display_scenes_menu.addAction("MegaMix Song Select")
+        self.mm_result_toggle = self.display_scenes_menu.addAction("MegaMix Results")
+        self.mm_practise_toggle = self.display_scenes_menu.addAction("MegaMix Practice Mode")
+        self.ft_song_select_toggle = self.display_scenes_menu.addAction("Future Tone Song Select")
+        self.ft_result_toggle = self.display_scenes_menu.addAction("Future Tone Results")
+
+        self.scene_toggle_list = []
+        self.scene_toggle_list.append((self.mm_song_select_toggle, self.P_Scenes.MM_SongSelect))
+        self.scene_toggle_list.append((self.ft_song_select_toggle, self.P_Scenes.FT_SongSelect))
+        self.scene_toggle_list.append((self.mm_result_toggle,self.P_Scenes.MM_Result))
+        self.scene_toggle_list.append((self.ft_result_toggle,self.P_Scenes.FT_Result))
+        self.scene_toggle_list.append((self.mm_practise_toggle, self.P_Scenes.MM_PractiseMode))
+
+        for toggle in self.scene_toggle_list:
+            toggle[0].setCheckable(True)
+            toggle[0].setChecked(True)
+            toggle[0].triggered.connect(self.display_selected_scenes)
+    def display_selected_scenes(self):
+        self.selected_scenes = []
+
+        for scene_view in self.selected_scenes_views:
+            scene_view.destroy()
+            scene_view.deleteLater()
+            self.main_box.image_grid.removeWidget(scene_view)
+
+        self.selected_scenes_views.clear()
+
+
+
+        for toggle in self.scene_toggle_list:
+            if toggle[0].isChecked() == True:
+                self.selected_scenes.append(toggle[1])
+
+
         for scene in self.selected_scenes:
             scene_view = QScalingGraphicsScene()
             scene_view.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
@@ -723,17 +770,14 @@ class MainWindow(QMainWindow):
             scene_view.setBaseSize(QSize(512, 288))
             scene_view.setRenderHint(QPainter.Antialiasing, True)
             scene_view.setRenderHint(QPainter.SmoothPixmapTransform, True)
-            #scene_view.setBackgroundBrush(self.palette().color(QPalette.ColorRole.Window))
+            # scene_view.setBackgroundBrush(self.palette().color(QPalette.ColorRole.Window))
             scene_view.setBackgroundBrush(Qt.black)
-
-
             scene_view.setScene(scene)
-
-            self.main_box.image_grid.addWidget(scene_view)
             self.selected_scenes_views.append(scene_view)
 
-        self.space_out_scenes()
+            self.main_box.image_grid.addWidget(scene_view)
 
+        self.space_out_scenes()
     def space_out_scenes(self):
         if len(self.selected_scenes_views) > 1:
             size = 2.15
