@@ -16,7 +16,9 @@ import yaml
 from PIL import Image
 from PySide6.QtCore import Qt, QFileSystemWatcher, QSize, Signal, QRectF, QStandardPaths, QUrl, QFile, QIODevice, QByteArray
 from PySide6.QtGui import QPixmap, QPalette, QColor, QImage, QPainter, QGuiApplication, QDesktopServices, QImageWriter
-from PySide6.QtWidgets import QApplication, QMainWindow, QWidget, QFileDialog, QMessageBox, QSizePolicy
+from PySide6.QtWidgets import QApplication, QMainWindow, QWidget, QFileDialog, QMessageBox, QSizePolicy, QMenu, QMenuBar
+
+from Source.widgets import QSmarterMenu
 
 try:
     from wand.image import Image as WImage
@@ -606,15 +608,16 @@ class MainWindow(QMainWindow):
 
     def __init__(self):
         super(MainWindow, self).__init__()
-        # TODO Needs adjustment for selectable previews
         self.main_box = Ui_MainWindow()
         self.main_box.setupUi(self)
 
-        self.menu = self.menuBar()
+        self.menu = self.main_box.menu
+
         self.file_menu = self.menu.addMenu("File")
         self.export_menu = self.menu.addMenu("Export")
         self.config_scenes_menu = self.menu.addMenu("Configure Scenes")
-        self.display_scenes_menu = self.menu.addMenu("Display Scenes")
+        self.display_scenes_menu = QSmarterMenu("Display Scenes", self)
+        self.menu.addMenu(self.display_scenes_menu)
 
         self.open_project = self.file_menu.addAction("Open Project...", self.close)
         self.save_project = self.file_menu.addAction("Save Project", self.close)

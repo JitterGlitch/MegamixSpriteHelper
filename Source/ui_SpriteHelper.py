@@ -7,7 +7,7 @@ from PySide6.QtWidgets import (QAbstractScrollArea, QCheckBox, QComboBox,
                                QDoubleSpinBox, QFrame, QGridLayout, QHBoxLayout,
                                QLabel, QLayout, QPushButton,
                                QScrollArea, QSizePolicy, QSpacerItem, QStackedWidget,
-                               QTabWidget, QVBoxLayout, QWidget)
+                               QTabWidget, QVBoxLayout, QWidget, QMenuBar)
 from superqt import QEnumComboBox, QFlowLayout
 from FarcCreator import Compression
 
@@ -55,17 +55,26 @@ class Ui_MainWindow(object):
         self.grid.setSizeIncrement(QSize(0, 0))
         self.grid.setBaseSize(QSize(0, 0))
         self.grid.setAutoFillBackground(False)
-        self.ImageGrid_Layout = QHBoxLayout(self.grid)
+
+        self.Holder_Layout = QHBoxLayout(self.grid)
+
+        self.ImageGrid_Layout = QVBoxLayout()
         self.ImageGrid_Layout.setSpacing(4)
         self.ImageGrid_Layout.setSizeConstraint(QLayout.SizeConstraint.SetMinimumSize)
         self.ImageGrid_Layout.setObjectName(u"ImageGrid_Layout")
         self.ImageGrid_Layout.setContentsMargins(0, 0, 0, 0)
 
+        self.menu = QMenuBar()
+        self.ImageGrid_Layout.setMenuBar(self.menu)
+        self.vSpacer = QSpacerItem(0, 15, QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
+        self.ImageGrid_Layout.addItem(self.vSpacer)
+        self.Holder_Layout.addLayout(self.ImageGrid_Layout)
+
         sizePolicy2 = QSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Ignored)
         sizePolicy2.setHorizontalStretch(1)
         sizePolicy2.setVerticalStretch(1)
 
-        self.scrollArea = QScrollArea(self.grid)
+        self.scrollArea = QScrollArea()
         self.scrollArea.setObjectName(u"scrollArea")
         self.scrollArea.setWidgetResizable(True)
         self.scrollAreaWidgetContents = QWidget()
@@ -76,7 +85,6 @@ class Ui_MainWindow(object):
         self.image_grid.setObjectName(u"image_grid")
         self.image_grid.setSizeConstraint(QLayout.SizeConstraint.SetDefaultConstraint)
         self.image_grid.setContentsMargins(0, 0, 0, 0)
-
 
 
         self.ImageGrid_Layout.addWidget(self.scrollArea)
@@ -416,7 +424,8 @@ class Ui_MainWindow(object):
         self.load_buttons_box.addLayout(self.image_tab_vertical_layout)
 
 
-        self.ImageGrid_Layout.addLayout(self.load_buttons_box)
+        #self.ImageGrid_Layout.addLayout(self.load_buttons_box)
+        self.Holder_Layout.addLayout(self.load_buttons_box)
 
         MainWindow.setCentralWidget(self.grid)
 
