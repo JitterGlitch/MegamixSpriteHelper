@@ -610,6 +610,7 @@ class MainWindow(QMainWindow):
         super(MainWindow, self).__init__()
         self.main_box = Ui_MainWindow()
         self.main_box.setupUi(self)
+        self.setWindowTitle("Megamix Sprite Helper" + " " + str(config.version))
 
         self.menu = self.main_box.menu
 
