@@ -67,7 +67,6 @@ class Configurable:
         formats_string = " ".join(sorted([f"*{ext}" for ext in self.readable_extensions]))
 
         self.allowed_file_types = f"Image Files ({formats_string})"
-        self.scenes_to_draw = [Scene.MEGAMIX_SONG_SELECT,Scene.FUTURE_TONE_SONG_SELECT,Scene.MEGAMIX_RESULT,Scene.FUTURE_TONE_RESULT]
         self.last_used_directory = self.script_directory
 
 

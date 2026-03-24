@@ -31,12 +31,6 @@ class SpriteSetting(StrEnum):
     ZOOM = "Zoom"
     BRIGHTNESS = "Brightness"
 
-class Scene(Enum):
-    MEGAMIX_SONG_SELECT = auto()
-    MEGAMIX_RESULT = auto()
-    FUTURE_TONE_SONG_SELECT = auto()
-    FUTURE_TONE_RESULT = auto()
-
 ####################################################
 def round_up(number, decimal_places):
     factor = 10 ** decimal_places
