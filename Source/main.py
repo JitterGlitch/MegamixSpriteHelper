@@ -825,7 +825,6 @@ class MainWindow(QMainWindow):
                 x = x + 1
 
     def generate_preview(self,target:OutputTarget):
-        #TODO Needs adjustment for selectable previews
         #Update sprites if the zoom was changed
         if self.C_Sprites.jacket.edit_controls[SpriteSetting.ZOOM.value].value != 1.0:
             self.C_Sprites.jacket.update_sprite(hq_output=True)
@@ -836,17 +835,36 @@ class MainWindow(QMainWindow):
         if self.C_Sprites.logo.edit_controls[SpriteSetting.ZOOM.value].value != 1.0:
             self.C_Sprites.logo.update_sprite(hq_output=True)
 
-        # preview = QImage(QSize(3840,2160),QImage.Format.Format_ARGB32)
-        # painter = QPainter(preview)
-        # self.P_Scenes.MM_SongSelect.render(painter,target=QRectF(0,0,1920,1080))
-        # self.P_Scenes.FT_SongSelect.render(painter, target=QRectF(1920, 0, 1920, 1080))
-        # self.P_Scenes.MM_Result.render(painter, target=QRectF(0, 1080, 1920, 1080))
-        # self.P_Scenes.FT_Result.render(painter, target=QRectF(1920, 1080, 1920, 1080))
-        # painter.end()
+        if len(self.selected_scenes) == 0:
+            return
+        if len(self.selected_scenes) > 1:
+            width = 3840
+            height = math.ceil((len(self.selected_scenes)/2))*1080
+        else:
+            width = 1920
+            height = 1080
 
-        preview = QImage(QSize(1920, 1080), QImage.Format.Format_ARGB32)
+        preview = QImage(QSize(width,height),QImage.Format.Format_ARGB32)
         painter = QPainter(preview)
-        self.P_Scenes.MM_PractiseMode.render(painter, target=QRectF(0, 0, 1920, 1080))
+
+        x = 0
+        y = 0
+        w = 0
+        h = 0
+        for scene in self.selected_scenes:
+            print(QRectF(x,y,scene.width(), scene.height()))
+            scene.render(painter,target=QRectF(w,h,1920, 1080))
+
+            if x == 1:
+                w = 0
+                h = h+1080
+
+                y = y + 1
+                x = 0
+            else:
+                w = w + 1920
+                x = x + 1
+
         painter.end()
 
         match target:
