@@ -10,7 +10,7 @@ from PySide6.QtCore import Qt, QRectF, QPoint, Signal, QObject, QSize, QRect, QI
 from PySide6.QtGui import QImage, QPixmap, QPainter, QTransform, QColor
 from PySide6.QtWidgets import QGraphicsPixmapItem, QFileDialog, QGraphicsScene, QLayout, QGraphicsView, QWidget
 
-from Source.widgets import EditableDoubleLabel, QSmarterMenu
+from widgets import EditableDoubleLabel, QSmarterMenu
 
 
 class State(Enum):
