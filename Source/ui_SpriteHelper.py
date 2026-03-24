@@ -11,7 +11,6 @@ from PySide6.QtWidgets import (QAbstractScrollArea, QCheckBox, QComboBox,
 from superqt import QEnumComboBox, QFlowLayout
 from FarcCreator import Compression
 
-from SceneComposer import QScalingGraphicsScene
 import resources
 
 class Ui_MainWindow(object):
@@ -76,6 +75,7 @@ class Ui_MainWindow(object):
         self.scrollArea = QScrollArea()
         self.scrollArea.setObjectName(u"scrollArea")
         self.scrollArea.setWidgetResizable(True)
+        self.scrollArea.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOn)
         self.scrollAreaWidgetContents = QWidget()
         self.scrollAreaWidgetContents.setObjectName(u"scrollAreaWidgetContents")
 
@@ -96,24 +96,13 @@ class Ui_MainWindow(object):
         self.horizontalLayout = QHBoxLayout()
         self.horizontalLayout.setObjectName(u"horizontalLayout")
 
-
+        #This was used for scene toggles , might reuse
         self.load_buttons_box_row3 = QHBoxLayout()
         self.load_buttons_box_row3.setSpacing(5)
         self.load_buttons_box_row3.setObjectName(u"load_buttons_box_row3")
         self.load_buttons_box_row3.setSizeConstraint(QLayout.SizeConstraint.SetMinimumSize)
         self.load_buttons_box_row3.setContentsMargins(-1, 0, -1, -1)
-        self.has_logo_checkbox = QCheckBox(self.grid)
-        self.has_logo_checkbox.setObjectName(u"has_logo_checkbox")
-        self.has_logo_checkbox.setCheckable(True)
-        self.has_logo_checkbox.setChecked(True)
 
-        self.load_buttons_box_row3.addWidget(self.has_logo_checkbox)
-
-        self.new_classics_checkbox = QCheckBox(self.grid)
-        self.new_classics_checkbox.setObjectName(u"new_classics_checkbox")
-        self.new_classics_checkbox.setChecked(True)
-
-        self.load_buttons_box_row3.addWidget(self.new_classics_checkbox)
 
 
 
@@ -439,8 +428,6 @@ class Ui_MainWindow(object):
     # setupUi
 
     def retranslateUi(self, MainWindow):
-        self.has_logo_checkbox.setText(QCoreApplication.translate("MainWindow", u"Has logo?", None))
-        self.new_classics_checkbox.setText(QCoreApplication.translate("MainWindow", u"New Classics?", None))
         self.current_sprite_combobox.setItemText(0, QCoreApplication.translate("MainWindow", u"Jacket", None))
         self.current_sprite_combobox.setItemText(1, QCoreApplication.translate("MainWindow", u"Background", None))
         self.current_sprite_combobox.setItemText(2, QCoreApplication.translate("MainWindow", u"Thumbnail", None))

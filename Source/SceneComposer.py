@@ -10,7 +10,7 @@ from PySide6.QtCore import Qt, QRectF, QPoint, Signal, QObject, QSize, QRect, QI
 from PySide6.QtGui import QImage, QPixmap, QPainter, QTransform, QColor
 from PySide6.QtWidgets import QGraphicsPixmapItem, QFileDialog, QGraphicsScene, QLayout, QGraphicsView, QWidget
 
-from Source.widgets import EditableDoubleLabel
+from Source.widgets import EditableDoubleLabel, QSmarterMenu
 
 
 class State(Enum):
@@ -756,6 +756,7 @@ class QControllableSprites:
 class QMMSongSelectScene(QGraphicsScene):
     def __init__(self,jacket:QJacket, logo:QLogo, background:QSpriteBase, thumbnail:QThumbnail):
         super().__init__()
+        self.name = "MegaMix Song Select"
 
         #####
         self.jacket = QSpriteSlave(jacket, QPoint(1284, 130), rotation=7)
@@ -794,6 +795,11 @@ class QMMSongSelectScene(QGraphicsScene):
         self.addItem(self.thumbnail_7)
         self.addItem(self.top_layer)
 
+        self.scene_config_menu = QSmarterMenu(self.name)
+        self.show_ui_toggle = self.scene_config_menu.addAction("Show UI")
+        self.show_ui_toggle.setCheckable(True)
+        self.show_ui_toggle.setChecked(True)
+
     def toggle_new_classics(self,state):
         if state:
             self.top_layer.setPixmap(QPixmap(u":icon/Images/MM UI - Song Select/Top Layer - New Classics.png"))
@@ -802,6 +808,7 @@ class QMMSongSelectScene(QGraphicsScene):
 class QMMResultScene(QGraphicsScene):
     def __init__(self,jacket:QJacket, logo:QLogo, background:QSpriteBase):
         super().__init__()
+        self.name = "MegaMix Results"
 
         #####
         self.jacket = QSpriteSlave(jacket, QPoint(108, 387), rotation=7, scale=0.9)
@@ -822,6 +829,11 @@ class QMMResultScene(QGraphicsScene):
         self.addItem(self.logo)
         self.addItem(self.top_layer)
 
+        self.scene_config_menu = QSmarterMenu(self.name)
+        self.show_ui_toggle = self.scene_config_menu.addAction("Show UI")
+        self.show_ui_toggle.setCheckable(True)
+        self.show_ui_toggle.setChecked(True)
+
     def toggle_new_classics(self, state):
         if state:
             self.top_layer.setPixmap(QPixmap(u":icon/Images/MM UI - Results Screen/Top Layer - New Classics.png"))
@@ -830,6 +842,7 @@ class QMMResultScene(QGraphicsScene):
 class QMMPractiseModeScene(QGraphicsScene):
     def __init__(self,jacket:QJacket, logo:QLogo, background:QSpriteBase):
         super().__init__()
+        self.name = "MegaMix Practise Mode"
         brightness = 40
         ######
         self.jacket = QSpriteSlave(jacket, QPoint(1294, 147), rotation=7, brightness=brightness)
@@ -856,9 +869,15 @@ class QMMPractiseModeScene(QGraphicsScene):
         self.addItem(self.grid)
         self.addItem(self.top_layer)
 
+        self.scene_config_menu = QSmarterMenu(self.name)
+        self.show_ui_toggle = self.scene_config_menu.addAction("Show UI")
+        self.show_ui_toggle.setCheckable(True)
+        self.show_ui_toggle.setChecked(True)
+
 class QFTSongSelectScene(QGraphicsScene):
     def __init__(self,jacket:QJacket, logo:QLogo, background:QSpriteBase):
         super().__init__()
+        self.name = "Future Tone Song Select"
         #####
         self.jacket = QSpriteSlave(jacket, QPoint(1331, 205), rotation=-5 ,scale=0.97)
         self.logo = QSpriteSlave(logo, QPoint(803, 515), scale=0.9)
@@ -879,6 +898,11 @@ class QFTSongSelectScene(QGraphicsScene):
         self.addItem(self.logo)
         self.addItem(self.top_layer)
 
+        self.scene_config_menu = QSmarterMenu(self.name)
+        self.show_ui_toggle = self.scene_config_menu.addAction("Show UI")
+        self.show_ui_toggle.setCheckable(True)
+        self.show_ui_toggle.setChecked(True)
+
     def toggle_new_classics(self, state):
         if state:
             self.top_layer.setPixmap(QPixmap(u":icon/Images/FT UI - Song Select/Top Layer - New Classics.png"))
@@ -887,6 +911,7 @@ class QFTSongSelectScene(QGraphicsScene):
 class QFTResultScene(QGraphicsScene):
     def __init__(self,jacket:QJacket, logo:QLogo):
         super().__init__()
+        self.name = "Future Tone Results"
 
         #####
         self.jacket = QSpriteSlave(jacket, QPoint(164, 303), rotation=-5)
@@ -904,6 +929,11 @@ class QFTResultScene(QGraphicsScene):
         self.addItem(self.jacket)
         self.addItem(self.logo)
         self.addItem(self.top_layer)
+
+        self.scene_config_menu = QSmarterMenu(self.name)
+        self.show_ui_toggle = self.scene_config_menu.addAction("Show UI")
+        self.show_ui_toggle.setCheckable(True)
+        self.show_ui_toggle.setChecked(True)
 
     def toggle_new_classics(self, state):
         if state:
@@ -933,3 +963,5 @@ class QPreviewScenes:
 
         self.FT_Result = QFTResultScene(C_Sprites.jacket,
                                         C_Sprites.logo)
+
+        self.new_classics_scenes = [self.MM_SongSelect,self.MM_Result,self.FT_SongSelect,self.FT_Result]

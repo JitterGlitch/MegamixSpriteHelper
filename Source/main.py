@@ -15,7 +15,7 @@ import kkdlib
 import yaml
 from PIL import Image
 from PySide6.QtCore import Qt, QFileSystemWatcher, QSize, Signal, QRectF, QStandardPaths, QUrl, QFile, QIODevice, QByteArray
-from PySide6.QtGui import QPixmap, QPalette, QColor, QImage, QPainter, QGuiApplication, QDesktopServices, QImageWriter
+from PySide6.QtGui import QPixmap, QPalette, QColor, QImage, QPainter, QGuiApplication, QDesktopServices, QImageWriter, QAction
 from PySide6.QtWidgets import QApplication, QMainWindow, QWidget, QFileDialog, QMessageBox, QSizePolicy, QMenu, QMenuBar
 
 from Source.widgets import QSmarterMenu
@@ -643,13 +643,7 @@ class MainWindow(QMainWindow):
         self.main_box.flip_horizontal_button.clicked.connect(lambda: self.flip_current_sprite(Qt.Orientation.Horizontal))
         self.main_box.flip_vertical_button.clicked.connect(lambda: self.flip_current_sprite(Qt.Orientation.Vertical))
 
-
-
         self.main_box.current_sprite_combobox.currentIndexChanged.connect(lambda: self.current_sprite_tab_switcher(self.main_box.current_sprite_combobox.currentIndex()))
-
-        #Connect checkboxes with their functions
-        self.main_box.has_logo_checkbox.checkStateChanged.connect(self.has_logo_checkbox_callback)
-        self.main_box.new_classics_checkbox.checkStateChanged.connect(self.toggle_new_classics)
 
         self.display_scenes()
 
@@ -740,6 +734,15 @@ class MainWindow(QMainWindow):
         self.scene_toggle_list.append((self.ft_result_toggle,self.P_Scenes.FT_Result))
         self.scene_toggle_list.append((self.mm_practise_toggle, self.P_Scenes.MM_PractiseMode))
 
+        self.new_classics_toggle = QAction("Show New Classics UI")
+        self.new_classics_toggle.setCheckable(True)
+        self.new_classics_toggle.setChecked(True)
+
+        self.has_logo_toggle = QAction("Show Logo")
+        self.has_logo_toggle.setCheckable(True)
+        self.has_logo_toggle.setChecked(True)
+        self.has_logo_toggle.toggled.connect(self.has_logo_toggle_callback)
+
         for toggle in self.scene_toggle_list:
             toggle[0].setCheckable(True)
             toggle[0].setChecked(True)
@@ -781,7 +784,26 @@ class MainWindow(QMainWindow):
 
             self.main_box.image_grid.addWidget(scene_view)
 
+        self.populate_configure_scene_menu()
         self.space_out_scenes()
+    def populate_configure_scene_menu(self):
+        self.config_scenes_menu.clear()
+        self.config_scenes_menu.addSection("Apply to all scenes")
+        new_classic_toggleable_scene_present = any(item in self.P_Scenes.new_classics_scenes for item in self.selected_scenes)
+
+        if len(self.selected_scenes) > 0:
+            self.config_scenes_menu.addAction(self.has_logo_toggle)
+
+        if new_classic_toggleable_scene_present:
+            self.config_scenes_menu.addAction(self.new_classics_toggle)
+            for scene in self.P_Scenes.new_classics_scenes:
+                self.new_classics_toggle.toggled.connect(scene.toggle_new_classics)
+
+
+        self.config_scenes_menu.addSection("Per Scene toggles")
+        for scene in self.selected_scenes:
+            self.config_scenes_menu.addMenu(scene.scene_config_menu)
+
     def space_out_scenes(self):
         if len(self.selected_scenes_views) > 1:
             size = 2.15
@@ -856,13 +878,11 @@ class MainWindow(QMainWindow):
         else:
             self.watcher.removePath(path)
 
-    def has_logo_checkbox_callback(self):
-        if self.main_box.has_logo_checkbox.checkState() == Qt.CheckState.Checked:
+    def has_logo_toggle_callback(self):
+        if self.has_logo_toggle.isChecked():
             state = True
-            self.main_box.export_logo_button.setToolTip("")
         else:
             state = False
-            self.main_box.export_logo_button.setToolTip("Logo is disabled.")
 
         for sprite_slave in self.C_Sprites.logo.sprite_slaves_list:
             sprite_slave: QSpriteSlave
@@ -876,15 +896,6 @@ class MainWindow(QMainWindow):
             self.main_box.load_image_button.setEnabled(state)
             self.main_box.flip_vertical_button.setEnabled(state)
             self.main_box.flip_horizontal_button.setEnabled(state)
-    def toggle_new_classics(self):
-        if self.main_box.new_classics_checkbox.checkState() == Qt.CheckState.Checked:
-            state = True
-        else:
-            state = False
-        self.P_Scenes.MM_SongSelect.toggle_new_classics(state)
-        self.P_Scenes.FT_SongSelect.toggle_new_classics(state)
-        self.P_Scenes.MM_Result.toggle_new_classics(state)
-        self.P_Scenes.FT_Result.toggle_new_classics(state)
 
 
 
@@ -1018,7 +1029,7 @@ class MainWindow(QMainWindow):
             compression = self.main_box.farc_compression_dropdown.currentEnum()
             print(compression)
 
-            if self.main_box.has_logo_checkbox.checkState() == Qt.CheckState.Checked:
+            if self.has_logo_toggle:
                 logo = Image.fromqimage(self.create_logo_texture()).transpose(Image.Transpose.FLIP_TOP_BOTTOM)
             else:
                 logo = None
