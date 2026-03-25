@@ -615,8 +615,9 @@ class MainWindow(QMainWindow):
 
         self.file_menu = self.menu.addMenu("File")
         self.export_menu = self.menu.addMenu("Export")
-        self.config_scenes_menu = self.menu.addMenu("Configure Scenes")
+        self.config_scenes_menu = QSmarterMenu("Configure Scenes",self)
         self.display_scenes_menu = QSmarterMenu("Display Scenes", self)
+        self.menu.addMenu(self.config_scenes_menu)
         self.menu.addMenu(self.display_scenes_menu)
 
         self.open_project = self.file_menu.addAction("Open Project...", self.close)
