@@ -333,81 +333,15 @@ class Ui_MainWindow(object):
 
         self.verticalLayout_3.addWidget(self.farc_export_button)
 
-        self.farc_create_thumbnail_button = QPushButton(self.to_farc_tab)
-        self.farc_create_thumbnail_button.setMaximumSize(QSize(195, 16777215))
-        self.farc_create_thumbnail_button.setObjectName(u"farc_create_thumbnail_button")
-
-        self.verticalLayout_3.addWidget(self.farc_create_thumbnail_button)
-
-        self.generate_spr_db_button = QPushButton(self.to_farc_tab)
-        self.generate_spr_db_button.setObjectName(u"generate_spr_db_button")
-        self.generate_spr_db_button.setMaximumSize(QSize(195, 16777215))
-        self.generate_spr_db_button.setLayoutDirection(Qt.LayoutDirection.LeftToRight)
-
-        self.verticalLayout_3.addWidget(self.generate_spr_db_button)
 
         self.verticalSpacer = QSpacerItem(0, 0, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
 
         self.verticalLayout_3.addItem(self.verticalSpacer)
 
         self.export_controls.addTab(self.to_farc_tab, "")
-        self.to_image_tab = QWidget()
-        self.to_image_tab.setObjectName(u"to_image_tab")
-        self.verticalLayout_4 = QVBoxLayout(self.to_image_tab)
-        self.verticalLayout_4.setSpacing(4)
-        self.verticalLayout_4.setObjectName(u"verticalLayout_4")
-        self.verticalLayout_4.setContentsMargins(4, 4, 4, 4)
-        self.open_preview_button = QPushButton(self.to_image_tab)
-        self.open_preview_button.setSizePolicy(sizePolicy)
-        self.open_preview_button.setMaximumSize(QSize(195, 16777215))
-        self.open_preview_button.setObjectName(u"open_preview_button")
-
-        self.verticalLayout_4.addWidget(self.open_preview_button)
-
-        self.copy_to_clipboard_button = QPushButton(self.to_image_tab)
-        self.copy_to_clipboard_button.setObjectName(u"copy_to_clipboard_button")
-        sizePolicy.setHeightForWidth(self.copy_to_clipboard_button.sizePolicy().hasHeightForWidth())
-        self.copy_to_clipboard_button.setSizePolicy(sizePolicy)
-        self.copy_to_clipboard_button.setMaximumSize(QSize(195, 16777215))
-        self.copy_to_clipboard_button.setLayoutDirection(Qt.LayoutDirection.LeftToRight)
-
-        self.verticalLayout_4.addWidget(self.copy_to_clipboard_button)
-
-        self.export_thumbnail_button = QPushButton(self.to_image_tab)
-        self.export_thumbnail_button.setObjectName(u"export_thumbnail_button")
-        sizePolicy.setHeightForWidth(self.export_thumbnail_button.sizePolicy().hasHeightForWidth())
-        self.export_thumbnail_button.setSizePolicy(sizePolicy)
-        self.export_thumbnail_button.setMaximumSize(QSize(195, 16777215))
-        self.export_thumbnail_button.setLayoutDirection(Qt.LayoutDirection.LeftToRight)
-
-        self.verticalLayout_4.addWidget(self.export_thumbnail_button)
-
-        self.export_logo_button = QPushButton(self.to_image_tab)
-        self.export_logo_button.setObjectName(u"export_logo_button")
-        sizePolicy.setHeightForWidth(self.export_logo_button.sizePolicy().hasHeightForWidth())
-        self.export_logo_button.setSizePolicy(sizePolicy)
-        self.export_logo_button.setMaximumSize(QSize(195, 16777215))
-        self.export_logo_button.setLayoutDirection(Qt.LayoutDirection.LeftToRight)
-
-        self.verticalLayout_4.addWidget(self.export_logo_button)
-
-        self.export_background_jacket_button = QPushButton(self.to_image_tab)
-        self.export_background_jacket_button.setObjectName(u"export_background_jacket_button")
-        sizePolicy.setHeightForWidth(self.export_background_jacket_button.sizePolicy().hasHeightForWidth())
-        self.export_background_jacket_button.setSizePolicy(sizePolicy)
-        self.export_background_jacket_button.setMaximumSize(QSize(195, 16777215))
-        self.export_background_jacket_button.setLayoutDirection(Qt.LayoutDirection.LeftToRight)
-
-        self.verticalLayout_4.addWidget(self.export_background_jacket_button)
-
-        self.verticalSpacer_2 = QSpacerItem(0, 0, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
-
-        self.verticalLayout_4.addItem(self.verticalSpacer_2)
-
-        self.export_controls.addTab(self.to_image_tab, "")
 
         self.image_tab_vertical_layout.addWidget(self.export_controls)
-
+        self.export_controls.setVisible(False)
 
         self.load_buttons_box.addLayout(self.image_tab_vertical_layout)
 
@@ -437,15 +371,7 @@ class Ui_MainWindow(object):
         self.flip_vertical_button.setText(QCoreApplication.translate("MainWindow", u"Flip Vertically", None))
         self.song_id_label.setText(QCoreApplication.translate("MainWindow", u"Song ID", None))
         self.farc_export_button.setText(QCoreApplication.translate("MainWindow", u"Export BG/JK/Logo Farc", None))
-        self.farc_create_thumbnail_button.setText(QCoreApplication.translate("MainWindow", u"Create Thumbnail Farc", None))
-        self.generate_spr_db_button.setText(QCoreApplication.translate("MainWindow", u"Generate Sprite Database", None))
         self.export_controls.setTabText(self.export_controls.indexOf(self.to_farc_tab), QCoreApplication.translate("MainWindow", u"To Farc", None))
-        self.open_preview_button.setText(QCoreApplication.translate("MainWindow", u"Open preview externally", None))
-        self.copy_to_clipboard_button.setText(QCoreApplication.translate("MainWindow", u"Copy preview to clipboard", None))
-        self.export_thumbnail_button.setText(QCoreApplication.translate("MainWindow", u"Export Thumbnail", None))
-        self.export_logo_button.setText(QCoreApplication.translate("MainWindow", u"Export Logo", None))
-        self.export_background_jacket_button.setText(QCoreApplication.translate("MainWindow", u"Export Background/Jacket", None))
-        self.export_controls.setTabText(self.export_controls.indexOf(self.to_image_tab), QCoreApplication.translate("MainWindow", u"To Image", None))
         pass
     # retranslateUi
 

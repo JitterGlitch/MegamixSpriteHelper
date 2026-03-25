@@ -614,14 +614,30 @@ class MainWindow(QMainWindow):
         self.menu = self.main_box.menu
 
         self.file_menu = self.menu.addMenu("File")
+        self.open_project = self.file_menu.addAction("Open Project...", self.close)
+        self.save_project = self.file_menu.addAction("Save Project", self.close)
+
         self.export_menu = self.menu.addMenu("Export")
+        self.export_menu.addAction("Create Song Sprite Farc")
+        self.export_menu.addAction("Create Thumbnail Farc", lambda: self.thumbnail_creator.show())
+        self.export_menu.addAction("Generate Sprite Database", self.generate_spr_db_button_callback)
+        self.export_menu.addSection("Textures")
+        self.export_menu.addAction("Export Thumbnail Texture", self.export_thumbnail_button_callback)
+        self.export_logo = self.export_menu.addAction("Export Logo Texture", self.export_logo_button_callback)
+        self.export_menu.addAction("Export Jacket/Background Texture", self.export_background_jacket_button_callback)
+
+
         self.config_scenes_menu = QSmarterMenu("Configure Scenes",self)
         self.display_scenes_menu = QSmarterMenu("Display Scenes", self)
         self.menu.addMenu(self.config_scenes_menu)
         self.menu.addMenu(self.display_scenes_menu)
 
-        self.open_project = self.file_menu.addAction("Open Project...", self.close)
-        self.save_project = self.file_menu.addAction("Save Project", self.close)
+        self.share_menu = QSmarterMenu("Share",self)
+        self.menu.addMenu(self.share_menu)
+        self.share_menu.addAction("Copy preview to clipboard",lambda: self.generate_preview(OutputTarget.CLIPBOARD))
+        self.share_menu.addAction("Open preview in external program",lambda: self.generate_preview(OutputTarget.IMAGE_VIEWER))
+
+
 
         #Prepare new window
         self.thumbnail_creator = ThumbnailWindow()
@@ -630,15 +646,6 @@ class MainWindow(QMainWindow):
         self.watcher = QFileSystemWatcher()
         self.watcher.fileChanged.connect(self.watcher_file_modified_action)
 
-        self.main_box.export_background_jacket_button.clicked.connect(self.export_background_jacket_button_callback)
-        self.main_box.export_thumbnail_button.clicked.connect(self.export_thumbnail_button_callback)
-        self.main_box.export_logo_button.clicked.connect(self.export_logo_button_callback)
-
-        self.main_box.copy_to_clipboard_button.clicked.connect(lambda: self.generate_preview(OutputTarget.CLIPBOARD))
-        self.main_box.open_preview_button.clicked.connect(lambda: self.generate_preview(OutputTarget.IMAGE_VIEWER))
-        self.main_box.generate_spr_db_button.clicked.connect(self.generate_spr_db_button_callback)
-
-        self.main_box.farc_create_thumbnail_button.clicked.connect(lambda: self.thumbnail_creator.show())
         self.main_box.farc_export_button.clicked.connect(self.export_background_jacket_logo_farc_button_callback)
         self.main_box.flip_horizontal_button.clicked.connect(lambda: self.flip_current_sprite(Qt.Orientation.Horizontal))
         self.main_box.flip_vertical_button.clicked.connect(lambda: self.flip_current_sprite(Qt.Orientation.Vertical))
@@ -904,12 +911,11 @@ class MainWindow(QMainWindow):
 
         for sprite_slave in self.C_Sprites.logo.sprite_slaves_list:
             sprite_slave: QSpriteSlave
-            print(sprite_slave.tracked.type)
             if sprite_slave.tracked.type == SpriteType.LOGO and sprite_slave.zoomed_in == True:
                 sprite_slave.toggle_zoom_in(True)
 
         self.C_Sprites.logo.toggle_visibility(state)
-        self.main_box.export_logo_button.setEnabled(state)
+        self.export_logo.setEnabled(state)
         if self.main_box.current_sprite_combobox.currentText() == "Logo":
             self.main_box.load_image_button.setEnabled(state)
             self.main_box.flip_vertical_button.setEnabled(state)
