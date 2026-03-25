@@ -43,7 +43,7 @@ except ImportError:
 
 
 from FarcCreator import FarcCreator
-from SceneComposer import Scene, QControllableSprites, QPreviewScenes, SpriteSetting, QSpriteSlave, SpriteType, QScalingGraphicsScene
+from SceneComposer import QControllableSprites, QPreviewScenes, SpriteSetting, QSpriteSlave, SpriteType, QScalingGraphicsScene
 from ThirdParty.auto_creat_mod_spr_db import Manager,add_farc_to_Manager,read_farc
 from ui_SpriteHelper import Ui_MainWindow
 from ui_ThumbnailIDField import Ui_ThumbnailIDField

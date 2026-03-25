@@ -793,12 +793,26 @@ class QMMSongSelectScene(QGraphicsScene):
         self.show_ui_toggle = self.scene_config_menu.addAction("Show UI")
         self.show_ui_toggle.setCheckable(True)
         self.show_ui_toggle.setChecked(True)
+        self.show_ui_toggle.toggled.connect(self.toggle_ui)
 
     def toggle_new_classics(self,state):
         if state:
             self.top_layer.setPixmap(QPixmap(u":icon/Images/MM UI - Song Select/Top Layer - New Classics.png"))
         else:
             self.top_layer.setPixmap(QPixmap(u":icon/Images/MM UI - Song Select/Top Layer.png"))
+
+    def toggle_ui(self,state:bool):
+        self.top_layer.setVisible(state)
+        self.song_selector.setVisible(state)
+        self.thumbnail_1.setVisible(state)
+        self.thumbnail_2.setVisible(state)
+        self.thumbnail_3.setVisible(state)
+        self.thumbnail_4.setVisible(state)
+        self.thumbnail_5.setVisible(state)
+        self.thumbnail_6.setVisible(state)
+        self.thumbnail_7.setVisible(state)
+        self.thumbnail_selected.setVisible(state)
+
 class QMMResultScene(QGraphicsScene):
     def __init__(self,jacket:QJacket, logo:QLogo, background:QSpriteBase):
         super().__init__()
@@ -810,7 +824,8 @@ class QMMResultScene(QGraphicsScene):
         self.background = QSpriteSlave(background,QPoint(0,0), scale=1.50)
         ######
         self.backdrop = QLayer(u":icon/Images/Dummy/SONG_BG_DUMMY.png",scale=1.5)
-        self.middle_layer = QLayer(u":icon/Images/MM UI - Results Screen/Middle Layer.png")
+        self.middle_layer_jacket_shadow = QLayer(u":icon/Images/MM UI - Results Screen/Middle Layer - Jacket Shadow.png")
+        self.middle_layer_song_credit = QLayer(u":icon/Images/MM UI - Results Screen/Middle Layer - Song Credit.png")
         self.top_layer = QLayer(u":icon/Images/MM UI - Results Screen/Top Layer - New Classics.png")
         ######
         self.setSceneRect(0, 0, 1920, 1080)
@@ -818,7 +833,8 @@ class QMMResultScene(QGraphicsScene):
 
         self.addItem(self.backdrop)
         self.addItem(self.background)
-        self.addItem(self.middle_layer)
+        self.addItem(self.middle_layer_jacket_shadow)
+        self.addItem(self.middle_layer_song_credit)
         self.addItem(self.jacket)
         self.addItem(self.logo)
         self.addItem(self.top_layer)
@@ -827,12 +843,17 @@ class QMMResultScene(QGraphicsScene):
         self.show_ui_toggle = self.scene_config_menu.addAction("Show UI")
         self.show_ui_toggle.setCheckable(True)
         self.show_ui_toggle.setChecked(True)
+        self.show_ui_toggle.toggled.connect(self.toggle_ui)
 
     def toggle_new_classics(self, state):
         if state:
             self.top_layer.setPixmap(QPixmap(u":icon/Images/MM UI - Results Screen/Top Layer - New Classics.png"))
         else:
             self.top_layer.setPixmap(QPixmap(u":icon/Images/MM UI - Results Screen/Top Layer.png"))
+
+    def toggle_ui(self,state:bool):
+        self.middle_layer_song_credit.setVisible(state)
+        self.top_layer.setVisible(state)
 class QMMPractiseModeScene(QGraphicsScene):
     def __init__(self,jacket:QJacket, logo:QLogo, background:QSpriteBase):
         super().__init__()
@@ -843,19 +864,17 @@ class QMMPractiseModeScene(QGraphicsScene):
         self.logo = QSpriteSlave(logo, QPoint(739, 508), brightness=brightness)
         self.background = QSpriteSlave(background, QPoint(0, 0), scale=1.50, brightness=brightness)
         #####
-        #TODO - Convert to resource paths
         #TODO - Finish UI
         #TODO - Add methods to toggle elements of UI
         # Rendering should have options to choose what is visible
 
-        self.grid = QLayer(str(Path.cwd() / "Images" / "MM UI - Practise Mode" / "Grid.png"), brightness=brightness+5)
-        self.jacket_shadow = QLayer(str(Path.cwd() / "Images" / "MM UI - Practise Mode" / "Jacket Shadow.png"))
-        self.top_layer = QLayer(str(Path.cwd() / "Images" / "MM UI - Practise Mode" / "UI.png"))
+        self.grid = QLayer(u":icon/Images/MM UI - Practise Mode/Grid.png", brightness=brightness+5)
+        self.jacket_shadow = QLayer(u":icon/Images/MM UI - Practise Mode/Jacket Shadow.png")
+        self.top_layer = QLayer(u":icon/Images/MM UI - Practise Mode/UI.png")
         #####
         self.setSceneRect(0,0,1920,1080)
         self.setBackgroundBrush(Qt.GlobalColor.black)
 
-        print(str(Path.cwd() / "Images" / "MM UI - Practise Mode" / "UI.png"))
         self.addItem(self.background)
         self.addItem(self.jacket)
         self.addItem(self.jacket_shadow)
@@ -867,6 +886,18 @@ class QMMPractiseModeScene(QGraphicsScene):
         self.show_ui_toggle = self.scene_config_menu.addAction("Show UI")
         self.show_ui_toggle.setCheckable(True)
         self.show_ui_toggle.setChecked(True)
+        self.show_ui_toggle.toggled.connect(self.toggle_ui)
+
+        self.show_grid_toggle = self.scene_config_menu.addAction("Show grid")
+        self.show_grid_toggle.setCheckable(True)
+        self.show_grid_toggle.setChecked(True)
+        self.show_grid_toggle.toggled.connect(self.toggle_grid)
+
+    def toggle_ui(self,state:bool):
+        self.top_layer.setVisible(state)
+    def toggle_grid(self,state:bool):
+        self.grid.setVisible(state)
+
 
 class QFTSongSelectScene(QGraphicsScene):
     def __init__(self,jacket:QJacket, logo:QLogo, background:QSpriteBase):
@@ -896,12 +927,15 @@ class QFTSongSelectScene(QGraphicsScene):
         self.show_ui_toggle = self.scene_config_menu.addAction("Show UI")
         self.show_ui_toggle.setCheckable(True)
         self.show_ui_toggle.setChecked(True)
+        self.show_ui_toggle.toggled.connect(self.toggle_ui)
 
     def toggle_new_classics(self, state):
         if state:
             self.top_layer.setPixmap(QPixmap(u":icon/Images/FT UI - Song Select/Top Layer - New Classics.png"))
         else:
             self.top_layer.setPixmap(QPixmap(u":icon/Images/FT UI - Song Select/Top Layer.png"))
+    def toggle_ui(self,state:bool):
+        self.top_layer.setVisible(state)
 class QFTResultScene(QGraphicsScene):
     def __init__(self,jacket:QJacket, logo:QLogo):
         super().__init__()
@@ -912,14 +946,16 @@ class QFTResultScene(QGraphicsScene):
         self.logo = QSpriteSlave(logo, QPoint(134, 663), scale=0.75)
         ######
         self.backdrop = QLayer(u":icon/Images/FT UI - Results Screen/Base.png")
-        self.middle_layer = QLayer(u":icon/Images/FT UI - Results Screen/Middle Layer.png")
+        self.middle_layer_jacket_shadow = QLayer(u":icon/Images/FT UI - Results Screen/Middle Layer - Jacket Shadow.png")
+        self.middle_layer_song_credit = QLayer(u":icon/Images/FT UI - Results Screen/Middle Layer - Song Credit.png")
         self.top_layer = QLayer(u":icon/Images/FT UI - Results Screen/Top Layer - New Classics.png")
         ######
         self.setSceneRect(0, 0, 1920, 1080)
         self.setBackgroundBrush(Qt.GlobalColor.black)
 
         self.addItem(self.backdrop)
-        self.addItem(self.middle_layer)
+        self.addItem(self.middle_layer_song_credit)
+        self.addItem(self.middle_layer_jacket_shadow)
         self.addItem(self.jacket)
         self.addItem(self.logo)
         self.addItem(self.top_layer)
@@ -928,12 +964,16 @@ class QFTResultScene(QGraphicsScene):
         self.show_ui_toggle = self.scene_config_menu.addAction("Show UI")
         self.show_ui_toggle.setCheckable(True)
         self.show_ui_toggle.setChecked(True)
+        self.show_ui_toggle.toggled.connect(self.toggle_ui)
 
     def toggle_new_classics(self, state):
         if state:
             self.top_layer.setPixmap(QPixmap(u":icon/Images/FT UI - Results Screen/Top Layer - New Classics.png"))
         else:
             self.top_layer.setPixmap(QPixmap(u":icon/Images/FT UI - Results Screen/Top Layer.png"))
+    def toggle_ui(self,state:bool):
+        self.top_layer.setVisible(state)
+        self.middle_layer_song_credit.setVisible(state)
 
 class QPreviewScenes:
     def __init__(self,C_Sprites:QControllableSprites):
