@@ -8,7 +8,7 @@ import PySide6
 from PIL import Image
 from PySide6.QtCore import Qt, QRectF, QPoint, Signal, QObject, QSize, QRect, QIODevice, QFile
 from PySide6.QtGui import QImage, QPixmap, QPainter, QTransform, QColor
-from PySide6.QtWidgets import QGraphicsPixmapItem, QFileDialog, QGraphicsScene, QLayout, QGraphicsView, QWidget
+from PySide6.QtWidgets import QGraphicsPixmapItem, QFileDialog, QGraphicsScene, QLayout, QGraphicsView, QWidget, QSpacerItem, QSizePolicy
 
 from widgets import EditableDoubleLabel, QSmarterMenu
 
@@ -249,6 +249,10 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
     def add_edit_controls_to(self,layout:QLayout):
         for control in self.edit_controls:
             layout.addWidget(self.edit_controls[control])
+
+        verticalSpacer = QSpacerItem(0, 0, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
+        layout.addItem(verticalSpacer)
+
 
 
     def grab_scene_portion(self,scene:QGraphicsScene, source_rect:QRectF) -> QPixmap:
