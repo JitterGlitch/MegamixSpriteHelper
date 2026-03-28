@@ -726,28 +726,30 @@ class QLayer(QGraphicsPixmapItem):
         self.sprite = QPixmap(sprite)
         self.sprite_size = size
         self.setPixmap(QPixmap(sprite))
+        self.brightness = brightness
         self.opacity = opacity
 
+        self.update_sprite()
 
+        self.setTransformationMode(Qt.TransformationMode.SmoothTransformation)
+        self.setScale(scale)
+    def update_sprite(self):
         result = QImage(self.sprite_size.size().toSize(), QImage.Format.Format_ARGB32)
         result.fill(Qt.GlobalColor.transparent)
         painter = QPainter(result)
 
-        if opacity:
+        if self.opacity:
             painter.setOpacity(self.opacity / 100)
 
-        painter.drawPixmap(QPoint(0,0),self.sprite)
+        painter.drawPixmap(QPoint(0, 0), self.sprite)
 
-        if brightness:
+        if self.brightness:
             painter.setCompositionMode(QPainter.CompositionMode.CompositionMode_SourceAtop)
-            painter.setOpacity((100 - brightness) / 100)
-            painter.fillRect(0, 0, self.pixmap().width(), self.pixmap().height(),QColor(0, 0, 0))
+            painter.setOpacity((100 - self.brightness) / 100)
+            painter.fillRect(0, 0, self.pixmap().width(), self.pixmap().height(), QColor(0, 0, 0))
 
         painter.end()
         self.setPixmap(QPixmap(result))
-
-        self.setTransformationMode(Qt.TransformationMode.SmoothTransformation)
-        self.setScale(scale)
 
 class QControllableSprites:
     def __init__(self):
@@ -1114,6 +1116,16 @@ class QPVBackScene(QGraphicsScene):
             self.mm_song_select_logo.scale = self.mm_song_select.logo.scale
 
         self.mm_song_select_logo.update_sprite()
+
+    def change_grid_opacity(self,state:bool):
+        if state:
+            self.grid.opacity = 5
+
+        else:
+            self.grid.opacity = 25
+
+        self.grid.update_sprite()
+
     def build_menu_options(self):
         self.scene_config_menu.clear()
 
@@ -1137,6 +1149,11 @@ class QPVBackScene(QGraphicsScene):
         self.grid_toggle.setCheckable(True)
         self.grid_toggle.setChecked(True)
         self.grid_toggle.toggled.connect(lambda: self.toggle_grid(self.grid_toggle.isChecked()))
+
+        self.grid_opacity_toggle = self.scene_config_menu.addAction("Lower grid opacity")
+        self.grid_opacity_toggle.setCheckable(True)
+        self.grid_opacity_toggle.setChecked(False)
+        self.grid_opacity_toggle.toggled.connect(lambda: self.change_grid_opacity(self.grid_opacity_toggle.isChecked()))
 
 class QPreviewScenes:
     def __init__(self,C_Sprites:QControllableSprites):
