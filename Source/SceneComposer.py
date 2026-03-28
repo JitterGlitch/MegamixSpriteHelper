@@ -30,7 +30,10 @@ class SpriteSetting(StrEnum):
     ROTATION = "Rotation"
     ZOOM = "Zoom"
     BRIGHTNESS = "Brightness"
-
+class PvBackLayout(Enum):
+    MMSongSelect = auto()
+    MMResult = auto()
+    FTResult = auto()
 ####################################################
 def round_up(number, decimal_places):
     factor = 10 ** decimal_places
@@ -661,7 +664,7 @@ class QSpriteSlave(QGraphicsPixmapItem):
     def __init__(self, tracked: QSpriteBase, position: QPoint,scale:float=None,rotation:int=None,brightness:int=None):
         super().__init__()
         self.tracked = tracked
-        tracked.SpriteUpdated.connect(self.update_sprite)
+        self.tracked.SpriteUpdated.connect(self.update_sprite)
         self.tracked.sprite_slaves_list.append(self)
         self.rotation = rotation
         self.scale = scale
@@ -979,6 +982,142 @@ class QFTResultScene(QGraphicsScene):
         self.top_layer.setVisible(state)
         self.middle_layer_song_credit.setVisible(state)
 
+class QPVBackScene(QGraphicsScene):
+    def __init__(self,mm_song_select:QMMSongSelectScene,mm_result:QMMResultScene,ft_result:QFTResultScene,logo=None,jacket=None,background=None):
+        super().__init__()
+        self.name = "Pv Back Scene"
+
+        self.mm_song_select = mm_song_select
+
+        self.background = QSpriteSlave(background,position=QPoint(0,0),scale=1.50,brightness=40)
+
+        ## MM Song Select ##
+        self.mm_song_select_jacket = QSpriteSlave(jacket,position=mm_song_select.jacket.pos().toPoint(), rotation=mm_song_select.jacket.rotation,brightness=40)
+        self.mm_song_select_logo = QSpriteSlave(logo,position=mm_song_select.logo.pos().toPoint(),scale=mm_song_select.logo.scale,brightness=40)
+        self.mm_song_select_backdrop = QLayer(u":icon/Images/MM UI - Song Select/Backdrop.png")
+        self.mm_song_select_middle_layer = QLayer(u":icon/Images/MM UI - Song Select/Middle Layer.png")
+        ## MM Result ##
+        self.mm_result_jacket = QSpriteSlave(jacket, mm_result.jacket.pos().toPoint(), scale=mm_result.jacket.scale, rotation=mm_result.jacket.rotation,brightness=40)
+        self.mm_result_logo = QSpriteSlave(logo, mm_result.logo.pos().toPoint(), scale=mm_result.logo.scale,brightness=40)
+        self.mm_result_backdrop = QLayer(u":icon/Images/Dummy/SONG_BG_DUMMY.png", scale=1.5)
+        self.mm_result_middle_layer_jacket_shadow = QLayer(u":icon/Images/MM UI - Results Screen/Middle Layer - Jacket Shadow.png")
+        ## FT Result ##
+        self.ft_result_jacket = QSpriteSlave(jacket, ft_result.jacket.pos().toPoint(), rotation=ft_result.jacket.rotation,brightness=40)
+        self.ft_result_logo = QSpriteSlave(logo, ft_result.logo.pos().toPoint(), scale=ft_result.logo.scale,brightness=40)
+        self.ft_result_backdrop = QLayer(u":icon/Images/FT UI - Results Screen/Base.png",brightness=40)
+        self.ft_result_middle_layer_jacket_shadow = QLayer(u":icon/Images/FT UI - Results Screen/Middle Layer - Jacket Shadow.png")
+        ## MM Practise Mode ##
+        self.grid = QLayer(u":icon/Images/MM UI - Practise Mode/Grid.png", brightness=45)
+
+        self.setSceneRect(0, 0, 1920, 1080)
+        self.setBackgroundBrush(Qt.GlobalColor.black)
+
+        self.addItem(self.mm_song_select_backdrop)
+        self.addItem(self.mm_result_backdrop)
+        self.addItem(self.ft_result_backdrop)
+
+        self.addItem(self.background)
+
+        self.addItem(self.mm_song_select_jacket)
+        self.addItem(self.mm_song_select_middle_layer)
+        self.addItem(self.mm_song_select_logo)
+
+        self.addItem(self.mm_result_middle_layer_jacket_shadow)
+        self.addItem(self.mm_result_jacket)
+        self.addItem(self.mm_result_logo)
+
+        self.addItem(self.ft_result_middle_layer_jacket_shadow)
+        self.addItem(self.ft_result_jacket)
+        self.addItem(self.ft_result_logo)
+
+        self.addItem(self.grid)
+
+        self.hide_all()
+        self.scene_config_menu = QSmarterMenu(self.name)
+        self.toggle_layout(PvBackLayout.MMSongSelect)
+
+        #Option to rotate jacket other way
+    def hide_all(self):
+        self.mm_song_select_backdrop.setVisible(False)
+        self.mm_song_select_jacket.setVisible(False)
+        self.mm_song_select_logo.setVisible(False)
+        self.mm_song_select_middle_layer.setVisible(False)
+        self.background.setVisible(False)
+        self.mm_result_backdrop.setVisible(False)
+        self.mm_result_jacket.setVisible(False)
+        self.mm_result_logo.setVisible(False)
+        self.mm_result_middle_layer_jacket_shadow.setVisible(False)
+        self.ft_result_middle_layer_jacket_shadow.setVisible(False)
+        self.ft_result_backdrop.setVisible(False)
+        self.ft_result_jacket.setVisible(False)
+        self.ft_result_logo.setVisible(False)
+    def toggle_layout(self,layout):
+        self.hide_all()
+        self.current_layout = layout
+        match layout:
+            case PvBackLayout.MMSongSelect:
+
+                self.mm_song_select_backdrop.setVisible(True)
+                self.mm_song_select_jacket.setVisible(True)
+                self.mm_song_select_logo.setVisible(True)
+                self.mm_song_select_middle_layer.setVisible(True)
+                self.background.setVisible(True)
+
+            case PvBackLayout.MMResult:
+                self.mm_result_backdrop.setVisible(True)
+                self.mm_result_jacket.setVisible(True)
+                self.mm_result_logo.setVisible(True)
+                self.mm_result_middle_layer_jacket_shadow.setVisible(True)
+                self.background.setVisible(True)
+
+            case PvBackLayout.FTResult:
+                self.ft_result_middle_layer_jacket_shadow.setVisible(True)
+                self.ft_result_backdrop.setVisible(True)
+                self.ft_result_jacket.setVisible(True)
+                self.ft_result_logo.setVisible(True)
+                self.background.setVisible(False)
+
+        self.build_menu_options()
+
+    def toggle_grid(self,state):
+        self.grid.setVisible(state)
+    def toggle_centered_layout(self,state):
+        if state:
+            self.mm_song_select_jacket.setPos(QPoint(self.mm_song_select.jacket.pos().toPoint().x()-361,self.mm_song_select.jacket.pos().toPoint().y()+57))
+            self.mm_song_select_logo.setPos(QPoint(367,548))
+            self.mm_song_select_middle_layer.setPos(QPoint(self.mm_song_select.middle_layer.pos().toPoint().x()-361,self.mm_song_select.middle_layer.pos().toPoint().y()+57))
+            self.mm_song_select_logo.scale = 1
+        else:
+            self.mm_song_select_jacket.setPos(self.mm_song_select.jacket.pos().toPoint())
+            self.mm_song_select_logo.setPos(self.mm_song_select.logo.pos().toPoint())
+            self.mm_song_select_middle_layer.setPos(self.mm_song_select.middle_layer.pos().toPoint())
+            self.mm_song_select_logo.scale = self.mm_song_select.logo.scale
+
+        self.mm_song_select_logo.update_sprite()
+    def build_menu_options(self):
+        self.scene_config_menu.clear()
+
+        match self.current_layout:
+            case PvBackLayout.MMSongSelect:
+                self.scene_config_menu.addAction("Change to MM Result Layout").triggered.connect(lambda: self.toggle_layout(PvBackLayout.MMResult))
+                self.scene_config_menu.addAction("Change to FT Result Layout").triggered.connect(lambda: self.toggle_layout(PvBackLayout.FTResult))
+                self.centered_layout_toggle = self.scene_config_menu.addAction("Use centered layout")
+                self.centered_layout_toggle.setCheckable(True)
+                self.centered_layout_toggle.toggled.connect(lambda: self.toggle_centered_layout(self.centered_layout_toggle.isChecked()))
+                self.scene_config_menu.addAction(self.centered_layout_toggle)
+
+            case PvBackLayout.MMResult:
+                self.scene_config_menu.addAction("Change to MM Song Select Layout").triggered.connect(lambda: self.toggle_layout(PvBackLayout.MMSongSelect))
+                self.scene_config_menu.addAction("Change to FT Result Layout").triggered.connect(lambda: self.toggle_layout(PvBackLayout.FTResult))
+            case PvBackLayout.FTResult:
+                self.scene_config_menu.addAction("Change to MM Song Select Layout").triggered.connect(lambda: self.toggle_layout(PvBackLayout.MMSongSelect))
+                self.scene_config_menu.addAction("Change to MM Result Layout").triggered.connect(lambda: self.toggle_layout(PvBackLayout.MMResult))
+
+        self.grid_toggle = self.scene_config_menu.addAction("Show Grid")
+        self.grid_toggle.setCheckable(True)
+        self.grid_toggle.setChecked(True)
+        self.grid_toggle.toggled.connect(lambda: self.toggle_grid(self.grid_toggle.isChecked()))
+
 class QPreviewScenes:
     def __init__(self,C_Sprites:QControllableSprites):
         self.MM_SongSelect = QMMSongSelectScene(C_Sprites.jacket,
@@ -1001,5 +1140,11 @@ class QPreviewScenes:
 
         self.FT_Result = QFTResultScene(C_Sprites.jacket,
                                         C_Sprites.logo)
+        self.PV_Back = QPVBackScene(self.MM_SongSelect,
+                                    self.MM_Result,
+                                    self.FT_Result,
+                                    jacket=C_Sprites.jacket,
+                                    logo=C_Sprites.logo,
+                                    background=C_Sprites.background)
 
         self.new_classics_scenes = [self.MM_SongSelect,self.MM_Result,self.FT_SongSelect,self.FT_Result]

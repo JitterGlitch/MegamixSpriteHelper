@@ -733,6 +733,7 @@ class MainWindow(QMainWindow):
         self.mm_practise_toggle = self.display_scenes_menu.addAction("MegaMix Practice Mode")
         self.ft_song_select_toggle = self.display_scenes_menu.addAction("Future Tone Song Select")
         self.ft_result_toggle = self.display_scenes_menu.addAction("Future Tone Results")
+        self.pv_back_toggle = self.display_scenes_menu.addAction("PV Back")
 
         self.scene_toggle_list = []
         self.scene_toggle_list.append((self.mm_song_select_toggle, self.P_Scenes.MM_SongSelect))
@@ -740,6 +741,7 @@ class MainWindow(QMainWindow):
         self.scene_toggle_list.append((self.mm_result_toggle,self.P_Scenes.MM_Result))
         self.scene_toggle_list.append((self.ft_result_toggle,self.P_Scenes.FT_Result))
         self.scene_toggle_list.append((self.mm_practise_toggle, self.P_Scenes.MM_PractiseMode))
+        self.scene_toggle_list.append((self.pv_back_toggle,self.P_Scenes.PV_Back))
 
         self.new_classics_toggle = QAction("Show New Classics UI")
         self.new_classics_toggle.setCheckable(True)
