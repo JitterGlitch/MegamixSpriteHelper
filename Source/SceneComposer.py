@@ -720,20 +720,31 @@ class QLayer(QGraphicsPixmapItem):
                  sprite: str,
                  size: PySide6.QtCore.QRectF = QRectF(0,0,1920,1080),
                  scale:float=1,
-                 brightness:int=None):
+                 brightness:int=None,
+                 opacity:int=None):
         super().__init__()
+        self.sprite = QPixmap(sprite)
         self.sprite_size = size
         self.setPixmap(QPixmap(sprite))
+        self.opacity = opacity
+
+
+        result = QImage(self.sprite_size.size().toSize(), QImage.Format.Format_ARGB32)
+        result.fill(Qt.GlobalColor.transparent)
+        painter = QPainter(result)
+
+        if opacity:
+            painter.setOpacity(self.opacity / 100)
+
+        painter.drawPixmap(QPoint(0,0),self.sprite)
 
         if brightness:
-            result = self.pixmap().copy() #NEEDS to have .copy() otherwise this will cause script to crash on Windows
-            painter = QPainter(result)
             painter.setCompositionMode(QPainter.CompositionMode.CompositionMode_SourceAtop)
             painter.setOpacity((100 - brightness) / 100)
-            painter.fillRect(0, 0, self.pixmap().width(), self.pixmap().height(),
-                             QColor(0, 0, 0))
-            painter.end()
-            self.setPixmap(result)
+            painter.fillRect(0, 0, self.pixmap().width(), self.pixmap().height(),QColor(0, 0, 0))
+
+        painter.end()
+        self.setPixmap(QPixmap(result))
 
         self.setTransformationMode(Qt.TransformationMode.SmoothTransformation)
         self.setScale(scale)
@@ -879,7 +890,7 @@ class QMMPractiseModeScene(QGraphicsScene):
         #TODO - Add methods to toggle elements of UI
         # Rendering should have options to choose what is visible
 
-        self.grid = QLayer(u":icon/Images/MM UI - Practise Mode/Grid.png", brightness=brightness+5)
+        self.grid = QLayer(u":icon/Images/MM UI - Practise Mode/Grid.png",opacity=25)
         self.jacket_shadow = QLayer(u":icon/Images/MM UI - Practise Mode/Jacket Shadow.png")
         self.top_layer = QLayer(u":icon/Images/MM UI - Practise Mode/UI.png")
         #####
@@ -1016,7 +1027,7 @@ class QPVBackScene(QGraphicsScene):
         self.ft_result_backdrop = QLayer(u":icon/Images/FT UI - Results Screen/Base.png",brightness=40)
         self.ft_result_middle_layer_jacket_shadow = QLayer(u":icon/Images/FT UI - Results Screen/Middle Layer - Jacket Shadow.png")
         ## MM Practise Mode ##
-        self.grid = QLayer(u":icon/Images/MM UI - Practise Mode/Grid.png", brightness=45)
+        self.grid = QLayer(u":icon/Images/MM UI - Practise Mode/Grid.png", opacity=25)
 
         self.setSceneRect(0, 0, 1920, 1080)
         self.setBackgroundBrush(Qt.GlobalColor.black)
