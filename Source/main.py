@@ -661,17 +661,7 @@ class MainWindow(QMainWindow):
 
 
     def resizeEvent(self,event):
-        #Todo allow resizing by grabbing top/bottom edge too
-
-        # Force 2:1 aspect ratio
-        new_width = self.size().width()
-        new_height = int(new_width / 2)
-        size = QSize(new_width,new_height)
-        self.resize(size)
         self.space_out_scenes()
-        print(self.main_box.scrollArea.size())
-        #self.main_box.scrollArea.setFixedSize(QSize(1155,650))
-
 
     def current_sprite_tab_switcher(self,tab):
         self.main_box.sprite_controls.setCurrentIndex(tab)

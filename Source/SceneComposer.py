@@ -726,7 +726,7 @@ class QLayer(QGraphicsPixmapItem):
         self.setPixmap(QPixmap(sprite))
 
         if brightness:
-            result = self.pixmap().copy()
+            result = self.pixmap().copy() #NEEDS to have .copy() otherwise this will cause script to crash on Windows
             painter = QPainter(result)
             painter.setCompositionMode(QPainter.CompositionMode.CompositionMode_SourceAtop)
             painter.setOpacity((100 - brightness) / 100)
