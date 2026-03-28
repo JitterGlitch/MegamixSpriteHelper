@@ -634,8 +634,8 @@ class MainWindow(QMainWindow):
 
         self.share_menu = QSmarterMenu("Share",self)
         self.menu.addMenu(self.share_menu)
-        self.share_menu.addAction("Copy preview to clipboard",lambda: self.generate_preview(OutputTarget.CLIPBOARD))
-        self.share_menu.addAction("Open preview in external program",lambda: self.generate_preview(OutputTarget.IMAGE_VIEWER))
+        self.share_menu.addAction("Copy preview to clipboard",lambda: self.generate_preview(OutputTarget.CLIPBOARD)).setShortcut("Ctrl+C")
+        self.share_menu.addAction("Open preview in external program",lambda: self.generate_preview(OutputTarget.IMAGE_VIEWER)).setShortcut("Ctrl+O")
 
 
 
