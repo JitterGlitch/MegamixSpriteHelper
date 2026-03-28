@@ -775,7 +775,8 @@ class QMMSongSelectScene(QGraphicsScene):
         self.backdrop = QLayer(u":icon/Images/MM UI - Song Select/Backdrop.png")
         self.song_selector = QLayer(u":icon/Images/MM UI - Song Select/Song Selector.png")
         self.middle_layer = QLayer(u":icon/Images/MM UI - Song Select/Middle Layer.png")
-        self.top_layer = QLayer(u":icon/Images/MM UI - Song Select/Top Layer - New Classics.png")
+        self.top_layer_nc = QLayer(u":icon/Images/MM UI - Song Select/Top Layer - New Classics.png")
+        self.top_layer = QLayer(u":icon/Images/MM UI - Song Select/Top Layer.png")
         ######
         self.setSceneRect(0, 0, 1920, 1080)
         self.setBackgroundBrush(Qt.GlobalColor.black)
@@ -794,7 +795,10 @@ class QMMSongSelectScene(QGraphicsScene):
         self.addItem(self.thumbnail_5)
         self.addItem(self.thumbnail_6)
         self.addItem(self.thumbnail_7)
+        self.addItem(self.top_layer_nc)
         self.addItem(self.top_layer)
+
+        self.top_layer.setVisible(False)
 
         self.scene_config_menu = QSmarterMenu(self.name)
         self.show_ui_toggle = self.scene_config_menu.addAction("Show UI")
@@ -802,11 +806,9 @@ class QMMSongSelectScene(QGraphicsScene):
         self.show_ui_toggle.setChecked(True)
         self.show_ui_toggle.toggled.connect(self.toggle_ui)
 
-    def toggle_new_classics(self,state):
-        if state:
-            self.top_layer.setPixmap(QPixmap(u":icon/Images/MM UI - Song Select/Top Layer - New Classics.png"))
-        else:
-            self.top_layer.setPixmap(QPixmap(u":icon/Images/MM UI - Song Select/Top Layer.png"))
+    def toggle_new_classics(self,state:bool):
+        self.top_layer.setVisible(not state)
+        self.top_layer_nc.setVisible(state)
 
     def toggle_ui(self,state:bool):
         self.top_layer.setVisible(state)
@@ -833,7 +835,8 @@ class QMMResultScene(QGraphicsScene):
         self.backdrop = QLayer(u":icon/Images/Dummy/SONG_BG_DUMMY.png",scale=1.5)
         self.middle_layer_jacket_shadow = QLayer(u":icon/Images/MM UI - Results Screen/Middle Layer - Jacket Shadow.png")
         self.middle_layer_song_credit = QLayer(u":icon/Images/MM UI - Results Screen/Middle Layer - Song Credit.png")
-        self.top_layer = QLayer(u":icon/Images/MM UI - Results Screen/Top Layer - New Classics.png")
+        self.top_layer_nc = QLayer(u":icon/Images/MM UI - Results Screen/Top Layer - New Classics.png")
+        self.top_layer = QLayer(u":icon/Images/MM UI - Results Screen/Top Layer.png")
         ######
         self.setSceneRect(0, 0, 1920, 1080)
         self.setBackgroundBrush(Qt.GlobalColor.black)
@@ -844,7 +847,10 @@ class QMMResultScene(QGraphicsScene):
         self.addItem(self.middle_layer_song_credit)
         self.addItem(self.jacket)
         self.addItem(self.logo)
+        self.addItem(self.top_layer_nc)
         self.addItem(self.top_layer)
+
+        self.top_layer.setVisible(False)
 
         self.scene_config_menu = QSmarterMenu(self.name)
         self.show_ui_toggle = self.scene_config_menu.addAction("Show UI")
@@ -853,10 +859,8 @@ class QMMResultScene(QGraphicsScene):
         self.show_ui_toggle.toggled.connect(self.toggle_ui)
 
     def toggle_new_classics(self, state):
-        if state:
-            self.top_layer.setPixmap(QPixmap(u":icon/Images/MM UI - Results Screen/Top Layer - New Classics.png"))
-        else:
-            self.top_layer.setPixmap(QPixmap(u":icon/Images/MM UI - Results Screen/Top Layer.png"))
+        self.top_layer.setVisible(not state)
+        self.top_layer_nc.setVisible(state)
 
     def toggle_ui(self,state:bool):
         self.middle_layer_song_credit.setVisible(state)
@@ -918,7 +922,8 @@ class QFTSongSelectScene(QGraphicsScene):
         ######
         self.backdrop = QLayer(u":icon/Images/FT UI - Song Select/Base.png")
         self.middle_layer = QLayer(u":icon/Images/FT UI - Song Select/Middle Layer.png")
-        self.top_layer = QLayer(u":icon/Images/FT UI - Song Select/Top Layer - New Classics.png")
+        self.top_layer_nc = QLayer(u":icon/Images/FT UI - Song Select/Top Layer - New Classics.png")
+        self.top_layer = QLayer(u":icon/Images/FT UI - Song Select/Top Layer.png")
         ######
         self.setSceneRect(0, 0, 1920, 1080)
         self.setBackgroundBrush(Qt.GlobalColor.black)
@@ -928,7 +933,10 @@ class QFTSongSelectScene(QGraphicsScene):
         self.addItem(self.middle_layer)
         self.addItem(self.jacket)
         self.addItem(self.logo)
+        self.addItem(self.top_layer_nc)
         self.addItem(self.top_layer)
+
+        self.top_layer.setVisible(False)
 
         self.scene_config_menu = QSmarterMenu(self.name)
         self.show_ui_toggle = self.scene_config_menu.addAction("Show UI")
@@ -937,10 +945,8 @@ class QFTSongSelectScene(QGraphicsScene):
         self.show_ui_toggle.toggled.connect(self.toggle_ui)
 
     def toggle_new_classics(self, state):
-        if state:
-            self.top_layer.setPixmap(QPixmap(u":icon/Images/FT UI - Song Select/Top Layer - New Classics.png"))
-        else:
-            self.top_layer.setPixmap(QPixmap(u":icon/Images/FT UI - Song Select/Top Layer.png"))
+        self.top_layer.setVisible(not state)
+        self.top_layer_nc.setVisible(state)
     def toggle_ui(self,state:bool):
         self.top_layer.setVisible(state)
 class QFTResultScene(QGraphicsScene):
@@ -955,7 +961,9 @@ class QFTResultScene(QGraphicsScene):
         self.backdrop = QLayer(u":icon/Images/FT UI - Results Screen/Base.png")
         self.middle_layer_jacket_shadow = QLayer(u":icon/Images/FT UI - Results Screen/Middle Layer - Jacket Shadow.png")
         self.middle_layer_song_credit = QLayer(u":icon/Images/FT UI - Results Screen/Middle Layer - Song Credit.png")
-        self.top_layer = QLayer(u":icon/Images/FT UI - Results Screen/Top Layer - New Classics.png")
+        self.top_layer_nc = QLayer(u":icon/Images/FT UI - Results Screen/Top Layer - New Classics.png")
+        self.top_layer = QLayer(u":icon/Images/FT UI - Results Screen/Top Layer.png")
+
         ######
         self.setSceneRect(0, 0, 1920, 1080)
         self.setBackgroundBrush(Qt.GlobalColor.black)
@@ -965,7 +973,10 @@ class QFTResultScene(QGraphicsScene):
         self.addItem(self.middle_layer_jacket_shadow)
         self.addItem(self.jacket)
         self.addItem(self.logo)
+        self.addItem(self.top_layer_nc)
         self.addItem(self.top_layer)
+
+        self.top_layer.setVisible(False)
 
         self.scene_config_menu = QSmarterMenu(self.name)
         self.show_ui_toggle = self.scene_config_menu.addAction("Show UI")
@@ -974,10 +985,8 @@ class QFTResultScene(QGraphicsScene):
         self.show_ui_toggle.toggled.connect(self.toggle_ui)
 
     def toggle_new_classics(self, state):
-        if state:
-            self.top_layer.setPixmap(QPixmap(u":icon/Images/FT UI - Results Screen/Top Layer - New Classics.png"))
-        else:
-            self.top_layer.setPixmap(QPixmap(u":icon/Images/FT UI - Results Screen/Top Layer.png"))
+        self.top_layer.setVisible(not state)
+        self.top_layer_nc.setVisible(state)
     def toggle_ui(self,state:bool):
         self.top_layer.setVisible(state)
         self.middle_layer_song_credit.setVisible(state)
