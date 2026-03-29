@@ -1009,7 +1009,9 @@ class QPVBackScene(QGraphicsScene):
         super().__init__()
         self.name = "Pv Back Scene"
 
-        self.mm_song_select = mm_song_select
+        self.mm_song_select_scene = mm_song_select
+        self.ft_result_scene = ft_result
+        self.mm_result_scene = mm_result
 
         self.background = QSpriteSlave(background,position=QPoint(0,0),scale=1.50,brightness=40)
 
@@ -1033,6 +1035,7 @@ class QPVBackScene(QGraphicsScene):
 
         self.grid_visible_state = True
         self.grid_lower_opacity_state = False
+        self.logo_size_state = False
 
         self.setSceneRect(0, 0, 1920, 1080)
         self.setBackgroundBrush(Qt.GlobalColor.black)
@@ -1110,18 +1113,33 @@ class QPVBackScene(QGraphicsScene):
         self.build_menu_options()
     def toggle_centered_layout(self,state):
         if state:
-            self.mm_song_select_jacket.setPos(QPoint(self.mm_song_select.jacket.pos().toPoint().x()-361,self.mm_song_select.jacket.pos().toPoint().y()+57))
+            self.mm_song_select_jacket.setPos(QPoint(self.mm_song_select_scene.jacket.pos().toPoint().x()-361,self.mm_song_select_scene.jacket.pos().toPoint().y()+57))
             self.mm_song_select_logo.setPos(QPoint(367,548))
-            self.mm_song_select_middle_layer.setPos(QPoint(self.mm_song_select.middle_layer.pos().toPoint().x()-361,self.mm_song_select.middle_layer.pos().toPoint().y()+57))
+            self.mm_song_select_middle_layer.setPos(QPoint(self.mm_song_select_scene.middle_layer.pos().toPoint().x()-361,self.mm_song_select_scene.middle_layer.pos().toPoint().y()+57))
             self.mm_song_select_logo.scale = 1
         else:
-            self.mm_song_select_jacket.setPos(self.mm_song_select.jacket.pos().toPoint())
-            self.mm_song_select_logo.setPos(self.mm_song_select.logo.pos().toPoint())
-            self.mm_song_select_middle_layer.setPos(self.mm_song_select.middle_layer.pos().toPoint())
-            self.mm_song_select_logo.scale = self.mm_song_select.logo.scale
+            self.mm_song_select_jacket.setPos(self.mm_song_select_scene.jacket.pos().toPoint())
+            self.mm_song_select_logo.setPos(self.mm_song_select_scene.logo.pos().toPoint())
+            self.mm_song_select_middle_layer.setPos(self.mm_song_select_scene.middle_layer.pos().toPoint())
+            self.mm_song_select_logo.scale = self.mm_song_select_scene.logo.scale
+
+        self.toggle_logo_size(self.logo_size_toggle.isChecked())
+    def toggle_logo_size(self,state):
+        #TODO Logo positions need adjustment to look passable
+        if state:
+            self.mm_song_select_logo.scale = 1
+            self.ft_result_logo.scale = 1
+            self.mm_result_logo.scale = 1
+        else:
+            self.mm_song_select_logo.scale = self.mm_song_select_scene.logo.scale
+            self.mm_result_logo.scale = self.mm_result_scene.logo.scale
+            self.ft_result_logo.scale = self.ft_result_scene.logo.scale
+
+        self.logo_size_state = not self.logo_size_state
 
         self.mm_song_select_logo.update_sprite()
-
+        self.ft_result_logo.update_sprite()
+        self.mm_result_logo.update_sprite()
     def change_grid_opacity(self,state:bool):
         if state:
             self.grid.opacity = 5
@@ -1161,6 +1179,11 @@ class QPVBackScene(QGraphicsScene):
             self.grid_opacity_toggle.setCheckable(True)
             self.grid_opacity_toggle.setChecked(self.grid_lower_opacity_state)
             self.grid_opacity_toggle.toggled.connect(lambda: self.change_grid_opacity(self.grid_opacity_toggle.isChecked()))
+
+        self.logo_size_toggle = self.scene_config_menu.addAction("Use bigger logo")
+        self.logo_size_toggle.setCheckable(True)
+        self.logo_size_toggle.setChecked(self.logo_size_state)
+        self.logo_size_toggle.toggled.connect(lambda: self.toggle_logo_size(self.logo_size_toggle.isChecked()))
 
 class QPreviewScenes:
     def __init__(self,C_Sprites:QControllableSprites):
