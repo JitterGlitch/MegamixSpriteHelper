@@ -1031,6 +1031,9 @@ class QPVBackScene(QGraphicsScene):
         ## MM Practise Mode ##
         self.grid = QLayer(u":icon/Images/MM UI - Practise Mode/Grid.png", opacity=25)
 
+        self.grid_visible_state = True
+        self.grid_lower_opacity_state = False
+
         self.setSceneRect(0, 0, 1920, 1080)
         self.setBackgroundBrush(Qt.GlobalColor.black)
 
@@ -1103,6 +1106,8 @@ class QPVBackScene(QGraphicsScene):
 
     def toggle_grid(self,state):
         self.grid.setVisible(state)
+        self.grid_visible_state = not self.grid_visible_state
+        self.build_menu_options()
     def toggle_centered_layout(self,state):
         if state:
             self.mm_song_select_jacket.setPos(QPoint(self.mm_song_select.jacket.pos().toPoint().x()-361,self.mm_song_select.jacket.pos().toPoint().y()+57))
@@ -1123,7 +1128,7 @@ class QPVBackScene(QGraphicsScene):
 
         else:
             self.grid.opacity = 25
-
+        self.grid_lower_opacity_state = not self.grid_lower_opacity_state
         self.grid.update_sprite()
 
     def build_menu_options(self):
@@ -1147,13 +1152,15 @@ class QPVBackScene(QGraphicsScene):
 
         self.grid_toggle = self.scene_config_menu.addAction("Show Grid")
         self.grid_toggle.setCheckable(True)
-        self.grid_toggle.setChecked(True)
+        self.grid_toggle.setChecked(self.grid_visible_state)
         self.grid_toggle.toggled.connect(lambda: self.toggle_grid(self.grid_toggle.isChecked()))
 
-        self.grid_opacity_toggle = self.scene_config_menu.addAction("Lower grid opacity")
-        self.grid_opacity_toggle.setCheckable(True)
-        self.grid_opacity_toggle.setChecked(False)
-        self.grid_opacity_toggle.toggled.connect(lambda: self.change_grid_opacity(self.grid_opacity_toggle.isChecked()))
+        if self.grid_toggle.isChecked():
+
+            self.grid_opacity_toggle = self.scene_config_menu.addAction("Lower grid opacity")
+            self.grid_opacity_toggle.setCheckable(True)
+            self.grid_opacity_toggle.setChecked(self.grid_lower_opacity_state)
+            self.grid_opacity_toggle.toggled.connect(lambda: self.change_grid_opacity(self.grid_opacity_toggle.isChecked()))
 
 class QPreviewScenes:
     def __init__(self,C_Sprites:QControllableSprites):
