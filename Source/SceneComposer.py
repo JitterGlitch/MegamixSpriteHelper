@@ -1036,6 +1036,7 @@ class QPVBackScene(QGraphicsScene):
         self.grid_visible_state = True
         self.grid_lower_opacity_state = False
         self.logo_size_state = False
+        self.ft_result_show_background_state = False
 
         self.setSceneRect(0, 0, 1920, 1080)
         self.setBackgroundBrush(Qt.GlobalColor.black)
@@ -1100,10 +1101,10 @@ class QPVBackScene(QGraphicsScene):
 
             case PvBackLayout.FTResult:
                 self.ft_result_middle_layer_jacket_shadow.setVisible(True)
-                self.ft_result_backdrop.setVisible(True)
+                self.ft_result_backdrop.setVisible(not self.ft_result_show_background_state)
                 self.ft_result_jacket.setVisible(True)
                 self.ft_result_logo.setVisible(True)
-                self.background.setVisible(False)
+                self.background.setVisible(self.ft_result_show_background_state)
 
         self.build_menu_options()
 
@@ -1140,6 +1141,11 @@ class QPVBackScene(QGraphicsScene):
         self.mm_song_select_logo.update_sprite()
         self.ft_result_logo.update_sprite()
         self.mm_result_logo.update_sprite()
+    def toggle_ft_result_background(self,state):
+        self.ft_result_backdrop.setVisible(not state)
+        self.background.setVisible(state)
+        self.ft_result_show_background_state = not self.ft_result_show_background_state
+
     def change_grid_opacity(self,state:bool):
         if state:
             self.grid.opacity = 5
@@ -1167,6 +1173,11 @@ class QPVBackScene(QGraphicsScene):
             case PvBackLayout.FTResult:
                 self.scene_config_menu.addAction("Change to MM Song Select Layout").triggered.connect(lambda: self.toggle_layout(PvBackLayout.MMSongSelect))
                 self.scene_config_menu.addAction("Change to MM Result Layout").triggered.connect(lambda: self.toggle_layout(PvBackLayout.MMResult))
+
+                self.ft_result_backdrop_visible_toggle = self.scene_config_menu.addAction("Show Background")
+                self.ft_result_backdrop_visible_toggle.setCheckable(True)
+                self.ft_result_backdrop_visible_toggle.setChecked(self.ft_result_show_background_state)
+                self.ft_result_backdrop_visible_toggle.toggled.connect(lambda: self.toggle_ft_result_background(self.ft_result_backdrop_visible_toggle.isChecked()))
 
         self.grid_toggle = self.scene_config_menu.addAction("Show Grid")
         self.grid_toggle.setCheckable(True)
