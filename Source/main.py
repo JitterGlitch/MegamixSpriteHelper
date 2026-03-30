@@ -18,6 +18,7 @@ from PySide6.QtCore import Qt, QFileSystemWatcher, QSize, Signal, QRectF, QStand
 from PySide6.QtGui import QPixmap, QPalette, QColor, QImage, QPainter, QGuiApplication, QDesktopServices, QImageWriter, QAction
 from PySide6.QtWidgets import QApplication, QMainWindow, QWidget, QFileDialog, QMessageBox, QSizePolicy, QMenu, QMenuBar
 
+from Source.ui_SongFarcCreator import Ui_SongFarcCreatorWindow
 from widgets import QSmarterMenu
 
 try:
@@ -43,7 +44,7 @@ except ImportError:
 
 
 from FarcCreator import FarcCreator
-from SceneComposer import QControllableSprites, QPreviewScenes, SpriteSetting, QSpriteSlave, SpriteType, QScalingGraphicsScene
+from SceneComposer import QControllableSprites, QPreviewScenes, SpriteSetting, QSpriteSlave, SpriteType, QScalingGraphicsScene, PvBackLayout
 from ThirdParty.auto_creat_mod_spr_db import Manager,add_farc_to_Manager,read_farc
 from ui_SpriteHelper import Ui_MainWindow
 from ui_ThumbnailIDField import Ui_ThumbnailIDField
@@ -611,6 +612,10 @@ class MainWindow(QMainWindow):
         self.main_box.setupUi(self)
         self.setWindowTitle("Megamix Sprite Helper" + " " + str(config.version))
 
+        # Prepare new window
+        self.thumbnail_creator = ThumbnailWindow()
+        self.song_farc_creator = SongFarcCreatorWindow()
+
         self.menu = self.main_box.menu
 
         self.file_menu = self.menu.addMenu("File")
@@ -618,13 +623,13 @@ class MainWindow(QMainWindow):
         self.save_project = self.file_menu.addAction("Save Project", self.close)
 
         self.export_menu = self.menu.addMenu("Export")
-        self.export_menu.addAction("Create Song Sprite Farc")
+        self.export_menu.addAction("Create Song Sprite Farc", lambda: self.song_farc_creator.show())
         self.export_menu.addAction("Create Thumbnail Farc", lambda: self.thumbnail_creator.show())
         self.export_menu.addAction("Generate Sprite Database", self.generate_spr_db_button_callback)
         self.export_menu.addSection("Textures")
-        self.export_menu.addAction("Export Thumbnail Texture", self.export_thumbnail_button_callback)
-        self.export_logo = self.export_menu.addAction("Export Logo Texture", self.export_logo_button_callback)
-        self.export_menu.addAction("Export Jacket/Background Texture", self.export_background_jacket_button_callback)
+        self.export_menu.addAction("Export Thumbnail Texture", self.song_farc_creator.export_thumbnail_button_callback)
+        self.export_logo = self.export_menu.addAction("Export Logo Texture", self.song_farc_creator.export_logo_button_callback)
+        self.export_menu.addAction("Export Jacket/Background Texture", self.song_farc_creator.export_background_jacket_button_callback)
 
 
         self.config_scenes_menu = QSmarterMenu("Configure Scenes",self)
@@ -637,22 +642,19 @@ class MainWindow(QMainWindow):
         self.share_menu.addAction("Copy preview to clipboard",lambda: self.generate_preview(OutputTarget.CLIPBOARD)).setShortcut("Ctrl+C")
         self.share_menu.addAction("Open preview in external program",lambda: self.generate_preview(OutputTarget.IMAGE_VIEWER)).setShortcut("Ctrl+O")
 
-
-
-        #Prepare new window
-        self.thumbnail_creator = ThumbnailWindow()
-
         #Start watching for file updates of loaded files
         self.watcher = QFileSystemWatcher()
         self.watcher.fileChanged.connect(self.watcher_file_modified_action)
 
-        self.main_box.farc_export_button.clicked.connect(self.export_background_jacket_logo_farc_button_callback)
+        #self.main_box.farc_export_button.clicked.connect(self.export_background_jacket_logo_farc_button_callback)
         self.main_box.flip_horizontal_button.clicked.connect(lambda: self.flip_current_sprite(Qt.Orientation.Horizontal))
         self.main_box.flip_vertical_button.clicked.connect(lambda: self.flip_current_sprite(Qt.Orientation.Vertical))
 
         self.main_box.current_sprite_combobox.currentIndexChanged.connect(lambda: self.current_sprite_tab_switcher(self.main_box.current_sprite_combobox.currentIndex()))
 
         self.display_scenes()
+
+        self.song_farc_creator.init_preview(self.P_Scenes.PV_Back_Creator_Window)
 
         #Make sure that tab matches options shown on start
         self.current_sprite_tab_switcher(self.main_box.current_sprite_combobox.currentIndex())
@@ -949,108 +951,6 @@ class MainWindow(QMainWindow):
                                      f"Required image size for {sprite} is {rw}x{rh}.\n"
                                      f"Loaded image is {iw}x{ih}, ignoring transparent area.")
 
-    def create_background_jacket_texture(self):
-        self.C_Sprites.background.update_sprite(hq_output=True)
-        self.C_Sprites.jacket.update_sprite(hq_output=True)
-
-        background_jacket_texture = QImage(QSize(2048, 1024),QImage.Format.Format_ARGB32)
-        background_jacket_texture.fill(Qt.GlobalColor.transparent)
-        painter = QPainter(background_jacket_texture)
-        painter.setRenderHint(QPainter.RenderHint.LosslessImageRendering)
-        painter.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform)
-        painter.setRenderHint(QPainter.RenderHint.VerticalSubpixelPositioning)
-
-        painter.drawPixmap(1,1,self.C_Sprites.background.pixmap().scaled(1282,722))
-        painter.drawPixmap(2,2,self.C_Sprites.background.pixmap())
-        painter.drawPixmap(1286, 2,self.C_Sprites.jacket.pixmap())
-        painter.end()
-
-        return background_jacket_texture
-    def create_logo_texture(self):
-        self.C_Sprites.logo.update_sprite(hq_output=True)
-
-        logo = self.C_Sprites.logo.pixmap()
-        logo_texture = QImage(QSize(1024, 512), QImage.Format.Format_ARGB32)
-        logo_texture.fill(Qt.GlobalColor.transparent)
-        painter = QPainter(logo_texture)
-        painter.setRenderHint(QPainter.RenderHint.LosslessImageRendering)
-        painter.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform)
-        painter.setRenderHint(QPainter.RenderHint.VerticalSubpixelPositioning)
-        painter.drawPixmap(2,2,logo)
-        painter.end()
-        return logo_texture
-    def create_thumbnail_texture(self) -> QImage:
-        self.C_Sprites.thumbnail.update_sprite(hq_output=True)
-
-        thumbnail = QPixmap(self.C_Sprites.thumbnail.pixmap_no_mask)
-        thumbnail_texture = QImage(QSize(128, 64), QImage.Format.Format_RGBA8888)
-        thumbnail_texture.fill(Qt.GlobalColor.transparent)
-        painter = QPainter(thumbnail_texture)
-        painter.setRenderHint(QPainter.RenderHint.LosslessImageRendering)
-        painter.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform)
-        painter.setRenderHint(QPainter.RenderHint.VerticalSubpixelPositioning)
-        painter.drawPixmap(0, 0, thumbnail)
-        painter.end()
-        return thumbnail_texture
-
-    def export_background_jacket_button_callback(self):
-        save_location = QFileDialog.getSaveFileName(self, "Save File",str(config.last_used_directory)+"/Background Texture.png","Images (*.png)")[0]
-
-        if save_location == "":
-            print("Directory wasn't chosen")
-        else:
-            config.last_used_directory = Path(save_location).parent
-            background_jacket_texture = self.create_background_jacket_texture()
-            background_jacket_texture.save(save_location,"png")
-    def export_thumbnail_button_callback(self):
-        save_location = QFileDialog.getSaveFileName(self, "Save File", str(config.last_used_directory) + "/Thumbnail Texture.png", "Images (*.png)")[0]
-        if save_location == "":
-            print("Directory wasn't chosen")
-        else:
-            config.last_used_directory = Path(save_location)
-            thumbnail_texture = self.create_thumbnail_texture()
-            file = QFile(":icon/Images/Dummy/Thumbnail-Maskv3.png")
-            if not file.open(QIODevice.OpenModeFlag.ReadOnly):
-                raise FileNotFoundError(f"Resource not found")
-
-            data = file.readAll()
-            file.close()
-            mask = bytes(data)
-
-            self.export_qimage_with_mask(thumbnail_texture,mask,save_location)
-    def export_logo_button_callback(self):
-        filename, _ = QFileDialog.getSaveFileName(
-            None,
-            "Save Image",
-            str(config.last_used_directory) + "/Logo Texture.png",
-            "PNG Files (*.png)"
-        )
-        if filename == "":
-            print("Directory wasn't chosen")
-        else:
-            config.last_used_directory = Path(filename).parent
-            logo_texture = self.create_logo_texture()
-            logo_texture.save(filename, "png")
-    def export_background_jacket_logo_farc_button_callback(self):
-        output_location = QFileDialog.getExistingDirectory(self, "Choose folder to save farc file to", str(config.last_used_directory))
-
-        if output_location == "":
-            print("Directory wasn't chosen")
-        else:
-            config.last_used_directory = Path(output_location)
-
-            bg_jk = Image.fromqimage(self.create_background_jacket_texture()).transpose(Image.Transpose.FLIP_TOP_BOTTOM)
-
-            song_id = pad_number(int(self.main_box.farc_song_id_spinbox.value()))
-            compression = self.main_box.farc_compression_dropdown.currentEnum()
-            print(compression)
-
-            if self.has_logo_toggle:
-                logo = Image.fromqimage(self.create_logo_texture()).transpose(Image.Transpose.FLIP_TOP_BOTTOM)
-            else:
-                logo = None
-            FarcCreator.create_jk_bg_logo_farc(song_id, bg_jk, logo, output_location,compression)
-
 
     def export_qimage_with_mask(self,qimage:QImage, mask:bytes, output_path:str):
         # TODO - This reeks of AI-Genned code. Delete unnecessary checks
@@ -1132,7 +1032,168 @@ class MainWindow(QMainWindow):
             spr_db.write_db(f'{spr_path}/mod_spr_db.bin')
             print(f"Generated mod_spr_db in {spr_path}")
 
+class SongFarcCreatorWindow(QWidget):
+    def resizeEvent(self, event, /):
+        self.scene_view.lock_in()
+    def __init__(self):
+        super(SongFarcCreatorWindow, self).__init__()
+        self.main_box = Ui_SongFarcCreatorWindow()
+        self.main_box.setupUi(self)
 
+        self.main_box.export_farc_pushbutton.pressed.connect(self.export_background_jacket_logo_farc_button_callback)
+
+    def init_preview(self,scene):
+        self.scene_view = QScalingGraphicsScene()
+        self.scene_view.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.scene_view.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        sizePolicy2 = QSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Ignored)
+        sizePolicy2.setHorizontalStretch(1)
+        sizePolicy2.setVerticalStretch(1)
+        self.scene_view.setSizePolicy(sizePolicy2)
+        self.scene_view.setMinimumSize(QSize(512, 288))
+        self.scene_view.setMaximumSize(QSize(512, 288))
+        self.scene_view.setBaseSize(QSize(512, 288))
+        self.scene_view.setRenderHint(QPainter.Antialiasing, True)
+        self.scene_view.setRenderHint(QPainter.SmoothPixmapTransform, True)
+        # scene_view.setBackgroundBrush(self.palette().color(QPalette.ColorRole.Window))
+        self.scene_view.setBackgroundBrush(Qt.black)
+
+        self.scene_view.setScene(scene)
+        scene.layout_choose_layout = self.main_box.pv_back_layout_choose_layout
+        scene.options_layout = self.main_box.pv_back_scene_option_layout
+        scene.toggle_layout(PvBackLayout.MMSongSelect)
+        scene.add_layouts_to_window()
+
+        self.main_box.horizontalLayout.addWidget(self.scene_view)
+    def export_background_jacket_logo_farc_button_callback(self):
+        output_location = QFileDialog.getExistingDirectory(self, "Choose folder to save farc file to", str(config.last_used_directory))
+
+        if output_location == "":
+            print("Directory wasn't chosen")
+        else:
+            config.last_used_directory = Path(output_location)
+
+            bg_jk = Image.fromqimage(self.create_background_jacket_texture()).transpose(Image.Transpose.FLIP_TOP_BOTTOM)
+
+            song_id = pad_number(int(self.main_box.farc_song_id_spinbox.value()))
+            compression = self.main_box.compression_comboBox.currentEnum()
+            print(compression)
+
+            if main_window.has_logo_toggle:
+                logo = Image.fromqimage(self.create_logo_texture()).transpose(Image.Transpose.FLIP_TOP_BOTTOM)
+            else:
+                logo = None
+
+            if self.main_box.pv_back_sprite_checkbox:
+                pv_back_texture = Image.fromqimage(self.create_pv_back_texture()).transpose(Image.Transpose.FLIP_TOP_BOTTOM)
+            else:
+                pv_back_texture = None
+
+            FarcCreator.create_jk_bg_logo_farc(song_id, bg_jk, logo, output_location,compression,pv_back_texture=pv_back_texture)
+
+
+    def create_background_jacket_texture(self):
+        main_window.C_Sprites.background.update_sprite(hq_output=True)
+        main_window.C_Sprites.jacket.update_sprite(hq_output=True)
+
+        background_jacket_texture = QImage(QSize(2048, 1024),QImage.Format.Format_ARGB32)
+        background_jacket_texture.fill(Qt.GlobalColor.transparent)
+        painter = QPainter(background_jacket_texture)
+        painter.setRenderHint(QPainter.RenderHint.LosslessImageRendering)
+        painter.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform)
+        painter.setRenderHint(QPainter.RenderHint.VerticalSubpixelPositioning)
+
+        painter.drawPixmap(1,1,main_window.C_Sprites.background.pixmap().scaled(1282,722))
+        painter.drawPixmap(2,2,main_window.C_Sprites.background.pixmap())
+        painter.drawPixmap(1286, 2,main_window.C_Sprites.jacket.pixmap())
+        painter.end()
+
+        return background_jacket_texture
+    def create_logo_texture(self):
+        main_window.C_Sprites.logo.update_sprite(hq_output=True)
+
+        logo = main_window.C_Sprites.logo.pixmap()
+        logo_texture = QImage(QSize(1024, 512), QImage.Format.Format_ARGB32)
+        logo_texture.fill(Qt.GlobalColor.transparent)
+        painter = QPainter(logo_texture)
+        painter.setRenderHint(QPainter.RenderHint.LosslessImageRendering)
+        painter.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform)
+        painter.setRenderHint(QPainter.RenderHint.VerticalSubpixelPositioning)
+        painter.drawPixmap(2,2,logo)
+        painter.end()
+        return logo_texture
+    def create_thumbnail_texture(self) -> QImage:
+        main_window.C_Sprites.thumbnail.update_sprite(hq_output=True)
+
+        thumbnail = QPixmap(main_window.C_Sprites.thumbnail.pixmap_no_mask)
+        thumbnail_texture = QImage(QSize(128, 64), QImage.Format.Format_RGBA8888)
+        thumbnail_texture.fill(Qt.GlobalColor.transparent)
+        painter = QPainter(thumbnail_texture)
+        painter.setRenderHint(QPainter.RenderHint.LosslessImageRendering)
+        painter.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform)
+        painter.setRenderHint(QPainter.RenderHint.VerticalSubpixelPositioning)
+        painter.drawPixmap(0, 0, thumbnail)
+        painter.end()
+        return thumbnail_texture
+    def create_pv_back_texture(self):
+        main_window.C_Sprites.background.update_sprite(hq_output=True)
+        main_window.C_Sprites.jacket.update_sprite(hq_output=True)
+        main_window.C_Sprites.logo.update_sprite(hq_output=True)
+
+
+
+        pv_back_texture = QImage(QSize(2048, 1024), QImage.Format.Format_ARGB32)
+        pv_back_texture.fill(Qt.GlobalColor.transparent)
+
+        painter = QPainter(pv_back_texture)
+        painter.setRenderHint(QPainter.RenderHint.LosslessImageRendering)
+        painter.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform)
+        painter.setRenderHint(QPainter.RenderHint.VerticalSubpixelPositioning)
+
+        self.scene_view.render(painter, target=QRectF(1, 1, 1282, 722))
+        self.scene_view.render(painter, target=QRectF(2, 2, 1280, 720))
+
+        painter.end()
+
+        return pv_back_texture
+    def export_background_jacket_button_callback(self):
+        save_location = QFileDialog.getSaveFileName(self, "Save File",str(config.last_used_directory)+"/Background Texture.png","Images (*.png)")[0]
+
+        if save_location == "":
+            print("Directory wasn't chosen")
+        else:
+            config.last_used_directory = Path(save_location).parent
+            background_jacket_texture = self.create_background_jacket_texture()
+            background_jacket_texture.save(save_location,"png")
+    def export_thumbnail_button_callback(self):
+        save_location = QFileDialog.getSaveFileName(self, "Save File", str(config.last_used_directory) + "/Thumbnail Texture.png", "Images (*.png)")[0]
+        if save_location == "":
+            print("Directory wasn't chosen")
+        else:
+            config.last_used_directory = Path(save_location)
+            thumbnail_texture = self.create_thumbnail_texture()
+            file = QFile(":icon/Images/Dummy/Thumbnail-Maskv3.png")
+            if not file.open(QIODevice.OpenModeFlag.ReadOnly):
+                raise FileNotFoundError(f"Resource not found")
+
+            data = file.readAll()
+            file.close()
+            mask = bytes(data)
+
+            self.export_qimage_with_mask(thumbnail_texture,mask,save_location)
+    def export_logo_button_callback(self):
+        filename, _ = QFileDialog.getSaveFileName(
+            None,
+            "Save Image",
+            str(config.last_used_directory) + "/Logo Texture.png",
+            "PNG Files (*.png)"
+        )
+        if filename == "":
+            print("Directory wasn't chosen")
+        else:
+            config.last_used_directory = Path(filename).parent
+            logo_texture = self.create_logo_texture()
+            logo_texture.save(filename, "png")
 
 
 if __name__ == "__main__":

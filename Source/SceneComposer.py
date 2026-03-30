@@ -8,7 +8,7 @@ import PySide6
 from PIL import Image
 from PySide6.QtCore import Qt, QRectF, QPoint, Signal, QObject, QSize, QRect, QIODevice, QFile
 from PySide6.QtGui import QImage, QPixmap, QPainter, QTransform, QColor
-from PySide6.QtWidgets import QGraphicsPixmapItem, QFileDialog, QGraphicsScene, QLayout, QGraphicsView, QWidget, QSpacerItem, QSizePolicy, QScrollArea
+from PySide6.QtWidgets import QGraphicsPixmapItem, QFileDialog, QGraphicsScene, QLayout, QGraphicsView, QWidget, QSpacerItem, QSizePolicy, QScrollArea, QCheckBox, QRadioButton, QLabel
 
 from widgets import EditableDoubleLabel, QSmarterMenu
 
@@ -31,9 +31,9 @@ class SpriteSetting(StrEnum):
     ZOOM = "Zoom"
     BRIGHTNESS = "Brightness"
 class PvBackLayout(Enum):
-    MMSongSelect = auto()
-    MMResult = auto()
-    FTResult = auto()
+    MMSongSelect = "Megamix Song Select"
+    MMResult = "Megamix Result"
+    FTResult = "Future Tone Result"
 ####################################################
 def round_up(number, decimal_places):
     factor = 10 ** decimal_places
@@ -1021,6 +1021,9 @@ class QPVBackScene(QGraphicsScene):
         self.ft_result_scene = ft_result
         self.mm_result_scene = mm_result
 
+        self.layout_choose_layout = None
+        self.options_layout = None
+
         self.background = QSpriteSlave(background,position=QPoint(0,0),scale=1.50,brightness=40)
 
         ## MM Song Select ##
@@ -1041,6 +1044,7 @@ class QPVBackScene(QGraphicsScene):
         ## MM Practise Mode ##
         self.grid = QLayer(u":icon/Images/MM UI - Practise Mode/Grid.png", opacity=25)
 
+        self.centered_layout_state = False
         self.grid_visible_state = True
         self.grid_lower_opacity_state = False
         self.logo_size_state = False
@@ -1072,8 +1076,6 @@ class QPVBackScene(QGraphicsScene):
         self.hide_all()
         self.scene_config_menu = QSmarterMenu(self.name)
         self.toggle_layout(PvBackLayout.MMSongSelect)
-
-        #Option to rotate jacket other way
     def hide_all(self):
         self.mm_song_select_backdrop.setVisible(False)
         self.mm_song_select_jacket.setVisible(False)
@@ -1088,6 +1090,7 @@ class QPVBackScene(QGraphicsScene):
         self.ft_result_backdrop.setVisible(False)
         self.ft_result_jacket.setVisible(False)
         self.ft_result_logo.setVisible(False)
+
     def toggle_layout(self,layout):
         self.hide_all()
         self.current_layout = layout
@@ -1115,7 +1118,6 @@ class QPVBackScene(QGraphicsScene):
                 self.background.setVisible(self.ft_result_show_background_state)
 
         self.build_menu_options()
-
     def toggle_grid(self,state):
         self.grid.setVisible(state)
         self.grid_visible_state = not self.grid_visible_state
@@ -1132,28 +1134,28 @@ class QPVBackScene(QGraphicsScene):
             self.mm_song_select_middle_layer.setPos(self.mm_song_select_scene.middle_layer.pos().toPoint())
             self.mm_song_select_logo.scale = self.mm_song_select_scene.logo.scale
 
-        self.toggle_logo_size(self.logo_size_toggle.isChecked())
+        self.centered_layout_state = not self.centered_layout_state
     def toggle_logo_size(self,state):
         #TODO Logo positions need adjustment to look passable
         if state:
             self.mm_song_select_logo.scale = 1
             self.ft_result_logo.scale = 1
             self.mm_result_logo.scale = 1
+
         else:
             self.mm_song_select_logo.scale = self.mm_song_select_scene.logo.scale
             self.mm_result_logo.scale = self.mm_result_scene.logo.scale
             self.ft_result_logo.scale = self.ft_result_scene.logo.scale
 
-        self.logo_size_state = not self.logo_size_state
-
         self.mm_song_select_logo.update_sprite()
         self.ft_result_logo.update_sprite()
         self.mm_result_logo.update_sprite()
+
+        self.logo_size_state = not self.logo_size_state
     def toggle_ft_result_background(self,state):
         self.ft_result_backdrop.setVisible(not state)
         self.background.setVisible(state)
         self.ft_result_show_background_state = not self.ft_result_show_background_state
-
     def change_grid_opacity(self,state:bool):
         if state:
             self.grid.opacity = 5
@@ -1165,6 +1167,13 @@ class QPVBackScene(QGraphicsScene):
 
     def build_menu_options(self):
         self.scene_config_menu.clear()
+        if self.options_layout:
+            self.clear_layout(self.options_layout)
+
+            label = QLabel("Scene Options")
+            label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+            self.options_layout.addWidget(label)
 
         match self.current_layout:
             case PvBackLayout.MMSongSelect:
@@ -1174,6 +1183,12 @@ class QPVBackScene(QGraphicsScene):
                 self.centered_layout_toggle.setCheckable(True)
                 self.centered_layout_toggle.toggled.connect(lambda: self.toggle_centered_layout(self.centered_layout_toggle.isChecked()))
                 self.scene_config_menu.addAction(self.centered_layout_toggle)
+
+                if self.options_layout:
+                    self.centered_layout_checkbox = QCheckBox("Use centered layout")
+                    self.centered_layout_checkbox.setChecked(self.centered_layout_state)
+                    self.centered_layout_checkbox.toggled.connect(lambda: self.toggle_centered_layout(self.centered_layout_checkbox.isChecked()))
+                    self.options_layout.addWidget(self.centered_layout_checkbox)
 
             case PvBackLayout.MMResult:
                 self.scene_config_menu.addAction("Change to MM Song Select Layout").triggered.connect(lambda: self.toggle_layout(PvBackLayout.MMSongSelect))
@@ -1187,22 +1202,79 @@ class QPVBackScene(QGraphicsScene):
                 self.ft_result_backdrop_visible_toggle.setChecked(self.ft_result_show_background_state)
                 self.ft_result_backdrop_visible_toggle.toggled.connect(lambda: self.toggle_ft_result_background(self.ft_result_backdrop_visible_toggle.isChecked()))
 
+                if self.options_layout:
+                    self.ft_result_backdrop_visible_checkbox = QCheckBox("Show Background")
+                    self.ft_result_backdrop_visible_checkbox.setChecked(self.ft_result_show_background_state)
+                    self.ft_result_backdrop_visible_checkbox.toggled.connect(lambda: self.toggle_ft_result_background(self.ft_result_backdrop_visible_checkbox.isChecked()))
+                    self.options_layout.addWidget(self.ft_result_backdrop_visible_checkbox)
+
         self.grid_toggle = self.scene_config_menu.addAction("Show Grid")
         self.grid_toggle.setCheckable(True)
         self.grid_toggle.setChecked(self.grid_visible_state)
         self.grid_toggle.toggled.connect(lambda: self.toggle_grid(self.grid_toggle.isChecked()))
 
-        if self.grid_toggle.isChecked():
+        if self.options_layout:
+            self.grid_checkbox = QCheckBox("Show Grid")
+            self.grid_checkbox.setChecked(self.grid_visible_state)
+            self.grid_checkbox.toggled.connect(lambda: self.toggle_grid(self.grid_checkbox.isChecked()))
+            self.options_layout.addWidget(self.grid_checkbox)
+
+        if self.grid_visible_state:
 
             self.grid_opacity_toggle = self.scene_config_menu.addAction("Lower grid opacity")
             self.grid_opacity_toggle.setCheckable(True)
             self.grid_opacity_toggle.setChecked(self.grid_lower_opacity_state)
             self.grid_opacity_toggle.toggled.connect(lambda: self.change_grid_opacity(self.grid_opacity_toggle.isChecked()))
 
+        if self.options_layout:
+            self.grid_opacity_checkbox = QCheckBox("Lower grid opacity")
+            self.grid_opacity_checkbox.setChecked(self.grid_lower_opacity_state)
+            self.grid_opacity_checkbox.setEnabled(self.grid_visible_state)
+            self.grid_opacity_checkbox.toggled.connect(lambda: self.change_grid_opacity(self.grid_opacity_checkbox.isChecked()))
+            self.options_layout.addWidget(self.grid_opacity_checkbox)
+
         self.logo_size_toggle = self.scene_config_menu.addAction("Use bigger logo")
         self.logo_size_toggle.setCheckable(True)
         self.logo_size_toggle.setChecked(self.logo_size_state)
         self.logo_size_toggle.toggled.connect(lambda: self.toggle_logo_size(self.logo_size_toggle.isChecked()))
+
+        if self.options_layout:
+            self.logo_size_checkbox = QCheckBox("Use bigger logo")
+            self.logo_size_checkbox.setChecked(self.logo_size_state)
+            self.logo_size_checkbox.toggled.connect(lambda: self.toggle_logo_size(self.logo_size_checkbox.isChecked()))
+            self.options_layout.addWidget(self.logo_size_checkbox)
+
+    def add_layouts_to_window(self):
+        self.mm_song_select_radio = QRadioButton()
+        self.mm_song_select_radio.setText(PvBackLayout.MMSongSelect.value)
+        self.layout_choose_layout.addWidget(self.mm_song_select_radio)
+
+        self.mm_result_radio = QRadioButton()
+        self.mm_result_radio.setText(PvBackLayout.MMResult.value)
+        self.layout_choose_layout.addWidget(self.mm_result_radio)
+
+        self.ft_result_radio = QRadioButton()
+        self.ft_result_radio.setText(PvBackLayout.FTResult.value)
+        self.layout_choose_layout.addWidget(self.ft_result_radio)
+
+        self.mm_song_select_radio.toggled.connect(lambda :self.toggle_layout(PvBackLayout.MMSongSelect))
+        self.mm_result_radio.toggled.connect(lambda :self.toggle_layout(PvBackLayout.MMResult))
+        self.ft_result_radio.toggled.connect(lambda :self.toggle_layout(PvBackLayout.FTResult))
+
+        self.mm_song_select_radio.setChecked(True)
+
+    def clear_layout(self,layout):
+        if layout is None:
+            return
+        while layout.count():
+            item = layout.takeAt(0)
+            widget = item.widget()
+            if widget is not None:
+                    widget.deleteLater()
+            else:
+                sub_layout = item.layout()
+                if sub_layout:
+                    self.clear_layout(sub_layout)
 
 class QPreviewScenes:
     def __init__(self,C_Sprites:QControllableSprites):
@@ -1227,6 +1299,12 @@ class QPreviewScenes:
         self.FT_Result = QFTResultScene(C_Sprites.jacket,
                                         C_Sprites.logo)
         self.PV_Back = QPVBackScene(self.MM_SongSelect,
+                                    self.MM_Result,
+                                    self.FT_Result,
+                                    jacket=C_Sprites.jacket,
+                                    logo=C_Sprites.logo,
+                                    background=C_Sprites.background)
+        self.PV_Back_Creator_Window = QPVBackScene(self.MM_SongSelect,
                                     self.MM_Result,
                                     self.FT_Result,
                                     jacket=C_Sprites.jacket,

@@ -24,7 +24,7 @@ class Compression(Enum):
 
 
 class FarcCreator:
-    def create_jk_bg_logo_farc(self,song_id,jk_bg_texture,logo_texture,output_location,compression:Compression):
+    def create_jk_bg_logo_farc(self,song_id,jk_bg_texture,logo_texture,output_location,compression:Compression,pv_back_texture=None):
 
         txp = kkdlib.txp.Set()
         names = ["SH Texture #1"]
@@ -77,6 +77,21 @@ class FarcCreator:
             logo.width = 0
             logo.height = 0
 
+        if pv_back_texture is not None:
+            names.append("SH Texture #3")
+            if compression is Compression.ATI2:
+                txp.add_file(kkdlib.txp.Texture.py_ycbcr_from_rgba_gpu(pv_back_texture.width, pv_back_texture.height, pv_back_texture.tobytes()))
+            else:
+                txp.add_file(kkdlib.txp.Texture.py_from_rgba_gpu(pv_back_texture.width, pv_back_texture.height, pv_back_texture.tobytes(), compression.to_kkdlib_format()))
+
+            pv_back = kkdlib.spr.Info()
+            pv_back.texid = 2
+            pv_back.resolution_mode = kkdlib.spr.ResolutionMode.FHD
+            pv_back.px = 2
+            pv_back.py = 2
+            pv_back.width = 1280
+            pv_back.height = 720
+
 
 
         spr.set_txp(txp, names)
@@ -84,6 +99,8 @@ class FarcCreator:
         spr.add_spr(background, str("SONG_BG" + song_id))
         spr.add_spr(jacket, str("SONG_JK" + song_id))
         spr.add_spr(logo, str("SONG_LOGO" + song_id))
+        if pv_back_texture is not None:
+            spr.add_spr(pv_back, str("IMAGE"))
 
         farc = kkdlib.farc.Farc()
         farc.add_file_data("spr_sel_pv"+song_id+".bin", spr.to_buf())
