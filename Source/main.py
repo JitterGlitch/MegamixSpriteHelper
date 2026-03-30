@@ -14,7 +14,7 @@ import kkdlib
 
 import yaml
 from PIL import Image
-from PySide6.QtCore import Qt, QFileSystemWatcher, QSize, Signal, QRectF, QStandardPaths, QUrl, QFile, QIODevice, QByteArray
+from PySide6.QtCore import Qt, QFileSystemWatcher, QSize, Signal, QRectF, QStandardPaths, QUrl, QFile, QIODevice, QByteArray, QRect
 from PySide6.QtGui import QPixmap, QPalette, QColor, QImage, QPainter, QGuiApplication, QDesktopServices, QImageWriter, QAction
 from PySide6.QtWidgets import QApplication, QMainWindow, QWidget, QFileDialog, QMessageBox, QSizePolicy, QMenu, QMenuBar
 
@@ -1150,8 +1150,8 @@ class SongFarcCreatorWindow(QWidget):
         painter.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform)
         painter.setRenderHint(QPainter.RenderHint.VerticalSubpixelPositioning)
 
-        self.scene_view.render(painter, target=QRectF(1, 1, 1282, 722))
-        self.scene_view.render(painter, target=QRectF(2, 2, 1280, 720))
+        self.scene_view.scene().render(painter, target=QRectF(1, 1, 1282, 722))
+        self.scene_view.scene().render(painter, target=QRectF(2, 2, 1280, 720))
 
         painter.end()
 
