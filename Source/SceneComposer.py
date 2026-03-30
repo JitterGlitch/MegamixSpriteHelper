@@ -8,7 +8,7 @@ import PySide6
 from PIL import Image
 from PySide6.QtCore import Qt, QRectF, QPoint, Signal, QObject, QSize, QRect, QIODevice, QFile
 from PySide6.QtGui import QImage, QPixmap, QPainter, QTransform, QColor
-from PySide6.QtWidgets import QGraphicsPixmapItem, QFileDialog, QGraphicsScene, QLayout, QGraphicsView, QWidget, QSpacerItem, QSizePolicy
+from PySide6.QtWidgets import QGraphicsPixmapItem, QFileDialog, QGraphicsScene, QLayout, QGraphicsView, QWidget, QSpacerItem, QSizePolicy, QScrollArea
 
 from widgets import EditableDoubleLabel, QSmarterMenu
 
@@ -119,15 +119,23 @@ class QScalingGraphicsScene(QGraphicsView):
         self.zoomed_in = False
         self.center_on = None
         self.size = 2.15
-
     def resizeEvent(self,event):
         self.lock_in()
 
     def wheelEvent(self, event, /):
         event.ignore()
 
+    def get_available_geometry(self):
+        first = self.parentWidget()
+        p = first
+        while p:
+            if isinstance(p, QScrollArea):
+                return p.viewport().contentsRect()
+            p = p.parentWidget()
+        return first.contentsRect()
+
     def lock_in(self):
-        min_width = self.parent().parent().parent().height() / 9
+        min_width = self.get_available_geometry().height() / 9
 
         self.setMaximumSize(QSize(min_width * 16 / self.size, min_width * 9 / self.size))
         self.setMinimumSize(QSize(min_width * 16 / self.size, min_width * 9 / self.size))
