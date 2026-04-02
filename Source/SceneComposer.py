@@ -1047,6 +1047,7 @@ class QPVBackScene(QGraphicsScene):
         self.centered_layout_state = False
         self.grid_visible_state = True
         self.grid_lower_opacity_state = False
+        self.logo_visibility_state = True
         self.logo_size_state = False
         self.ft_result_show_background_state = False
 
@@ -1091,6 +1092,10 @@ class QPVBackScene(QGraphicsScene):
         self.ft_result_jacket.setVisible(False)
         self.ft_result_logo.setVisible(False)
 
+    def toggle_logo_visibility(self):
+        self.logo_visibility_state = not self.logo_visibility_state
+        self.toggle_layout(self.current_layout)
+
     def toggle_layout(self,layout):
         self.hide_all()
         self.current_layout = layout
@@ -1099,23 +1104,26 @@ class QPVBackScene(QGraphicsScene):
 
                 self.mm_song_select_backdrop.setVisible(True)
                 self.mm_song_select_jacket.setVisible(True)
-                self.mm_song_select_logo.setVisible(True)
                 self.mm_song_select_middle_layer.setVisible(True)
                 self.background.setVisible(True)
+                if self.logo_visibility_state:
+                    self.mm_song_select_logo.setVisible(True)
 
             case PvBackLayout.MMResult:
                 self.mm_result_backdrop.setVisible(True)
                 self.mm_result_jacket.setVisible(True)
-                self.mm_result_logo.setVisible(True)
                 self.mm_result_middle_layer_jacket_shadow.setVisible(True)
                 self.background.setVisible(True)
+                if self.logo_visibility_state:
+                    self.mm_result_logo.setVisible(True)
 
             case PvBackLayout.FTResult:
                 self.ft_result_middle_layer_jacket_shadow.setVisible(True)
                 self.ft_result_backdrop.setVisible(not self.ft_result_show_background_state)
                 self.ft_result_jacket.setVisible(True)
-                self.ft_result_logo.setVisible(True)
                 self.background.setVisible(self.ft_result_show_background_state)
+                if self.logo_visibility_state:
+                    self.ft_result_logo.setVisible(True)
 
         self.build_menu_options()
     def toggle_grid(self,state):

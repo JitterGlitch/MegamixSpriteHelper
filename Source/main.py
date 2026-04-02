@@ -655,6 +655,8 @@ class MainWindow(QMainWindow):
         self.display_scenes()
 
         self.song_farc_creator.init_preview(self.P_Scenes.PV_Back_Creator_Window)
+        self.song_farc_creator.main_box.logo_checkbox.toggled.connect(self.song_farc_creator.scene_view.scene().toggle_logo_visibility)
+
 
         #Make sure that tab matches options shown on start
         self.current_sprite_tab_switcher(self.main_box.current_sprite_combobox.currentIndex())
