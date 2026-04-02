@@ -1095,6 +1095,9 @@ class SongFarcCreatorWindow(QWidget):
 
             FarcCreator.create_jk_bg_logo_farc(song_id, bg_jk, logo, output_location,compression,pv_back_texture=pv_back_texture)
 
+            if self.main_box.generate_spr_db_after_export_checkbox.isChecked():
+                main_window.generate_spr_db_button_callback(path=output_location)
+
 
     def create_background_jacket_texture(self):
         main_window.C_Sprites.background.update_sprite(hq_output=True)
