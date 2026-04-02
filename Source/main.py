@@ -625,7 +625,7 @@ class MainWindow(QMainWindow):
         self.export_menu = self.menu.addMenu("Export")
         self.export_menu.addAction("Create Song Sprite Farc", lambda: self.song_farc_creator.show())
         self.export_menu.addAction("Create Thumbnail Farc", lambda: self.thumbnail_creator.show())
-        self.export_menu.addAction("Generate Sprite Database", self.generate_spr_db_button_callback)
+        self.export_menu.addAction("Generate Sprite Database", lambda: self.generate_spr_db_button_callback())
         self.export_menu.addSection("Textures")
         self.export_menu.addAction("Export Thumbnail Texture", self.song_farc_creator.export_thumbnail_button_callback)
         self.export_logo = self.export_menu.addAction("Export Logo Texture", self.song_farc_creator.export_logo_button_callback)
@@ -990,7 +990,7 @@ class MainWindow(QMainWindow):
 
     def generate_spr_db_button_callback(self,path=None):
         spr_path = path
-        if spr_path is False:
+        if spr_path is None:
             spr_path = QFileDialog.getExistingDirectory(self,"Choose 2d folder to generate spr_db for",str(config.last_used_directory))
 
         if spr_path == "":
@@ -1034,6 +1034,7 @@ class MainWindow(QMainWindow):
                     farc_reader = read_farc(farc_file)
                     add_farc_to_Manager(farc_reader, spr_db)
             spr_db.write_db(f'{spr_path}/mod_spr_db.bin')
+            print(spr_db.sprinfo_list)
             print(f"Generated mod_spr_db in {spr_path}")
 
 class SongFarcCreatorWindow(QWidget):
