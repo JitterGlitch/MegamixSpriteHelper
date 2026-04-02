@@ -910,6 +910,8 @@ class MainWindow(QMainWindow):
 
         self.C_Sprites.logo.toggle_visibility(state)
         self.export_logo.setEnabled(state)
+        self.song_farc_creator.main_box.logo_checkbox.setEnabled(state)
+        self.song_farc_creator.main_box.logo_checkbox.setChecked(state)
         if self.main_box.current_sprite_combobox.currentText() == "Logo":
             self.main_box.load_image_button.setEnabled(state)
             self.main_box.flip_vertical_button.setEnabled(state)
@@ -1079,7 +1081,7 @@ class SongFarcCreatorWindow(QWidget):
             compression = self.main_box.compression_comboBox.currentEnum()
             print(compression)
 
-            if main_window.has_logo_toggle:
+            if self.main_box.logo_checkbox:
                 logo = Image.fromqimage(self.create_logo_texture()).transpose(Image.Transpose.FLIP_TOP_BOTTOM)
             else:
                 logo = None
