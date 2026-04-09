@@ -86,7 +86,7 @@ class FarcCreator:
 
             pv_back = kkdlib.spr.Info()
             pv_back.texid = 2
-            pv_back.resolution_mode = kkdlib.spr.ResolutionMode.FHD
+            pv_back.resolution_mode = kkdlib.spr.ResolutionMode.HD
             pv_back.px = 2
             pv_back.py = 2
             pv_back.width = 1280
