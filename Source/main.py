@@ -956,37 +956,7 @@ class MainWindow(QMainWindow):
                                      f"Loaded image is {iw}x{ih}, ignoring transparent area.")
 
 
-    def export_qimage_with_mask(self,qimage:QImage, mask:bytes, output_path:str):
-        # TODO - This reeks of AI-Genned code. Delete unnecessary checks
 
-        with tempfile.NamedTemporaryFile(suffix='.png', delete=False) as temp_file:
-            temp_path = temp_file.name
-
-        try:
-            if not qimage.save(temp_path):
-                raise ValueError("Failed to save QImage to temporary file")
-
-            with WImage(filename=temp_path) as img:
-                with WImage(blob=mask) as mask_img:
-                    if img.size != mask_img.size:
-                        mask_img.resize(img.width, img.height)
-
-                    img.composite(mask_img, operator='copy_alpha')
-
-                    img.background_color = "rgb(255, 255, 255)"
-                    img.compression = 'zip'
-                    img.colorspace = 'srgb'
-
-                    img.metadata['MegaMix Sprite Helper version'] = str(config.version)
-
-                    img.save(filename=output_path)
-
-        except Exception as e:
-            print(f"Error during image processing: {str(e)}")
-            raise
-        finally:
-            if os.path.exists(temp_path):
-                os.unlink(temp_path)
 
     def generate_spr_db_button_callback(self,path=None):
         spr_path = path
@@ -1190,6 +1160,38 @@ class SongFarcCreatorWindow(QWidget):
             mask = bytes(data)
 
             self.export_qimage_with_mask(thumbnail_texture,mask,save_location)
+
+    def export_qimage_with_mask(self,qimage:QImage, mask:bytes, output_path:str):
+        # TODO - This reeks of AI-Genned code. Delete unnecessary checks
+
+        with tempfile.NamedTemporaryFile(suffix='.png', delete=False) as temp_file:
+            temp_path = temp_file.name
+
+        try:
+            if not qimage.save(temp_path):
+                raise ValueError("Failed to save QImage to temporary file")
+
+            with WImage(filename=temp_path) as img:
+                with WImage(blob=mask) as mask_img:
+                    if img.size != mask_img.size:
+                        mask_img.resize(img.width, img.height)
+
+                    img.composite(mask_img, operator='copy_alpha')
+
+                    img.background_color = "rgb(255, 255, 255)"
+                    img.compression = 'zip'
+                    img.colorspace = 'srgb'
+
+                    img.metadata['MegaMix Sprite Helper version'] = str(config.version)
+
+                    img.save(filename=output_path)
+
+        except Exception as e:
+            print(f"Error during image processing: {str(e)}")
+            raise
+        finally:
+            if os.path.exists(temp_path):
+                os.unlink(temp_path)
     def export_logo_button_callback(self):
         filename, _ = QFileDialog.getSaveFileName(
             None,
