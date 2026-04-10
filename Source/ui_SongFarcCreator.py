@@ -11,8 +11,7 @@ from PySide6.QtWidgets import (QAbstractScrollArea, QApplication, QCheckBox, QCo
     QSizePolicy, QSpacerItem, QVBoxLayout, QWidget)
 from superqt import QEnumComboBox
 
-from Source import FarcCreator
-from Source.SceneComposer import QScalingGraphicsScene
+import FarcCreator
 
 
 class Ui_SongFarcCreatorWindow(object):
