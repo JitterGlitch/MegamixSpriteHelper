@@ -1128,6 +1128,7 @@ class SongFarcCreatorWindow(QWidget):
         painter.setRenderHint(QPainter.RenderHint.LosslessImageRendering)
         painter.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform)
         painter.setRenderHint(QPainter.RenderHint.VerticalSubpixelPositioning)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
 
         self.scene_view.scene().render(painter, target=QRectF(1, 1, 1922, 1082))
         self.scene_view.scene().render(painter, target=QRectF(2, 2, 1920, 1080))

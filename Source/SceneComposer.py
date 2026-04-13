@@ -711,7 +711,8 @@ class QSpriteSlave(QGraphicsPixmapItem):
 
         if self.rotation:
             image = self.pixmap().toImage()
-            image = image.transformed(QTransform().rotate(self.rotation))
+            transform = QTransform().rotate(self.rotation)
+            image = image.transformed(transform, Qt.TransformationMode.SmoothTransformation)
             self.setPixmap(QPixmap(image))
     def toggle_zoom_in(self,state):
         if not self.tracked.type == SpriteType.BACKGROUND:
@@ -1030,6 +1031,7 @@ class QPVBackScene(QGraphicsScene):
 
         self.layout_choose_layout = None
         self.options_layout = None
+
 
         self.background = QSpriteSlave(background,position=QPoint(0,0),scale=1.50,brightness=40)
 
