@@ -1121,7 +1121,7 @@ class SongFarcCreatorWindow(QWidget):
 
 
 
-        pv_back_texture = QImage(QSize(2048, 1024), QImage.Format.Format_ARGB32)
+        pv_back_texture = QImage(QSize(2048, 2048), QImage.Format.Format_ARGB32)
         pv_back_texture.fill(Qt.GlobalColor.transparent)
 
         painter = QPainter(pv_back_texture)
@@ -1129,8 +1129,8 @@ class SongFarcCreatorWindow(QWidget):
         painter.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform)
         painter.setRenderHint(QPainter.RenderHint.VerticalSubpixelPositioning)
 
-        self.scene_view.scene().render(painter, target=QRectF(1, 1, 1282, 722))
-        self.scene_view.scene().render(painter, target=QRectF(2, 2, 1280, 720))
+        self.scene_view.scene().render(painter, target=QRectF(1, 1, 1922, 1082))
+        self.scene_view.scene().render(painter, target=QRectF(2, 2, 1920, 1080))
 
         painter.end()
 
