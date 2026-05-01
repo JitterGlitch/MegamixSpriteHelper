@@ -1142,33 +1142,66 @@ class QPVBackScene(QGraphicsScene):
     def toggle_centered_layout(self,state):
         if state:
             self.mm_song_select_jacket.setPos(QPoint(self.mm_song_select_scene.jacket.pos().toPoint().x()-361,self.mm_song_select_scene.jacket.pos().toPoint().y()+57))
-            self.mm_song_select_logo.setPos(QPoint(367,548))
             self.mm_song_select_middle_layer.setPos(QPoint(self.mm_song_select_scene.middle_layer.pos().toPoint().x()-361,self.mm_song_select_scene.middle_layer.pos().toPoint().y()+57))
-            self.mm_song_select_logo.scale = 1
+
+            self.mm_song_select_logo.setPos(QPoint(367, 548))
+
+
         else:
             self.mm_song_select_jacket.setPos(self.mm_song_select_scene.jacket.pos().toPoint())
-            self.mm_song_select_logo.setPos(self.mm_song_select_scene.logo.pos().toPoint())
+            if self.logo_size_state:
+                self.toggle_logo_size(True)
+                self.mm_song_select_logo.setPos(QPoint(805, 517))
+                self.logo_size_state = not self.logo_size_state
+
+            else:
+                self.mm_song_select_logo.setPos(self.mm_song_select_scene.logo.pos().toPoint())
+
             self.mm_song_select_middle_layer.setPos(self.mm_song_select_scene.middle_layer.pos().toPoint())
             self.mm_song_select_logo.scale = self.mm_song_select_scene.logo.scale
 
         self.centered_layout_state = not self.centered_layout_state
+        print(self.mm_song_select_logo.pos())
     def toggle_logo_size(self,state):
-        #TODO Logo positions need adjustment to look passable
         if state:
+            x_offset = 40
+            y_offset = 40
             self.mm_song_select_logo.scale = 1
             self.ft_result_logo.scale = 1
             self.mm_result_logo.scale = 1
+
+            if self.centered_layout_state:
+                self.mm_song_select_logo.setPos(QPoint(367, 548))
+            else:
+                self.mm_song_select_logo.setPos(QPoint(int(self.mm_song_select_scene.logo.x() - (x_offset/2)),int(self.mm_song_select_scene.logo.y() - (y_offset/2))))
+
+            self.ft_result_logo.setPos(QPoint(int(self.ft_result_scene.logo.x() - x_offset), int(self.ft_result_scene.logo.y() - y_offset)))
+
+            self.mm_result_logo.setPos(QPoint(int(self.mm_result_scene.logo.x() - x_offset), int(self.mm_result_scene.logo.y() - y_offset)))
+
 
         else:
             self.mm_song_select_logo.scale = self.mm_song_select_scene.logo.scale
             self.mm_result_logo.scale = self.mm_result_scene.logo.scale
             self.ft_result_logo.scale = self.ft_result_scene.logo.scale
 
+            if self.centered_layout_state:
+                self.mm_song_select_logo.setPos(QPoint(367, 548))
+            else:
+                self.mm_song_select_logo.setPos(QPoint(int(self.mm_song_select_scene.logo.x()), int(self.mm_song_select_scene.logo.y())))
+
+            self.ft_result_logo.setPos(QPoint(int(self.ft_result_scene.logo.x()), int(self.ft_result_scene.logo.y())))
+
+            self.mm_result_logo.setPos(QPoint(int(self.mm_result_scene.logo.x()), int(self.mm_result_scene.logo.y())))
+
+
         self.mm_song_select_logo.update_sprite()
         self.ft_result_logo.update_sprite()
         self.mm_result_logo.update_sprite()
 
         self.logo_size_state = not self.logo_size_state
+        print(self.mm_song_select_logo.pos())
+
     def toggle_ft_result_background(self,state):
         self.ft_result_backdrop.setVisible(not state)
         self.background.setVisible(state)
