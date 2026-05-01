@@ -4,6 +4,7 @@ from enum import Enum, auto, StrEnum
 from pathlib import Path
 from typing import Callable
 
+import PIL
 import PySide6
 from PIL import Image
 from PySide6.QtCore import Qt, QRectF, QPoint, Signal, QObject, QSize, QRect, QIODevice, QFile
@@ -39,9 +40,27 @@ def round_up(number, decimal_places):
     factor = 10 ** decimal_places
     return math.ceil(number * factor) / factor
 
+def qimage_to_pil(img: QImage):
+    ptr = img.constBits()
+    if hasattr(ptr, 'asstring'):
+        data = ptr.asstring(img.byteCount())
+    else:
+        data = bytes(ptr)
+    pil_img = Image.frombuffer('RGBA', (img.width(), img.height()), data, 'raw', 'BGRA', 0, 1)
+    return pil_img
+
 def get_transparent_edge_pixels(image):
 
-    if not image.hasAlphaChannel():
+    pil_img = qimage_to_pil(image)
+
+    if pil_img.mode != 'RGBA':
+        pil_img = pil_img.convert('RGBA')
+
+    alpha = pil_img.getchannel('A')
+
+    bbox = alpha.getbbox()
+
+    if bbox is None:
         edges = {
             "Top": 0,
             "Bottom": 0,
@@ -50,59 +69,14 @@ def get_transparent_edge_pixels(image):
         }
         return edges
 
-    width = image.width()
-    height = image.height()
-
-    top = 0
-    bottom = 0
-    left = 0
-    right = 0
-
-    for y in range(height):
-        row_has_opaque = False
-        for x in range(width):
-            if image.pixelColor(x, y).alpha() != 0:
-                row_has_opaque = True
-                break
-        if row_has_opaque:
-            break
-        top += 1
-
-    for y in range(height - 1, -1, -1):
-        row_has_opaque = False
-        for x in range(width):
-            if image.pixelColor(x, y).alpha() != 0:
-                row_has_opaque = True
-                break
-        if row_has_opaque:
-            break
-        bottom += 1
-
-    for x in range(width):
-        col_has_opaque = False
-        for y in range(height):
-            if image.pixelColor(x, y).alpha() != 0:
-                col_has_opaque = True
-                break
-        if col_has_opaque:
-            break
-        left += 1
-
-    for x in range(width - 1, -1, -1):
-        col_has_opaque = False
-        for y in range(height):
-            if image.pixelColor(x, y).alpha() != 0:
-                col_has_opaque = True
-                break
-        if col_has_opaque:
-            break
-        right += 1
+    left, upper, right, lower = bbox
+    width, height = pil_img.size
 
     edges = {
-    "Top": top,
-    "Bottom": bottom,
-    "Left": left,
-    "Right": right
+        "Top": upper,
+        "Bottom": height - lower,
+        "Left": left,
+        "Right": width - right
     }
     return edges
 
