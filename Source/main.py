@@ -14,10 +14,11 @@ import kkdlib
 
 import yaml
 from PIL import Image
-from PySide6.QtCore import Qt, QFileSystemWatcher, QSize, Signal, QRectF, QStandardPaths, QUrl, QFile, QIODevice, QByteArray, QRect
+from PySide6.QtCore import Qt, QFileSystemWatcher, QSize, Signal, QRectF, QStandardPaths, QUrl, QFile, QIODevice, QByteArray, QRect, QThread, QTimer
 from PySide6.QtGui import QPixmap, QPalette, QColor, QImage, QPainter, QGuiApplication, QDesktopServices, QImageWriter, QAction
 from PySide6.QtWidgets import QApplication, QMainWindow, QWidget, QFileDialog, QMessageBox, QSizePolicy, QMenu, QMenuBar
 
+from Source import SceneComposer
 from ui_SongFarcCreator import Ui_SongFarcCreatorWindow
 from widgets import QSmarterMenu
 
@@ -642,11 +643,6 @@ class MainWindow(QMainWindow):
         self.share_menu.addAction("Copy preview to clipboard",lambda: self.generate_preview(OutputTarget.CLIPBOARD)).setShortcut("Ctrl+C")
         self.share_menu.addAction("Open preview in external program",lambda: self.generate_preview(OutputTarget.IMAGE_VIEWER)).setShortcut("Ctrl+O")
 
-        #Start watching for file updates of loaded files
-        self.watcher = QFileSystemWatcher()
-        self.watcher.fileChanged.connect(self.watcher_file_modified_action)
-
-        #self.main_box.farc_export_button.clicked.connect(self.export_background_jacket_logo_farc_button_callback)
         self.main_box.flip_horizontal_button.clicked.connect(lambda: self.flip_current_sprite(Qt.Orientation.Horizontal))
         self.main_box.flip_vertical_button.clicked.connect(lambda: self.flip_current_sprite(Qt.Orientation.Vertical))
 
@@ -707,8 +703,9 @@ class MainWindow(QMainWindow):
                 self.C_Sprites.thumbnail.toggle_flip(flip_type)
 
     def display_scenes(self):
-        self.C_Sprites = QControllableSprites()
-        self.P_Scenes = QPreviewScenes(self.C_Sprites)
+        self.SC = SceneComposer.SceneComposerObjects()
+        self.C_Sprites = self.SC.C_Sprites
+        self.P_Scenes = self.SC.P_Scenes
 
         self.populate_display_scene_menu()
 
@@ -944,7 +941,7 @@ class MainWindow(QMainWindow):
             ret= sprite_object.load_new_image(image_location)
             match ret[0]:
                 case "Updated":
-                    self.watcher.addPath(image_location)
+                    pass
                 case "Image too small":
                     iw = ret[1]
                     ih = ret[2]

@@ -6,8 +6,9 @@ from typing import Callable
 
 import PIL
 import PySide6
+import hashlib
 from PIL import Image
-from PySide6.QtCore import Qt, QRectF, QPoint, Signal, QObject, QSize, QRect, QIODevice, QFile
+from PySide6.QtCore import Qt, QRectF, QPoint, Signal, QObject, QSize, QRect, QIODevice, QFile, QThread, QFileSystemWatcher, QTimer
 from PySide6.QtGui import QImage, QPixmap, QPainter, QTransform, QColor
 from PySide6.QtWidgets import QGraphicsPixmapItem, QFileDialog, QGraphicsScene, QLayout, QGraphicsView, QWidget, QSpacerItem, QSizePolicy, QScrollArea, QCheckBox, QRadioButton, QLabel
 
@@ -86,6 +87,17 @@ def get_real_image_area(image:QImage) -> QRect:
     adjusted_rect = image_rect.adjusted(t_edges["Left"],t_edges["Top"],-t_edges["Right"],-t_edges["Bottom"])
     return adjusted_rect
 
+def compute_file_hash(file_path):
+    hash_func = hashlib.new('md5')
+    if not file_path.startswith(":"):
+        if Path(file_path).exists():
+            with open(file_path, 'rb') as file:
+                while chunk := file.read(8192):
+                    hash_func.update(chunk)
+            return hash_func.hexdigest()
+
+    return None
+
 ######################################################
 class QScalingGraphicsScene(QGraphicsView):
     def __init__(self):
@@ -141,7 +153,32 @@ def qresource_to_bytes(location):
     else:
         raise IOError(f"Cannot open resource {location}")
 
+class PathWatcher(QThread):
+    ImageLocationUpdate = Signal(str)
+    def __init__(self,C_Sprites):
+        super().__init__()
+        self.C_Sprites = C_Sprites
+        # Tracks each customizable sprite
+        # Needs to watch image_path for file changes
+        # When file gets updated it runs func that updates all sprites using that image
+        # Every 10 secs it checks image_path regardless of file change to make sure it doesn't get stuck
+            # To do it is keeping sha256 hash image and compares it
+            # If the hashes don't match it reloads the image without resetting values
+            # On match it doesn't do anything and restarts the timer
+        self.timer = QTimer()
+        self.timer.timeout.connect(self.manual_file_update_check)
+        self.timer.start(1000)
 
+    def manual_file_update_check(self):
+        print("Running file check")
+        for sprite in self.C_Sprites.list:
+            new_image_hash = compute_file_hash(sprite.location)
+            if new_image_hash is None:
+                continue
+            if not new_image_hash == sprite.hash:
+                print("Manual Image check detected change in " + sprite.type)
+                sprite.hash = new_image_hash
+                sprite.load_new_image(sprite.location, fallback=True)
 class QSpriteBase(QGraphicsPixmapItem, QObject):
     SpriteUpdated = Signal()
     def __init__(self,
@@ -156,6 +193,7 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
         self.dummy_location = sprite
         self.location = sprite
         self.sprite_size = size
+        self.hash = compute_file_hash(sprite)
         self.setTransformationMode(Qt.TransformationMode.SmoothTransformation)
         self.offset=offset
         if scale:
@@ -244,8 +282,6 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
 
         verticalSpacer = QSpacerItem(0, 0, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
         layout.addItem(verticalSpacer)
-
-
 
     def grab_scene_portion(self,scene:QGraphicsScene, source_rect:QRectF) -> QPixmap:
         pixmap = QPixmap(source_rect.size().toSize())
@@ -353,8 +389,9 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
                 print(f"Required size for the sprite is {rw,rh}")
                 return ["Image too small",iw,ih,rw,rh]
         else:
-            self.location = image_location
+            self.update_location(image_location)
             self.sprite_image = qimage
+            self.hash = compute_file_hash(image_location)
 
         self.t_edges = get_transparent_edge_pixels(self.sprite_image)
         self.rect = get_real_image_area(self.sprite_image)
@@ -369,7 +406,12 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
         self.update_sprite()
         self.set_initial_values()
         return ["Updated"]
-
+    def bind_watcher(self,watcher:PathWatcher):
+        self.watcher = watcher
+    def update_location(self,image_location):
+        print("Updating location")
+        self.location = image_location
+        self.watcher.ImageLocationUpdate.emit(self.location)
     def update_sprite(self,hq_output=False):
         zoom = self.edit_controls[SpriteSetting.ZOOM.value].value
         zoom_inverse = 1/zoom
@@ -756,6 +798,10 @@ class QControllableSprites:
                                         QRectF(0, 0, 1280, 720))
 
         self.list = [self.thumbnail,self.logo,self.jacket,self.background]
+        self.sprite_updater = PathWatcher(self)
+
+        for sprite in self.list:
+            sprite.bind_watcher(self.sprite_updater)
 
 class QMMSongSelectScene(QGraphicsScene):
     def __init__(self,jacket:QJacket, logo:QLogo, background:QSpriteBase, thumbnail:QThumbnail):
@@ -1336,3 +1382,8 @@ class QPreviewScenes:
                                     background=C_Sprites.background)
 
         self.new_classics_scenes = [self.MM_SongSelect,self.MM_Result,self.FT_SongSelect,self.FT_Result]
+
+class SceneComposerObjects:
+    def __init__(self):
+        self.C_Sprites = QControllableSprites()
+        self.P_Scenes = QPreviewScenes(self.C_Sprites)
