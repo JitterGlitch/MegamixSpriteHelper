@@ -164,7 +164,6 @@ class PathWatcher(QThread):
         self.timer.start(1000)
 
     def manual_file_update_check(self):
-        print("Running file check")
         for sprite in self.C_Sprites.list:
             new_image_hash = compute_file_hash(sprite.location)
             if new_image_hash is None:
