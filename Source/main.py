@@ -18,7 +18,7 @@ from PySide6.QtCore import Qt, QFileSystemWatcher, QSize, Signal, QRectF, QStand
 from PySide6.QtGui import QPixmap, QPalette, QColor, QImage, QPainter, QGuiApplication, QDesktopServices, QImageWriter, QAction
 from PySide6.QtWidgets import QApplication, QMainWindow, QWidget, QFileDialog, QMessageBox, QSizePolicy, QMenu, QMenuBar
 
-from Source import SceneComposer
+import SceneComposer
 from ui_SongFarcCreator import Ui_SongFarcCreatorWindow
 from widgets import QSmarterMenu
 
