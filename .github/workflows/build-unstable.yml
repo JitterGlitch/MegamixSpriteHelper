@@ -34,8 +34,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          URL="https://github.com/JitterGlitch/jank-solution/raw/main/${{ matrix.kkdlib_wheel }}"
-          curl -L $URL -o ${{ matrix.kkdlib_wheel }}.
+          curl -L "https://github.com/JitterGlitch/jank-solution/raw/main/${{ matrix.kkdlib_wheel }}" -o ${{ matrix.kkdlib_wheel }}.
 
       - name: Install kkdlib Wheel
         shell: bash
