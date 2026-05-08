@@ -258,6 +258,10 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
         self.edit_controls[SpriteSetting.ZOOM.value].setValue(self.edit_controls[SpriteSetting.ZOOM.value].spinbox.maximum())
         self.edit_controls[SpriteSetting.BRIGHTNESS.value].setValue(self.edit_controls[SpriteSetting.BRIGHTNESS.value].spinbox.maximum())
 
+        if self.type == SpriteType.THUMBNAIL:
+            print(self.t_edges)
+            print(self.rect)
+
     def create_edit_controls(self) -> dict[Callable[[], str], EditableDoubleLabel]:
         editable_values = {}
         for setting in self.sprite_settings:
@@ -400,6 +404,10 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
         self.update_sprite()
         if reset_values:
             self.set_initial_values()
+
+        if self.type == SpriteType.THUMBNAIL:
+            print(self.t_edges)
+            print(self.rect)
         return ["Updated"]
     def bind_watcher(self,watcher:PathWatcher):
         self.watcher = watcher
