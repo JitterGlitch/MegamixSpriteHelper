@@ -39,6 +39,7 @@ jobs:
       - name: Install kkdlib Wheel
         shell: bash
         run: |
+          ls -lh
           pip install ${{ matrix.kkdlib_wheel }}
 
       - name: Install build tools & requirements
