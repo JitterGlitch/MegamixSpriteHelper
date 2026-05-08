@@ -19,7 +19,7 @@ jobs:
           - os: ubuntu-latest
             artifact_name: MegamixSpriteHelper-Linux
             binary_path: dist/MegamixSpriteHelper
-            kkdlib_wheel: kkdlib-0.1.0-cp39-abi3-manylinux_2_34_x86_64.whl
+            kkdlib_wheel: kkdlib-0.1.0-cp39-abi3-manylinux_2_35_x86_64.whl
 
     steps:
       - name: Checkout repository
