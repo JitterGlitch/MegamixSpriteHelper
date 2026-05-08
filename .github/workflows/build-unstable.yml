@@ -25,12 +25,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Grab kkdlib wheels
-        uses: actions/checkout@v4
-        with:
-          repository: JitterGlitch/jank-solution
-          path: jank-solution
-
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -39,7 +33,7 @@ jobs:
       - name: Install kkdlib wheel
         shell: bash
         run: |
-          pip install .jank-solution/${{ matrix.kkdlib_wheel }}
+          pip install ./Source/ThirdParty/${{ matrix.kkdlib_wheel }}
 
       - name: Install build tools & requirements
         run: |
