@@ -3,7 +3,7 @@ name: Build unstable MegamixSpriteHelper version
 on:
   push:
     branches:
-      - Unstable
+      - unstable
 
 jobs:
   build:
