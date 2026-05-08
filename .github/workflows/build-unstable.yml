@@ -1,0 +1,61 @@
+name: Build unstable MegamixSpriteHelper version
+
+on:
+  push:
+    branches:
+      - Unstable
+
+jobs:
+  build:
+    name: Build on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: windows-latest
+            artifact_name: MegamixSpriteHelper-Windows
+            binary_path: dist/MegamixSpriteHelper.exe
+            kkdlib_wheel: kkdlib-0.1.0-cp39-abi3-win_amd64.whl
+          - os: ubuntu-latest
+            artifact_name: MegamixSpriteHelper-Linux
+            binary_path: dist/MegamixSpriteHelper
+            kkdlib_wheel: kkdlib-0.1.0-cp39-abi3-manylinux_2_34_x86_64.whl
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Download kkdlib Artifact
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          URL="https://github.com/JitterGlitch/jank-solution/raw/main/${{ matrix.kkdlib_wheel }}"
+          curl -L $URL -o ${{ matrix.kkdlib_wheel }}.
+
+      - name: Install kkdlib Wheel
+        shell: bash
+        run: |
+          pip install ${{ matrix.kkdlib_wheel }}
+
+      - name: Install build tools & requirements
+        run: |
+          python -m pip install --upgrade pip
+          pip install pyinstaller
+          pip install -r ./Source/requirements.txt
+        shell: bash
+
+      - name: Build with PyInstaller
+        run: |
+          pyinstaller --onefile --name MegamixSpriteHelper ./Source/main.py
+
+      - name: Upload Finished Build
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact_name }}
+          path: ${{ matrix.binary_path }}
+          if-no-files-found: error
