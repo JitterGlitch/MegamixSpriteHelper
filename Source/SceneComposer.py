@@ -158,13 +158,7 @@ class PathWatcher(QThread):
     def __init__(self,C_Sprites):
         super().__init__()
         self.C_Sprites = C_Sprites
-        # Tracks each customizable sprite
-        # Needs to watch image_path for file changes
-        # When file gets updated it runs func that updates all sprites using that image
-        # Every 10 secs it checks image_path regardless of file change to make sure it doesn't get stuck
-            # To do it is keeping sha256 hash image and compares it
-            # If the hashes don't match it reloads the image without resetting values
-            # On match it doesn't do anything and restarts the timer
+
         self.timer = QTimer()
         self.timer.timeout.connect(self.manual_file_update_check)
         self.timer.start(1000)
@@ -178,7 +172,8 @@ class PathWatcher(QThread):
             if not new_image_hash == sprite.hash:
                 print("Manual Image check detected change in " + sprite.type)
                 sprite.hash = new_image_hash
-                sprite.load_new_image(sprite.location, fallback=True)
+                sprite.load_new_image(sprite.location, fallback=True,reset_values=False)
+
 class QSpriteBase(QGraphicsPixmapItem, QObject):
     SpriteUpdated = Signal()
     def __init__(self,
@@ -360,7 +355,7 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
     def update_all_ranges(self,rect):
         for setting in self.edit_controls:
             self.edit_controls[setting].set_range(self.calculate_range(setting,rect))
-    def load_new_image(self,image_location,fallback=False):
+    def load_new_image(self,image_location,fallback=False,reset_values=True):
         qimage =QImage(image_location)
         required_size = self.required_size()
 
@@ -404,7 +399,8 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
         self.update_all_ranges(self.rect)
 
         self.update_sprite()
-        self.set_initial_values()
+        if reset_values:
+            self.set_initial_values()
         return ["Updated"]
     def bind_watcher(self,watcher:PathWatcher):
         self.watcher = watcher
