@@ -1052,12 +1052,12 @@ class SongFarcCreatorWindow(QWidget):
             compression = self.main_box.compression_comboBox.currentEnum()
             print(compression)
 
-            if self.main_box.logo_checkbox:
+            if self.main_box.logo_checkbox.isChecked():
                 logo = Image.fromqimage(self.create_logo_texture()).transpose(Image.Transpose.FLIP_TOP_BOTTOM)
             else:
                 logo = None
 
-            if self.main_box.pv_back_sprite_checkbox:
+            if self.main_box.pv_back_sprite_checkbox.isChecked():
                 pv_back_texture = Image.fromqimage(self.create_pv_back_texture()).transpose(Image.Transpose.FLIP_TOP_BOTTOM)
             else:
                 pv_back_texture = None
