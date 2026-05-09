@@ -46,7 +46,7 @@ jobs:
 
       - name: Build with PyInstaller
         run: |
-          pyinstaller --onedir --Icon=${{ matrix.icon }} --name MegamixSpriteHelper ./Source/main.py
+          pyinstaller --onedir -c --icon=${{ matrix.icon }} --name MegamixSpriteHelper ./Source/main.py
 
       - name: Upload Finished Build
         uses: actions/upload-artifact@v4
