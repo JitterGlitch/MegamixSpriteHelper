@@ -608,8 +608,8 @@ class QJacket(QSpriteBase):
         return QSize(500,500)
 
     def set_initial_values(self):
-        self.edit_controls[SpriteSetting.HORIZONTAL_OFFSET.value].setValue(self.edit_controls[SpriteSetting.HORIZONTAL_OFFSET.value].range[0])
-        self.edit_controls[SpriteSetting.VERTICAL_OFFSET.value].setValue(self.edit_controls[SpriteSetting.HORIZONTAL_OFFSET.value].range[0])
+        self.edit_controls[SpriteSetting.HORIZONTAL_OFFSET.value].setValue(self.edit_controls[SpriteSetting.HORIZONTAL_OFFSET.value].range[1])
+        self.edit_controls[SpriteSetting.VERTICAL_OFFSET.value].setValue(self.edit_controls[SpriteSetting.HORIZONTAL_OFFSET.value].range[1])
         self.edit_controls[SpriteSetting.ROTATION.value].setValue(0)
 
         if self.sprite_image.size().width() / self.sprite_image.size().height() == 1:
