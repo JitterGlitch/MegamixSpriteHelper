@@ -1079,9 +1079,15 @@ class SongFarcCreatorWindow(QWidget):
         painter.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform)
         painter.setRenderHint(QPainter.RenderHint.VerticalSubpixelPositioning)
 
+        #Background needs to be extended bit beyond what game uses to prevent light edges on sides
         painter.drawPixmap(1,1,main_window.C_Sprites.background.pixmap().scaled(1282,722))
         painter.drawPixmap(2,2,main_window.C_Sprites.background.pixmap())
-        painter.drawPixmap(1286, 2,main_window.C_Sprites.jacket.pixmap())
+
+        #To prevent jagged edges on the jacket , semi-transparent edges are added to create poor-man's anti-aliasing
+        painter.setOpacity(50 / 255)
+        painter.drawImage(1286, 2,main_window.C_Sprites.jacket.image_without_fix.scaled(502,502))
+        painter.setOpacity(255)
+        painter.drawImage(1287, 3,main_window.C_Sprites.jacket.image_without_fix)
         painter.end()
 
         return background_jacket_texture

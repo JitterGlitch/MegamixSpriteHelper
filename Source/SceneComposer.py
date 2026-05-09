@@ -615,7 +615,10 @@ class QJacket(QSpriteBase):
             self.edit_controls[SpriteSetting.ZOOM.value].setValue(self.edit_controls[SpriteSetting.ZOOM.value].range[1])
 
     def update_pixmap(self):
-        self.setPixmap(QPixmap(self.apply_fix(self.grab_scene_portion(self.sprite_scene,self.sprite_size).toImage())))
+        print(self.sprite_size)
+        self.image_without_fix = (self.grab_scene_portion(self.sprite_scene,QRectF(0.000000, 0.000000, 500.000000, 500.000000)).toImage())
+        print(self.image_without_fix.size())
+        self.setPixmap(QPixmap(self.apply_fix(self.image_without_fix)))
 class QBackground(QSpriteBase):
     def __init__(self,sprite,size):
         super().__init__(sprite,SpriteType.BACKGROUND,size)
