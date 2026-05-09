@@ -709,6 +709,9 @@ class MainWindow(QMainWindow):
 
         self.populate_display_scene_menu()
 
+        self.mm_practise_toggle.setChecked(False)
+        self.pv_back_toggle.setChecked(False)
+
         self.C_Sprites.thumbnail.add_edit_controls_to(self.main_box.verticalLayout_12)
         self.C_Sprites.logo.add_edit_controls_to(self.main_box.verticalLayout_11)
         self.C_Sprites.jacket.add_edit_controls_to(self.main_box.verticalLayout_10)
