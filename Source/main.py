@@ -16,7 +16,7 @@ import yaml
 from PIL import Image
 from PySide6.QtCore import Qt, QFileSystemWatcher, QSize, Signal, QRectF, QStandardPaths, QUrl, QFile, QIODevice, QByteArray, QRect, QThread, QTimer
 from PySide6.QtGui import QPixmap, QPalette, QColor, QImage, QPainter, QGuiApplication, QDesktopServices, QImageWriter, QAction, QImageReader
-from PySide6.QtWidgets import QApplication, QMainWindow, QWidget, QFileDialog, QMessageBox, QSizePolicy, QMenu, QMenuBar
+from PySide6.QtWidgets import QApplication, QMainWindow, QWidget, QFileDialog, QMessageBox, QSizePolicy, QMenu, QMenuBar, QStyleFactory
 
 import SceneComposer
 from ui_SongFarcCreator import Ui_SongFarcCreatorWindow
@@ -50,7 +50,12 @@ class Configurable:
         self.allowed_file_types = f"Image Files ({self.readable_extensions})"
         self.last_used_directory = self.script_directory
 
-
+def show_message_box(title,contents):
+    message_box = QMessageBox()
+    message_box.setModal(True)
+    message_box.setWindowTitle(title)
+    message_box.setText(contents)
+    message_box.exec()
 
 class ThumbnailIDFieldWidget(QWidget):
     additionalRequested = Signal(QWidget)
@@ -336,6 +341,10 @@ class ThumbnailWindow(QWidget):
             self.space_out_thumbnails()
             self.update_thumbnail_count_labels()
 
+            if not results:
+                show_message_box("No valid Thumbnail files found","No valid Thumbnail files found\nValid thumbnail image must be 128x64.\nNo other images will get loaded.")
+
+
     def scan_folder_for_thumbnails(self):
         selected_folder = QFileDialog.getExistingDirectory(self, "Choose folder containing thumbnails", str(config.last_used_directory))
 
@@ -350,6 +359,8 @@ class ThumbnailWindow(QWidget):
 
                 if True:
                     for file in Path(selected_folder).rglob('*'):
+                        if file.is_dir():
+                            continue
                         if Path(file).suffix in config.readable_extensions:
                             try:
                                 with Image.open(file) as open_image:
@@ -367,6 +378,9 @@ class ThumbnailWindow(QWidget):
 
             self.space_out_thumbnails()
             self.update_thumbnail_count_labels()
+
+            if not results:
+                show_message_box("No valid Thumbnail files found","No valid Thumbnail files found\nValid thumbnail image must be 128x64.\nNo other images will get loaded.")
 
     def create_thumbnail_farc(self):
         mod_name = self.main_box.mod_name_lineedit.get_filtered_text()
@@ -575,12 +589,6 @@ class ThumbnailWindow(QWidget):
 
 
 ###################################################################################################
-def show_message_box(title,contents):
-    message_box = QMessageBox()
-    message_box.setModal(True)
-    message_box.setWindowTitle(title)
-    message_box.setText(contents)
-    message_box.exec()
 
 class MainWindow(QMainWindow):
 
