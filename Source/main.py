@@ -25,7 +25,6 @@ from widgets import QSmarterMenu
 try:
     from wand.image import Image as WImage
 except ImportError:
-    import sys
 
     app = QApplication.instance()
     if not app:

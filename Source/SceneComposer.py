@@ -9,7 +9,7 @@ import PySide6
 import hashlib
 from PIL import Image
 from PySide6.QtCore import Qt, QRectF, QPoint, Signal, QObject, QSize, QRect, QIODevice, QFile, QThread, QFileSystemWatcher, QTimer
-from PySide6.QtGui import QImage, QPixmap, QPainter, QTransform, QColor
+from PySide6.QtGui import QImage, QPixmap, QPainter, QTransform, QColor, QPen
 from PySide6.QtWidgets import QGraphicsPixmapItem, QFileDialog, QGraphicsScene, QLayout, QGraphicsView, QWidget, QSpacerItem, QSizePolicy, QScrollArea, QCheckBox, QRadioButton, QLabel
 
 from widgets import EditableDoubleLabel, QSmarterMenu
@@ -712,27 +712,53 @@ class QSpriteSlave(QGraphicsPixmapItem):
         self.setPos(position)
         self.setTransformationMode(Qt.TransformationMode.SmoothTransformation)
         self.zoomed_in = False
+        self._hovered = False
         if not self.tracked.type == SpriteType.BACKGROUND:
             self.setCursor(Qt.CursorShape.PointingHandCursor)
+            self.setAcceptHoverEvents(True)
+
+
 
 
         self.update_sprite()
+
+
+    def hoverEnterEvent(self, event):
+        self._hovered = True
+        self.update_sprite()
+        super().hoverEnterEvent(event)
+
+    def hoverLeaveEvent(self, event):
+        self._hovered = False
+        self.update_sprite()
+        super().hoverLeaveEvent(event)
+
     def update_sprite(self):
+        self.setPixmap(self.tracked.pixmap())
         if self.scale:
-            self.setPixmap(self.tracked.pixmap())
             self.setScale(self.scale)
-        else:
-            self.setPixmap(self.tracked.pixmap())
+
+        result = self.tracked.pixmap()
+        painter = QPainter(result)
 
         if self.brightness:
-            result = self.tracked.pixmap()
-            painter = QPainter(result)
+
             painter.setCompositionMode(QPainter.CompositionMode.CompositionMode_SourceAtop)
             painter.setOpacity((100 - self.brightness) / 100)
             painter.fillRect(0 , 0, self.tracked.sprite_image.width()+300, self.tracked.sprite_image.height()+300,
                              QColor(0, 0, 0))
-            painter.end()
-            self.setPixmap(result)
+
+        if self._hovered:
+            painter.save()
+            pen = QPen(QColor("yellow"), 10, Qt.SolidLine)
+            painter.setPen(pen)
+            rect = self.boundingRect()
+            painter.drawRect(rect.adjusted(3, 3, -3, -3))
+            painter.drawRect(rect)
+            painter.restore()
+
+        self.setPixmap(result)
+        painter.end()
 
         if self.rotation:
             image = self.pixmap().toImage()
