@@ -2,7 +2,7 @@ import io
 import math
 import os
 import sys
-import tempfile
+
 from concurrent.futures import ThreadPoolExecutor
 from enum import Enum, auto
 from pathlib import Path
@@ -21,26 +21,6 @@ from PySide6.QtWidgets import QApplication, QMainWindow, QWidget, QFileDialog, Q
 import SceneComposer
 from ui_SongFarcCreator import Ui_SongFarcCreatorWindow
 from widgets import QSmarterMenu
-
-try:
-    from wand.image import Image as WImage
-except ImportError:
-
-    app = QApplication.instance()
-    if not app:
-        app = QApplication(sys.argv)
-
-
-    message_box = QMessageBox()
-    message_box.setModal(True)
-    message_box.setTextFormat(Qt.TextFormat.RichText)
-    message_box.setWindowTitle("ImageMagick is not installed")
-    message_box.setText("Please install ImageMagick with 'Install development headers and libraries for C and C++ checked. \n"
-                        "<a href='https://docs.wand-py.org/en/latest/guide/install.html#install-imagemagick-on-windows'>More Info</a>")
-    message_box.setIcon(QMessageBox.Icon.Critical)
-    message_box.exec()
-
-    sys.exit(1)
 
 
 from FarcCreator import FarcCreator
@@ -1110,14 +1090,32 @@ class SongFarcCreatorWindow(QWidget):
         main_window.C_Sprites.thumbnail.update_sprite(hq_output=True)
 
         thumbnail = QPixmap(main_window.C_Sprites.thumbnail.pixmap_no_mask)
+        thumbnail_dummy = QPixmap(u":icon/Images/Dummy/SONG_JK_THUMBNAIL_DUMMY.png")
         thumbnail_texture = QImage(QSize(128, 64), QImage.Format.Format_RGBA8888)
         thumbnail_texture.fill(Qt.GlobalColor.transparent)
-        painter = QPainter(thumbnail_texture)
+
+        thumbnail_base = QImage(QSize(128, 64), QImage.Format.Format_RGBA8888)
+        thumbnail_base.fill(Qt.GlobalColor.transparent)
+
+
+        painter = QPainter(thumbnail_base)
         painter.setRenderHint(QPainter.RenderHint.LosslessImageRendering)
         painter.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform)
         painter.setRenderHint(QPainter.RenderHint.VerticalSubpixelPositioning)
+        painter.drawPixmap(0, 0, thumbnail_dummy)
+        painter.setCompositionMode(QPainter.CompositionMode.CompositionMode_SourceIn)
         painter.drawPixmap(0, 0, thumbnail)
+
+
+
         painter.end()
+
+        painter_fixer = QPainter(thumbnail_texture)
+        painter_fixer.setOpacity(50/255)
+        painter_fixer.drawImage(-1,-1, thumbnail_base.scaled(130,66))
+        painter_fixer.setOpacity(255)
+        painter_fixer.drawImage(0, 0, thumbnail_base)
+        painter_fixer.end()
         return thumbnail_texture
     def create_pv_back_texture(self):
         main_window.C_Sprites.background.update_sprite(hq_output=True)
@@ -1157,47 +1155,8 @@ class SongFarcCreatorWindow(QWidget):
         else:
             config.last_used_directory = Path(save_location)
             thumbnail_texture = self.create_thumbnail_texture()
-            file = QFile(":icon/Images/Dummy/Thumbnail-Maskv3.png")
-            if not file.open(QIODevice.OpenModeFlag.ReadOnly):
-                raise FileNotFoundError(f"Resource not found")
+            thumbnail_texture.save(save_location,"png")
 
-            data = file.readAll()
-            file.close()
-            mask = bytes(data)
-
-            self.export_qimage_with_mask(thumbnail_texture,mask,save_location)
-
-    def export_qimage_with_mask(self,qimage:QImage, mask:bytes, output_path:str):
-        # TODO - This reeks of AI-Genned code. Delete unnecessary checks
-
-        with tempfile.NamedTemporaryFile(suffix='.png', delete=False) as temp_file:
-            temp_path = temp_file.name
-
-        try:
-            if not qimage.save(temp_path):
-                raise ValueError("Failed to save QImage to temporary file")
-
-            with WImage(filename=temp_path) as img:
-                with WImage(blob=mask) as mask_img:
-                    if img.size != mask_img.size:
-                        mask_img.resize(img.width, img.height)
-
-                    img.composite(mask_img, operator='copy_alpha')
-
-                    img.background_color = "rgb(255, 255, 255)"
-                    img.compression = 'zip'
-                    img.colorspace = 'srgb'
-
-                    img.metadata['MegaMix Sprite Helper version'] = str(config.version)
-
-                    img.save(filename=output_path)
-
-        except Exception as e:
-            print(f"Error during image processing: {str(e)}")
-            raise
-        finally:
-            if os.path.exists(temp_path):
-                os.unlink(temp_path)
     def export_logo_button_callback(self):
         filename, _ = QFileDialog.getSaveFileName(
             None,
