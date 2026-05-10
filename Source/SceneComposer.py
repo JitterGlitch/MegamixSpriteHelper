@@ -742,11 +742,12 @@ class QSpriteSlave(QGraphicsPixmapItem):
         painter = QPainter(result)
 
         if self.brightness:
-
+            painter.save()
             painter.setCompositionMode(QPainter.CompositionMode.CompositionMode_SourceAtop)
             painter.setOpacity((100 - self.brightness) / 100)
             painter.fillRect(0 , 0, self.tracked.sprite_image.width()+300, self.tracked.sprite_image.height()+300,
                              QColor(0, 0, 0))
+            painter.restore()
 
         if self._hovered:
             painter.save()
