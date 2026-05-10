@@ -65,11 +65,9 @@ class Configurable:
 
         formats = QImageReader.supportedImageFormats()
         Qimage_supported = sorted(fmt.data().decode() for fmt in formats)
-        qformats_string = " ".join(sorted([f"*.{ext}" for ext in Qimage_supported]))
+        self.readable_extensions = " ".join(sorted([f"*.{ext}" for ext in Qimage_supported]))
 
-        print(qformats_string)
-
-        self.allowed_file_types = f"Image Files ({qformats_string})"
+        self.allowed_file_types = f"Image Files ({self.readable_extensions})"
         self.last_used_directory = self.script_directory
 
 
