@@ -8,7 +8,7 @@ import PIL
 import PySide6
 import hashlib
 from PIL import Image
-from PySide6.QtCore import Qt, QRectF, QPoint, Signal, QObject, QSize, QRect, QIODevice, QFile, QThread, QFileSystemWatcher, QTimer
+from PySide6.QtCore import Qt, QRectF, QPoint, Signal, QObject, QSize, QRect, QIODevice, QFile, QThread, QFileSystemWatcher, QTimer, QBuffer, QByteArray
 from PySide6.QtGui import QImage, QPixmap, QPainter, QTransform, QColor, QPen
 from PySide6.QtWidgets import QGraphicsPixmapItem, QFileDialog, QGraphicsScene, QLayout, QGraphicsView, QWidget, QSpacerItem, QSizePolicy, QScrollArea, QCheckBox, QRadioButton, QLabel
 

@@ -15,7 +15,7 @@ import kkdlib
 import yaml
 from PIL import Image
 from PySide6.QtCore import Qt, QFileSystemWatcher, QSize, Signal, QRectF, QStandardPaths, QUrl, QFile, QIODevice, QByteArray, QRect, QThread, QTimer
-from PySide6.QtGui import QPixmap, QPalette, QColor, QImage, QPainter, QGuiApplication, QDesktopServices, QImageWriter, QAction
+from PySide6.QtGui import QPixmap, QPalette, QColor, QImage, QPainter, QGuiApplication, QDesktopServices, QImageWriter, QAction, QImageReader
 from PySide6.QtWidgets import QApplication, QMainWindow, QWidget, QFileDialog, QMessageBox, QSizePolicy, QMenu, QMenuBar
 
 import SceneComposer
@@ -63,11 +63,13 @@ class Configurable:
         self.script_directory = Path.cwd()
         self.version = 1.2
 
-        extensions = Image.registered_extensions()
-        self.readable_extensions = [ext for ext, fmt in extensions.items() if fmt in Image.OPEN]
-        formats_string = " ".join(sorted([f"*{ext}" for ext in self.readable_extensions]))
+        formats = QImageReader.supportedImageFormats()
+        Qimage_supported = sorted(fmt.data().decode() for fmt in formats)
+        qformats_string = " ".join(sorted([f"*.{ext}" for ext in Qimage_supported]))
 
-        self.allowed_file_types = f"Image Files ({formats_string})"
+        print(qformats_string)
+
+        self.allowed_file_types = f"Image Files ({qformats_string})"
         self.last_used_directory = self.script_directory
 
 
