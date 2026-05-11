@@ -42,6 +42,7 @@ def round_up(number, decimal_places):
     return math.ceil(number * factor) / factor
 
 def qimage_to_pil(img: QImage):
+    img = img.convertToFormat(QImage.Format_ARGB32)
     ptr = img.constBits()
     if hasattr(ptr, 'asstring'):
         data = ptr.asstring(img.byteCount())
