@@ -107,6 +107,7 @@ class QScalingGraphicsScene(QGraphicsView):
         self.center_on = None
         self.size = 2.15
         self.forced_size = None
+        self.setAlignment(Qt.AlignLeft | Qt.AlignTop)
     def resizeEvent(self,event):
         self.lock_in()
 
@@ -131,13 +132,14 @@ class QScalingGraphicsScene(QGraphicsView):
         else:
             min_width = self.get_available_geometry().width() / 16
 
-            self.setMaximumSize(QSize(min_width * 16 / self.size, min_width * 9 / self.size))
-            self.setMinimumSize(QSize(min_width * 16 / self.size, min_width * 9 / self.size))
+            size = QSize(int(min_width * 16 / self.size),int(min_width * 9 / self.size))
+            self.setMaximumSize(size)
+            self.setMinimumSize(size)
 
         if not self.zoomed_in:
-            self.fitInView(self.scene().sceneRect(), Qt.AspectRatioMode.KeepAspectRatio)
+            self.fitInView(self.scene().sceneRect(), Qt.AspectRatioMode.KeepAspectRatioByExpanding)
         else:
-            self.fitInView(0, 0, self.scene().width() / 2, self.scene().height() / 2, Qt.AspectRatioMode.KeepAspectRatio)
+            self.fitInView(0, 0, self.scene().width() / 2, self.scene().height() / 2, Qt.AspectRatioMode.KeepAspectRatioByExpanding)
             self.centerOn(self.center_on)
 
 def qresource_to_bytes(location):
