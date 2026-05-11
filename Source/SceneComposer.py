@@ -105,7 +105,7 @@ class QScalingGraphicsScene(QGraphicsView):
         super().__init__()
         self.zoomed_in = False
         self.center_on = None
-        self.size = 2.15
+        self.size = 2
         self.forced_size = None
         self.setAlignment(Qt.AlignLeft | Qt.AlignTop)
     def resizeEvent(self,event):
@@ -130,9 +130,9 @@ class QScalingGraphicsScene(QGraphicsView):
             self.setMinimumSize(self.forced_size)
             self.setMaximumSize(self.forced_size)
         else:
-            min_width = self.get_available_geometry().width() / 16
+            min_width = self.get_available_geometry().width() // 16
 
-            size = QSize(int(min_width * 16 / self.size),int(min_width * 9 / self.size))
+            size = QSize(int(min_width * 16 // self.size),int(min_width * 9 // self.size))
             self.setMaximumSize(size)
             self.setMinimumSize(size)
 

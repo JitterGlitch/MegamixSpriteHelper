@@ -767,7 +767,6 @@ class MainWindow(QMainWindow):
             scene_view.setBaseSize(QSize(512, 288))
             scene_view.setRenderHint(QPainter.Antialiasing, True)
             scene_view.setRenderHint(QPainter.SmoothPixmapTransform, True)
-            # scene_view.setBackgroundBrush(self.palette().color(QPalette.ColorRole.Window))
             scene_view.setBackgroundBrush(Qt.black)
             scene_view.setScene(scene)
             self.selected_scenes_views.append(scene_view)
@@ -796,9 +795,9 @@ class MainWindow(QMainWindow):
 
     def space_out_scenes(self):
         if len(self.selected_scenes_views) > 1:
-            size = 2.15
+            size = 2
         else:
-            size = 1.06
+            size = 1
 
         columns = 1
         x = 0

@@ -80,7 +80,7 @@ class Ui_MainWindow(object):
         self.scrollAreaWidgetContents.setObjectName(u"scrollAreaWidgetContents")
 
         self.image_grid = QGridLayout(self.scrollAreaWidgetContents)
-        self.image_grid.setSpacing(5)
+        self.image_grid.setSpacing(0)
         self.image_grid.setObjectName(u"image_grid")
         self.image_grid.setSizeConstraint(QLayout.SizeConstraint.SetDefaultConstraint)
         self.image_grid.setContentsMargins(0, 0, 0, 0)
