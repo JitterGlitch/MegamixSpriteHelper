@@ -9,10 +9,12 @@ import PySide6
 import hashlib
 from PIL import Image
 from PySide6.QtCore import Qt, QRectF, QPoint, Signal, QObject, QSize, QRect, QIODevice, QFile, QThread, QFileSystemWatcher, QTimer, QBuffer, QByteArray
-from PySide6.QtGui import QImage, QPixmap, QPainter, QTransform, QColor, QPen
-from PySide6.QtWidgets import QGraphicsPixmapItem, QFileDialog, QGraphicsScene, QLayout, QGraphicsView, QWidget, QSpacerItem, QSizePolicy, QScrollArea, QCheckBox, QRadioButton, QLabel
+from PySide6.QtGui import QImage, QPixmap, QPainter, QTransform, QColor, QPen, QMouseEvent, QFont
+from PySide6.QtWidgets import QGraphicsPixmapItem, QFileDialog, QGraphicsScene, QLayout, QGraphicsView, QWidget, QSpacerItem, QSizePolicy, QScrollArea, QCheckBox, QRadioButton, QLabel, QVBoxLayout, QDoubleSpinBox, QSlider, QColorDialog, QPushButton, QHBoxLayout
+from superqt import QDoubleSlider
+from superqt.utils import qthrottled
 
-from widgets import EditableDoubleLabel, QSmarterMenu
+from widgets import QSmarterMenu
 
 
 class State(Enum):
@@ -32,6 +34,24 @@ class SpriteSetting(StrEnum):
     ROTATION = "Rotation"
     ZOOM = "Zoom"
     BRIGHTNESS = "Brightness"
+    DROP_SHADOW_HORIZONTAL_OFFSET = "Drop Shadow Horizontal Offset"
+    DROP_SHADOW_VERTICAL_OFFSET = "Drop Shadow Vertical Offset"
+    DROP_SHADOW_BLUR_STRENGTH = "Drop Shadow Blur Strength"
+    DROP_SHADOW_COLOR = "Drop Shadow Color"
+
+    @classmethod
+    def get_simple_setting_list(cls):
+        return (
+            cls.HORIZONTAL_OFFSET,
+            cls.VERTICAL_OFFSET,
+            cls.ROTATION,
+            cls.ZOOM,
+            cls.BRIGHTNESS,
+            cls.DROP_SHADOW_HORIZONTAL_OFFSET,
+            cls.DROP_SHADOW_VERTICAL_OFFSET,
+            cls.DROP_SHADOW_BLUR_STRENGTH
+        )
+
 class PvBackLayout(Enum):
     MMSongSelect = "Megamix Song Select"
     MMResult = "Megamix Result"
@@ -141,6 +161,260 @@ class QScalingGraphicsScene(QGraphicsView):
         else:
             self.fitInView(0, 0, self.scene().width() / 2, self.scene().height() / 2, Qt.AspectRatioMode.KeepAspectRatioByExpanding)
             self.centerOn(self.center_on)
+class SpriteSettingControl(QWidget):
+    editingFinished = Signal()
+
+    def __init__(self, initial_value=0,sprite=None,setting=None,decimals=0, rough_step=1,precise_step=1, range=(0,1), parent=None):
+        super().__init__(parent)
+        self.initial_value = initial_value
+        self.value = initial_value
+        self.decimals = decimals
+        self.block_drawing = False
+        self.block_editing = False
+
+        self.create_control_ui(sprite,setting,decimals, rough_step,precise_step, range)
+
+    def create_control_ui(self,sprite=None,setting=None,decimals=0, rough_step=1,precise_step=1, range=(0,1)):
+        if setting in (SpriteSetting.get_simple_setting_list()):
+            self.setFixedSize(160, 75)
+
+            self.editable_label_size = QSize(160, 30)
+
+            self.layout = QVBoxLayout(self)
+            self.layout.setContentsMargins(0, 0, 0, 0)
+
+            font1 = QFont()
+            font1.setFamilies([u"Nimbus Sans Narrow [UKWN]"])
+            font1.setPointSize(9)
+            font1.setBold(False)
+            font1.setKerning(True)
+
+            self.info_label = QLabel()
+            self.info_label.setText(f"{sprite.type.value} {setting.value}")
+            self.info_label.setFont(font1)
+
+            self.label = QLabel()
+            self.label.setCursor(Qt.CursorShape.IBeamCursor)
+            self.label.setText(f"{self.value:.{self.decimals}f}")
+            self.label.setMinimumSize(self.editable_label_size)
+            self.label.mousePressEvent = self.on_label_clicked
+
+            self.spinbox = QDoubleSpinBox()
+            self.spinbox.setValue(self.value)
+            self.spinbox.setDecimals(self.decimals)
+            self.spinbox.setSingleStep(precise_step)
+            self.spinbox.setMinimumSize(self.editable_label_size)
+            # self.spinbox.editingFinished.connect(self.finish_editing)
+            self.spinbox.valueChanged.connect(self.sync_slider)
+
+            if decimals == 0:
+                self.slider = QSlider(Qt.Horizontal)
+                self.slider.setPageStep(rough_step)
+                self.slider.setSingleStep(rough_step)
+                # self.slider.sliderReleased.connect(self.slider_editing_finish)
+                self.slider.valueChanged.connect(self.slider_value_changed)
+            else:
+                self.slider = QDoubleSlider(Qt.Horizontal)
+                self.slider.setPageStep(rough_step)
+                self.slider.setSingleStep(rough_step)
+                # self.slider.sliderReleased.connect(self.slider_editing_finish)
+                self.slider.valueChanged.connect(self.slider_value_changed)
+
+            self.range = range
+            self.set_range(self.range)
+
+            self.layout.addWidget(self.info_label)
+            self.layout.addWidget(self.label)
+            self.layout.addWidget(self.spinbox)
+            self.layout.addWidget(self.slider)
+
+            self.label.setVisible(True)
+            self.spinbox.setVisible(False)
+            return
+        if setting == SpriteSetting.DROP_SHADOW_COLOR:
+            self.setFixedSize(160, 75)
+
+            self.editable_label_size = QSize(160, 30)
+
+            self.layout = QVBoxLayout(self)
+            self.layout.setContentsMargins(0, 0, 0, 0)
+
+            font1 = QFont()
+            font1.setFamilies([u"Nimbus Sans Narrow [UKWN]"])
+            font1.setPointSize(9)
+            font1.setBold(False)
+            font1.setKerning(True)
+
+            self.info_label = QLabel()
+            self.info_label.setText(f"{sprite.type.value} {setting.value}")
+            self.info_label.setFont(font1)
+
+
+
+            self.open_color_picker_button = QPushButton()
+            self.open_color_picker_button.setText("Pick Color")
+            self.open_color_picker_button.clicked.connect(self.open_color_picker_button_callback)
+
+            self.color_picker = QColorDialog()
+            self.color_picker.currentColorChanged.connect(self.drop_shadow_color_changed)
+
+            self.color_picker_layout = QHBoxLayout()
+
+            self.selected_color = QPixmap(QSize(20, 20))
+            self.selected_color.fill(self.color_picker.currentColor())
+            self.selected_color2 = QPixmap(QSize(10, 10))
+            self.selected_color2.fill(self.color_picker.currentColor())
+
+            self.selected_color_label = QLabel()
+            self.selected_color_label.setPixmap(self.selected_color)
+            self.selected_color_label2 = QLabel()
+            self.selected_color_label2.setPixmap(self.selected_color2)
+            self.selected_color_label3 = QLabel()
+            self.selected_color_label3.setPixmap(self.selected_color2)
+            self.selected_color_label4 = QLabel()
+            self.selected_color_label4.setPixmap(self.selected_color2)
+            self.selected_color_label5 = QLabel()
+            self.selected_color_label5.setPixmap(self.selected_color2)
+            self.selected_color_label6 = QLabel()
+            self.selected_color_label6.setPixmap(self.selected_color2)
+            self.selected_color_label7 = QLabel()
+            self.selected_color_label7.setPixmap(self.selected_color2)
+            self.selected_color_label8 = QLabel()
+            self.selected_color_label8.setPixmap(self.selected_color2)
+
+            self.color_picker_layout.addWidget(self.selected_color_label)
+            self.color_picker_layout.addWidget(self.selected_color_label2)
+            self.color_picker_layout.addWidget(self.selected_color_label3)
+            self.color_picker_layout.addWidget(self.selected_color_label4)
+            self.color_picker_layout.addWidget(self.selected_color_label5)
+            self.color_picker_layout.addWidget(self.selected_color_label6)
+            self.color_picker_layout.addWidget(self.selected_color_label7)
+            self.color_picker_layout.addWidget(self.selected_color_label8)
+
+            self.layout.addWidget(self.info_label)
+            self.layout.addLayout(self.color_picker_layout)
+            self.layout.addWidget(self.open_color_picker_button)
+
+    def drop_shadow_color_changed(self):
+        self.selected_color.fill(self.color_picker.currentColor())
+        self.selected_color_label.setPixmap(self.selected_color)
+    def open_color_picker_button_callback(self):
+        self.color_picker.show()
+
+    def on_label_clicked(self, event: QMouseEvent):
+        if self.block_editing:
+            pass
+        else:
+            if event.button() == Qt.MouseButton.LeftButton:
+                self.start_editing()
+
+    def start_editing(self):
+
+        self.label.setVisible(False)
+        self.spinbox.setVisible(True)
+        self.spinbox.setFocus()
+        self.spinbox.selectAll()
+
+        self.spinbox.installEventFilter(self)
+
+    def finish_editing(self):
+
+        if self.decimals == 0:
+            self.value = int(self.spinbox.value())
+        else:
+            self.value = self.spinbox.value()
+
+        self.label.setText(f"{self.value:.{self.decimals}f}")
+        self.slider.setValue(self.value)
+        self.spinbox.setVisible(False)
+        self.label.setVisible(True)
+        self.spinbox.removeEventFilter(self)
+
+        if self.block_editing:
+            self.spinbox.setDisabled(True)
+        else:
+            self.spinbox.setDisabled(False)
+
+        if not self.block_drawing:
+            self.editingFinished.emit()
+
+    def slider_editing_finish(self):
+        if self.decimals == 0:
+            self.value = int(self.slider.value())
+        else:
+            self.value = self.slider.value()
+
+        self.label.setText(f"{self.value:.{self.decimals}f}")
+        self.spinbox.setValue(self.value)
+
+        if not self.block_drawing:
+            self.editingFinished.emit()
+
+    def slider_value_changed(self):
+        if not self.block_editing:
+            if self.decimals == 0:
+                self.value = int(self.slider.value())
+            else:
+                self.value = self.slider.value()
+
+            self.label.setText(f"{self.value:.{self.decimals}f}")
+            self.spinbox.setValue(self.value)
+            qthrottled(self.slider_editing_finish(),timeout=20)
+
+    def sync_slider(self):
+        self.slider.setValue(self.spinbox.value())
+
+    def set_range(self,range):
+        if self.decimals == 0:
+            minimum = int(range[0])
+            maximum = int(range[1])
+        else:
+            minimum = range[0]
+            maximum = range[1]
+
+        if minimum > maximum: #This catches issues where float error causes min > max at values ~1
+            minimum = 1       #prevents crashes
+            maximum = 1
+            range = 0
+
+        else:
+            range = round(maximum - minimum,3)
+
+        self.spinbox.setMinimum(minimum)
+        self.spinbox.setMaximum(maximum)
+
+        self.slider.setMinimum(minimum)
+        self.slider.setMaximum(maximum)
+
+        self.range = (minimum,maximum)
+
+        if int(range == 0):
+            self.block_editing = True
+            self.label.setCursor(Qt.CursorShape.ArrowCursor)
+        else:
+            self.block_editing = False
+            self.label.setCursor(Qt.CursorShape.IBeamCursor)
+
+    def eventFilter(self, obj, event):
+        if obj == self.spinbox and event.type() == event.Type.FocusOut:
+            QTimer.singleShot(100, self.finish_editing)
+        return super().eventFilter(obj, event)
+
+    def setValue(self, value):
+        if self.decimals == 0:
+            self.value = int(value)
+        else:
+            self.value = value
+
+        self.label.setText(f"{value:.{self.decimals}f}")
+        self.spinbox.setValue(self.value)
+        self.slider.setValue(self.value)
+
+    def getValue(self):
+        return self.value
+
+    def reset_value(self):
+        self.setValue(self.initial_value)
 
 def qresource_to_bytes(location):
     file = QFile(location)
@@ -250,8 +524,9 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
                 'decimals': 0,
                 'rough_step': 1,
                 'precise_step': 1
-            }),
+            })
         ]
+        self.add_sprite_specific_settings()
         self.flipped_h = False
         self.flipped_v = False
         self.is_visible = True
@@ -263,21 +538,28 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
 
         self.edit_controls[SpriteSetting.ZOOM.value].setValue(self.edit_controls[SpriteSetting.ZOOM.value].spinbox.maximum())
         self.edit_controls[SpriteSetting.BRIGHTNESS.value].setValue(self.edit_controls[SpriteSetting.BRIGHTNESS.value].spinbox.maximum())
-
-        if self.type == SpriteType.THUMBNAIL:
-            print(self.t_edges)
-            print(self.rect)
-
-    def create_edit_controls(self) -> dict[Callable[[], str], EditableDoubleLabel]:
+    def add_sprite_specific_settings(self):
+        pass
+    def create_edit_controls(self):
         editable_values = {}
         for setting in self.sprite_settings:
             parameters = setting[1]
-            edit = EditableDoubleLabel(sprite=self,
-                                       setting=setting[0],
-                                       range=self.calculate_range(setting[0],self.rect),
-                                       **parameters)
-            edit.editingFinished.connect(self.update_sprite)
-            editable_values[setting[0].value] = edit
+
+            if setting[0] in SpriteSetting.get_simple_setting_list():
+                edit = SpriteSettingControl(sprite=self,
+                                            setting=setting[0],
+                                            range=self.calculate_range(setting[0],self.rect),
+                                            **parameters)
+                edit.editingFinished.connect(self.update_sprite)
+                editable_values[setting[0].value] = edit
+
+            if setting[0] == SpriteSetting.DROP_SHADOW_COLOR:
+                edit = SpriteSettingControl(sprite=self,
+                                            setting=setting[0],
+                                            range=None,
+                                            **parameters)
+                edit.editingFinished.connect(self.update_sprite)
+                editable_values[setting[0].value] = edit
         return editable_values
 
     def add_edit_controls_to(self,layout:QLayout):
@@ -363,7 +645,8 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
 
     def update_all_ranges(self,rect):
         for setting in self.edit_controls:
-            self.edit_controls[setting].set_range(self.calculate_range(setting,rect))
+            if setting in SpriteSetting.get_simple_setting_list():
+                self.edit_controls[setting].set_range(self.calculate_range(setting,rect))
     def load_new_image(self,image_location,fallback=False,reset_values=True):
         qimage =QImage(image_location)
         required_size = self.required_size()
@@ -636,9 +919,35 @@ class QLogo(QSpriteBase):
         super().__init__(sprite,SpriteType.LOGO,size)
     def required_size(self) -> QSize:
         return QSize(1,1)
-
-
-
+    def add_sprite_specific_settings(self):
+        self.sprite_settings.append(
+            (SpriteSetting.DROP_SHADOW_HORIZONTAL_OFFSET, {
+                'initial_value': 100,
+                'decimals': 0,
+                'rough_step': 1,
+                'precise_step': 1
+            }))
+        self.sprite_settings.append(
+            (SpriteSetting.DROP_SHADOW_VERTICAL_OFFSET, {
+                'initial_value': 100,
+                'decimals': 0,
+                'rough_step': 1,
+                'precise_step': 1
+            }))
+        self.sprite_settings.append(
+            (SpriteSetting.DROP_SHADOW_BLUR_STRENGTH, {
+                'initial_value': 100,
+                'decimals': 0,
+                'rough_step': 1,
+                'precise_step': 1
+            }))
+        self.sprite_settings.append(
+            (SpriteSetting.DROP_SHADOW_COLOR, {
+                'initial_value': 100,
+                'decimals': 0,
+                'rough_step': 1,
+                'precise_step': 1
+            }))
 
 
     def calculate_range(self,sprite_setting:SpriteSetting,rect):
@@ -687,6 +996,12 @@ class QLogo(QSpriteBase):
             case SpriteSetting.ROTATION:
                 return -360,0
             case SpriteSetting.BRIGHTNESS:
+                return 50, 100
+            case SpriteSetting.DROP_SHADOW_HORIZONTAL_OFFSET:
+                return 50,100
+            case SpriteSetting.DROP_SHADOW_VERTICAL_OFFSET:
+                return 50, 100
+            case SpriteSetting.DROP_SHADOW_BLUR_STRENGTH:
                 return 50, 100
 
     def set_initial_values(self):
