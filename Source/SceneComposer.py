@@ -779,7 +779,7 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
         else:
             for setting in self.last_value:
                 if self.edit_controls[setting].value != self.last_value[setting]:
-                    if setting in ["Horizontal Offset" , "Vertical Offset"]:
+                    if setting in [SpriteSetting.HORIZONTAL_OFFSET , SpriteSetting.VERTICAL_OFFSET]:
                         continue
                     else:
                         recalculate_offsets = True
