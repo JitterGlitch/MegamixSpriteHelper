@@ -1268,10 +1268,10 @@ class QMMResultScene(QGraphicsScene):
     def toggle_ui(self,state:bool):
         self.middle_layer_song_credit.setVisible(state)
         self.top_layer.setVisible(state)
-class QMMPractiseModeScene(QGraphicsScene):
+class QMMPracticeModeScene(QGraphicsScene):
     def __init__(self,jacket:QJacket, logo:QLogo, background:QSpriteBase):
         super().__init__()
-        self.name = "MegaMix Practise Mode"
+        self.name = "MegaMix Practice Mode"
         brightness = 40
         ######
         self.jacket = QSpriteSlave(jacket, QPoint(1294, 147), rotation=7, brightness=brightness)
@@ -1711,7 +1711,7 @@ class QPreviewScenes:
                                         C_Sprites.logo,
                                         C_Sprites.background)
 
-        self.MM_PractiseMode = QMMPractiseModeScene(C_Sprites.jacket,
+        self.MM_PracticeMode = QMMPracticeModeScene(C_Sprites.jacket,
                                                     C_Sprites.logo,
                                                     C_Sprites.background)
 

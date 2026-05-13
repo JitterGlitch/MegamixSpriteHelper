@@ -696,7 +696,7 @@ class MainWindow(QMainWindow):
 
         self.populate_display_scene_menu()
 
-        self.mm_practise_toggle.setChecked(False)
+        self.mm_practice_toggle.setChecked(False)
         self.pv_back_toggle.setChecked(False)
 
         self.C_Sprites.thumbnail.add_edit_controls_to(self.main_box.verticalLayout_12)
@@ -711,7 +711,7 @@ class MainWindow(QMainWindow):
     def populate_display_scene_menu(self):
         self.mm_song_select_toggle = self.display_scenes_menu.addAction("MegaMix Song Select")
         self.mm_result_toggle = self.display_scenes_menu.addAction("MegaMix Results")
-        self.mm_practise_toggle = self.display_scenes_menu.addAction("MegaMix Practice Mode")
+        self.mm_practice_toggle = self.display_scenes_menu.addAction("MegaMix Practice Mode")
         self.ft_song_select_toggle = self.display_scenes_menu.addAction("Future Tone Song Select")
         self.ft_result_toggle = self.display_scenes_menu.addAction("Future Tone Results")
         self.pv_back_toggle = self.display_scenes_menu.addAction("PV Back")
@@ -721,7 +721,7 @@ class MainWindow(QMainWindow):
         self.scene_toggle_list.append((self.ft_song_select_toggle, self.P_Scenes.FT_SongSelect))
         self.scene_toggle_list.append((self.mm_result_toggle,self.P_Scenes.MM_Result))
         self.scene_toggle_list.append((self.ft_result_toggle,self.P_Scenes.FT_Result))
-        self.scene_toggle_list.append((self.mm_practise_toggle, self.P_Scenes.MM_PractiseMode))
+        self.scene_toggle_list.append((self.mm_practice_toggle, self.P_Scenes.MM_PracticeMode))
         self.scene_toggle_list.append((self.pv_back_toggle,self.P_Scenes.PV_Back))
 
         self.new_classics_toggle = QAction("Show New Classics UI")
