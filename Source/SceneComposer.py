@@ -169,8 +169,10 @@ class SpriteColorPicker(QWidget):
             self.color_picker_layout.addWidget(element)
 
     def drop_shadow_color_changed(self):
-        self.color_history_list[0].update_color(self.color_picker.currentColor())
+        for i in reversed(range(self.color_history_list.__len__() - 1)):
+            self.color_history_list[i+1].update_color(self.color_history_list[i].color)
 
+        self.color_history_list[0].update_color(self.color_picker.currentColor())
     def open_color_picker_button_callback(self):
         self.color_picker.show()
 
