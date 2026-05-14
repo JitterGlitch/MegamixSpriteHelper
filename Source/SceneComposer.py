@@ -120,6 +120,60 @@ def compute_file_hash(file_path):
     return None
 
 ######################################################
+class SpriteColorSquare(QLabel):
+    def __init__(self,size:QSize):
+        super().__init__()
+        self.color = Qt.GlobalColor.white
+        self.size = size
+
+        self.pixmap = QPixmap(self.size)
+        self.pixmap.fill(self.color)
+        self.setPixmap(self.pixmap)
+
+    def update_color(self,color):
+        self.color = color
+        self.pixmap.fill(self.color)
+        self.setPixmap(self.pixmap)
+
+class SpriteColorPicker(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.open_color_picker_button = QPushButton()
+        self.open_color_picker_button.setText("Pick Color")
+        self.open_color_picker_button.clicked.connect(self.open_color_picker_button_callback)
+
+        self.color_picker = QColorDialog()
+        self.color_picker.currentColorChanged.connect(self.drop_shadow_color_changed)
+
+        self.color_history_list = []
+        self.color_picker_layout = QHBoxLayout()
+        self.create_color_history_layout(7)
+
+        self.layout = QVBoxLayout(self)
+        self.layout.setContentsMargins(0, 0, 0, 0)
+
+
+
+        self.layout.addLayout(self.color_picker_layout)
+        self.layout.addWidget(self.open_color_picker_button)
+
+    def create_color_history_layout(self,history_length):
+        selected_color = SpriteColorSquare(QSize(20,20))
+        self.color_history_list.append(selected_color)
+
+        for i in range(history_length):
+            history_color = SpriteColorSquare(QSize(10,10))
+            self.color_history_list.append(history_color)
+
+        for element in self.color_history_list:
+            self.color_picker_layout.addWidget(element)
+
+    def drop_shadow_color_changed(self):
+        self.color_history_list[0].update_color(self.color_picker.currentColor())
+
+    def open_color_picker_button_callback(self):
+        self.color_picker.show()
+
 class QScalingGraphicsScene(QGraphicsView):
     def __init__(self):
         super().__init__()
@@ -172,6 +226,12 @@ class SpriteSettingControl(QWidget):
         self.block_drawing = False
         self.block_editing = False
 
+        self.font = QFont()
+        self.font.setFamilies([u"Nimbus Sans Narrow [UKWN]"])
+        self.font.setPointSize(9)
+        self.font.setBold(False)
+        self.font.setKerning(True)
+
         self.create_control_ui(sprite,setting,decimals, rough_step,precise_step, range)
 
     def create_control_ui(self,sprite=None,setting=None,decimals=0, rough_step=1,precise_step=1, range=(0,1)):
@@ -183,15 +243,9 @@ class SpriteSettingControl(QWidget):
             self.layout = QVBoxLayout(self)
             self.layout.setContentsMargins(0, 0, 0, 0)
 
-            font1 = QFont()
-            font1.setFamilies([u"Nimbus Sans Narrow [UKWN]"])
-            font1.setPointSize(9)
-            font1.setBold(False)
-            font1.setKerning(True)
-
             self.info_label = QLabel()
             self.info_label.setText(f"{sprite.type.value} {setting.value}")
-            self.info_label.setFont(font1)
+            self.info_label.setFont(self.font)
 
             self.label = QLabel()
             self.label.setCursor(Qt.CursorShape.IBeamCursor)
@@ -234,72 +288,17 @@ class SpriteSettingControl(QWidget):
         if setting == SpriteSetting.DROP_SHADOW_COLOR:
             self.setFixedSize(160, 75)
 
-            self.editable_label_size = QSize(160, 30)
-
             self.layout = QVBoxLayout(self)
             self.layout.setContentsMargins(0, 0, 0, 0)
 
-            font1 = QFont()
-            font1.setFamilies([u"Nimbus Sans Narrow [UKWN]"])
-            font1.setPointSize(9)
-            font1.setBold(False)
-            font1.setKerning(True)
-
             self.info_label = QLabel()
             self.info_label.setText(f"{sprite.type.value} {setting.value}")
-            self.info_label.setFont(font1)
+            self.info_label.setFont(self.font)
 
-
-
-            self.open_color_picker_button = QPushButton()
-            self.open_color_picker_button.setText("Pick Color")
-            self.open_color_picker_button.clicked.connect(self.open_color_picker_button_callback)
-
-            self.color_picker = QColorDialog()
-            self.color_picker.currentColorChanged.connect(self.drop_shadow_color_changed)
-
-            self.color_picker_layout = QHBoxLayout()
-
-            self.selected_color = QPixmap(QSize(20, 20))
-            self.selected_color.fill(self.color_picker.currentColor())
-            self.selected_color2 = QPixmap(QSize(10, 10))
-            self.selected_color2.fill(self.color_picker.currentColor())
-
-            self.selected_color_label = QLabel()
-            self.selected_color_label.setPixmap(self.selected_color)
-            self.selected_color_label2 = QLabel()
-            self.selected_color_label2.setPixmap(self.selected_color2)
-            self.selected_color_label3 = QLabel()
-            self.selected_color_label3.setPixmap(self.selected_color2)
-            self.selected_color_label4 = QLabel()
-            self.selected_color_label4.setPixmap(self.selected_color2)
-            self.selected_color_label5 = QLabel()
-            self.selected_color_label5.setPixmap(self.selected_color2)
-            self.selected_color_label6 = QLabel()
-            self.selected_color_label6.setPixmap(self.selected_color2)
-            self.selected_color_label7 = QLabel()
-            self.selected_color_label7.setPixmap(self.selected_color2)
-            self.selected_color_label8 = QLabel()
-            self.selected_color_label8.setPixmap(self.selected_color2)
-
-            self.color_picker_layout.addWidget(self.selected_color_label)
-            self.color_picker_layout.addWidget(self.selected_color_label2)
-            self.color_picker_layout.addWidget(self.selected_color_label3)
-            self.color_picker_layout.addWidget(self.selected_color_label4)
-            self.color_picker_layout.addWidget(self.selected_color_label5)
-            self.color_picker_layout.addWidget(self.selected_color_label6)
-            self.color_picker_layout.addWidget(self.selected_color_label7)
-            self.color_picker_layout.addWidget(self.selected_color_label8)
+            self.colorpicker = SpriteColorPicker()
 
             self.layout.addWidget(self.info_label)
-            self.layout.addLayout(self.color_picker_layout)
-            self.layout.addWidget(self.open_color_picker_button)
-
-    def drop_shadow_color_changed(self):
-        self.selected_color.fill(self.color_picker.currentColor())
-        self.selected_color_label.setPixmap(self.selected_color)
-    def open_color_picker_button_callback(self):
-        self.color_picker.show()
+            self.layout.addWidget(self.colorpicker)
 
     def on_label_clicked(self, event: QMouseEvent):
         if self.block_editing:
