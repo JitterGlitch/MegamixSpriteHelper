@@ -27,6 +27,7 @@ class SpriteType(StrEnum):
     BACKGROUND = "Background"
     THUMBNAIL = "Thumbnail"
     LOGO = "Logo"
+    DROP_SHADOW = "Drop Shadow"
 
 class SpriteSetting(StrEnum):
     HORIZONTAL_OFFSET = "Horizontal Offset"
@@ -38,6 +39,7 @@ class SpriteSetting(StrEnum):
     DROP_SHADOW_VERTICAL_OFFSET = "Drop Shadow Vertical Offset"
     DROP_SHADOW_BLUR_STRENGTH = "Drop Shadow Blur Strength"
     DROP_SHADOW_COLOR = "Drop Shadow Color"
+    DROP_SHADOW_OPACITY = "Drop Shadow Opacity"
 
     @classmethod
     def get_simple_setting_list(cls):
@@ -49,7 +51,8 @@ class SpriteSetting(StrEnum):
             cls.BRIGHTNESS,
             cls.DROP_SHADOW_HORIZONTAL_OFFSET,
             cls.DROP_SHADOW_VERTICAL_OFFSET,
-            cls.DROP_SHADOW_BLUR_STRENGTH
+            cls.DROP_SHADOW_BLUR_STRENGTH,
+            cls.DROP_SHADOW_OPACITY
         )
 
 class PvBackLayout(Enum):
@@ -482,7 +485,7 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
         self.y = 0
 
         self.sprite_slaves_list = []
-
+        self.sprite_layered_behind = None
 
         #Create a scene that will crop image to max size
         self.sprite = QGraphicsPixmapItem()
@@ -918,6 +921,7 @@ class QBackground(QSpriteBase):
 class QLogo(QSpriteBase):
     def __init__(self,sprite,size):
         super().__init__(sprite,SpriteType.LOGO,size)
+        self.sprite_layered_behind = QDropShadow(self)
     def required_size(self) -> QSize:
         return QSize(1,1)
     def add_sprite_specific_settings(self):
@@ -944,6 +948,13 @@ class QLogo(QSpriteBase):
             }))
         self.sprite_settings.append(
             (SpriteSetting.DROP_SHADOW_COLOR, {
+                'initial_value': 100,
+                'decimals': 0,
+                'rough_step': 1,
+                'precise_step': 1
+            }))
+        self.sprite_settings.append(
+            (SpriteSetting.DROP_SHADOW_OPACITY, {
                 'initial_value': 100,
                 'decimals': 0,
                 'rough_step': 1,
@@ -1004,6 +1015,8 @@ class QLogo(QSpriteBase):
                 return 50, 100
             case SpriteSetting.DROP_SHADOW_BLUR_STRENGTH:
                 return 50, 100
+            case SpriteSetting.DROP_SHADOW_OPACITY:
+                return 50, 100
 
     def set_initial_values(self):
         hor_range = self.edit_controls[SpriteSetting.HORIZONTAL_OFFSET.value].range
@@ -1017,6 +1030,211 @@ class QLogo(QSpriteBase):
         self.edit_controls[SpriteSetting.ZOOM.value].setValue(self.edit_controls[SpriteSetting.ZOOM.value].range[1])
         self.edit_controls[SpriteSetting.ROTATION.value].setValue(0)
         self.edit_controls[SpriteSetting.BRIGHTNESS.value].setValue(100)
+
+    def update_pixmap(self):
+        logo = self.grab_scene_portion(self.sprite_scene, self.sprite_size)
+        if self.sprite_layered_behind is not None:
+            combined = QPixmap(self.sprite_size.size().toSize())
+            combined.fill("transparent")
+
+            drop_shadow = self.grab_scene_portion(self.sprite_layered_behind.sprite_scene, self.sprite_layered_behind.sprite_size)
+
+
+            painter = QPainter(combined)
+            painter.drawPixmap(0,0,drop_shadow)
+            painter.drawPixmap(0,0,logo)
+            painter.end()
+            self.setPixmap(combined)
+        else:
+            self.setPixmap(logo)
+
+class QDropShadow(QGraphicsPixmapItem):
+    def __init__(self,logo_object:QLogo):
+        QGraphicsPixmapItem.__init__(self)
+        self.setTransformationMode(Qt.TransformationMode.SmoothTransformation)
+        self.offset=QPoint(0,0)
+        self.logo_object = logo_object
+        #Take required info from Logo
+        self.sprite_image = logo_object.sprite_image
+        self.sprite_size = logo_object.sprite_size
+
+        self.t_edges = get_transparent_edge_pixels(self.sprite_image)
+        self.rect = get_real_image_area(self.sprite_image)
+        self.x = 0
+        self.y = 0
+
+        # Create a scene that will crop image to max size
+        self.sprite = QGraphicsPixmapItem()
+        self.sprite.setTransformationMode(Qt.TransformationMode.SmoothTransformation)
+        self.sprite.setPixmap(QPixmap(self.sprite_image))
+        self.sprite_scene = QGraphicsScene()
+        self.sprite_scene.setSceneRect(self.sprite_size)
+        self.sprite_scene.addItem(self.sprite)
+
+        self.type = SpriteType.DROP_SHADOW
+
+        self.flipped_h = False
+        self.flipped_v = False
+        self.is_visible = True
+        self.initial_calc = True
+        self.last_value = {}
+
+        self.update_sprite()
+
+    def grab_scene_portion(self,scene:QGraphicsScene, source_rect:QRectF) -> QPixmap:
+        pixmap = QPixmap(source_rect.size().toSize())
+        pixmap.fill("transparent")
+
+        painter = QPainter(pixmap)
+        painter.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform)
+        scene.render(painter, QRectF(pixmap.rect()), source_rect)
+        painter.end()
+
+        return pixmap
+    def calculate_range(self,sprite_setting,rect):
+        match sprite_setting:
+            case SpriteSetting.HORIZONTAL_OFFSET:
+                area_over_req_size = rect.width() - self.required_size().width()
+
+                if area_over_req_size > 0:
+                    return -area_over_req_size-self.x+self.offset.x(), -self.x-self.offset.x()
+
+                else:
+                    return -self.offset.x(),-self.offset.x()
+
+            case SpriteSetting.VERTICAL_OFFSET:
+                area_over_req_size = rect.height() - self.required_size().height()
+
+                if area_over_req_size > 0:
+                    return -area_over_req_size-self.y-self.offset.y(), -self.y-self.offset.y()
+
+                else:
+                    return -self.offset.y(),-self.offset.y()
+
+            case SpriteSetting.ZOOM:
+                if self.required_size() == QSize(0,0):
+                    return 0.10,1.00
+                if self.sprite_image.width() == 0:
+                    return 1.00,1.00
+                if self.sprite_image.height() == 0:
+                    return 1.00,1.00
+
+                width_factor = self.required_size().width() / (self.sprite_image.width()-self.t_edges["Left"]-self.t_edges["Right"])
+                height_factor = self.required_size().height() / (self.sprite_image.height()-self.t_edges["Left"]-self.t_edges["Right"])
+
+                image_w = (self.sprite_image.size() * width_factor)
+                image_h = (self.sprite_image.size() * height_factor)
+
+                image_w_pass = False
+                image_h_pass = False
+
+                if image_w.width() >= self.required_size().width() and image_w.height() >= self.required_size().height():
+                    image_w_pass = True
+                if image_h.width() >= self.required_size().width() and image_h.height() >= self.required_size().height():
+                    image_h_pass = True
+
+                if image_w_pass and image_h_pass:
+                    image_w_area = image_w.width() * image_w.height()
+                    image_h_area = image_h.width() * image_h.height()
+
+                    if image_w_area >= image_h_area:
+                        return round_up(width_factor,3), 1.00
+                    else:
+                        return round_up(height_factor,3), 1.00
+                elif image_w_pass:
+                    return round_up(width_factor,3), 1.00
+                else:
+                    return round_up(height_factor,3),1.00
+
+            case SpriteSetting.ROTATION:
+                return -360,0
+            case SpriteSetting.BRIGHTNESS:
+                return 50,100
+    def update_all_ranges(self,rect):
+        for setting in self.edit_controls:
+            if setting in SpriteSetting.get_simple_setting_list():
+                self.edit_controls[setting].set_range(self.calculate_range(setting,rect))
+    def update_sprite(self,hq_output=False):
+        zoom = self.logo_object.edit_controls[SpriteSetting.ZOOM.value].value
+        zoom_inverse = 1/zoom
+        horizontal_offset = self.logo_object.edit_controls[SpriteSetting.HORIZONTAL_OFFSET.value].value
+        vertical_offset = self.logo_object.edit_controls[SpriteSetting.VERTICAL_OFFSET.value].value
+        rotation = self.logo_object.edit_controls[SpriteSetting.ROTATION.value].value
+        brightness = self.logo_object.edit_controls[SpriteSetting.BRIGHTNESS.value].value - 30
+        image_size = self.sprite_image
+
+        result = QImage(self.sprite_size.size().toSize(), QImage.Format.Format_ARGB32)
+        result.fill(Qt.GlobalColor.transparent)
+        painter = QPainter(result)
+        painter.setRenderHints(QPainter.RenderHint.LosslessImageRendering,)
+        painter.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform)
+        painter.setRenderHint(QPainter.RenderHint.VerticalSubpixelPositioning)
+
+        t_ns = QTransform()
+        t_ns.translate(horizontal_offset, vertical_offset)
+        t_ns.translate((image_size.width() / 2), (image_size.height() / 2))
+        t_ns.rotate(rotation)
+        t_ns.translate(-(image_size.width() / 2), -(image_size.height() / 2))
+
+        t_s = QTransform()
+        t_s.translate(horizontal_offset, vertical_offset)
+        t_s.translate((image_size.width() / 2), (image_size.height() / 2))
+        t_s.rotate(rotation)
+        t_s.translate(-(image_size.width() / 2), -(image_size.height() / 2))
+        t_s.scale(zoom, zoom)
+
+
+        if hq_output:
+            if isinstance(self.location, str):
+                if self.location.startswith(":"):
+                    self.location = qresource_to_bytes(self.location)
+            with Image.open(self.location) as image:
+                width = int(image_size.width() * zoom)
+                height = int(image_size.height() * zoom)
+                drawn_image = image.resize((width,height),Image.Resampling.LANCZOS).toqimage()
+
+            painter.setTransform(t_ns,combine=False)
+            if self.is_visible:
+                painter.drawPixmap(0 + self.offset.x(), 0 + self.offset.y(), QPixmap(drawn_image))
+        else:
+            painter.setTransform(t_s, combine=False)
+            drawn_image = QPixmap(self.sprite_image)
+            if self.is_visible:
+                painter.drawPixmap(0 + self.offset.x()*zoom_inverse, 0 + self.offset.y()*zoom_inverse, QPixmap(drawn_image))
+
+
+        transformed_rect = t_s.mapRect(self.rect)
+
+        painter.setCompositionMode(QPainter.CompositionMode.CompositionMode_SourceAtop)
+        painter.setOpacity((100-brightness)/100)
+        painter.fillRect(0 + self.offset.x(), 0 + self.offset.y(), image_size.width(), image_size.height(),
+                         QColor(0, 0, 0))
+
+        painter.end()
+
+        self.x = int(transformed_rect.x()) - horizontal_offset
+        self.y = int(transformed_rect.y()) - vertical_offset
+
+        self.sprite.setPixmap(QPixmap(self._apply_flips(result)))
+        self.update_pixmap()
+
+    def toggle_visibility(self,state):
+        self.is_visible = state
+        self.update_sprite()
+        for setting in self.edit_controls:
+            self.edit_controls[setting].setEnabled(state)
+        self.controls_enabled = state
+        self.SpriteUpdated.emit()
+    def update_pixmap(self):
+        self.setPixmap(self.grab_scene_portion(self.sprite_scene, self.sprite_size))
+    def _apply_flips(self,image:QImage):
+        if self.flipped_h:
+            image.flip(Qt.Orientation.Horizontal)
+        if self.flipped_v:
+            image.flip(Qt.Orientation.Vertical)
+        return image
+
+
 
 class QSpriteSlave(QGraphicsPixmapItem):
 
