@@ -10,7 +10,7 @@ import hashlib
 from PIL import Image
 from PySide6.QtCore import Qt, QRectF, QPoint, Signal, QObject, QSize, QRect, QIODevice, QFile, QThread, QFileSystemWatcher, QTimer, QBuffer, QByteArray
 from PySide6.QtGui import QImage, QPixmap, QPainter, QTransform, QColor, QPen, QMouseEvent, QFont
-from PySide6.QtWidgets import QGraphicsPixmapItem, QFileDialog, QGraphicsScene, QLayout, QGraphicsView, QWidget, QSpacerItem, QSizePolicy, QScrollArea, QCheckBox, QRadioButton, QLabel, QVBoxLayout, QDoubleSpinBox, QSlider, QColorDialog, QPushButton, QHBoxLayout
+from PySide6.QtWidgets import QGraphicsPixmapItem, QFileDialog, QGraphicsScene, QLayout, QGraphicsView, QWidget, QSpacerItem, QSizePolicy, QScrollArea, QCheckBox, QRadioButton, QLabel, QVBoxLayout, QDoubleSpinBox, QSlider, QColorDialog, QPushButton, QHBoxLayout, QGraphicsBlurEffect
 from superqt import QDoubleSlider
 from superqt.utils import qthrottled
 
@@ -135,6 +135,7 @@ class SpriteColorSquare(QLabel):
         self.setPixmap(self.pixmap)
 
 class SpriteColorPicker(QWidget):
+    editingFinished = Signal()
     def __init__(self):
         super().__init__()
         self.open_color_picker_button = QPushButton()
@@ -166,12 +167,14 @@ class SpriteColorPicker(QWidget):
 
         for element in self.color_history_list:
             self.color_picker_layout.addWidget(element)
-
+    def get_color(self):
+        return self.color_picker.currentColor()
     def drop_shadow_color_changed(self):
         for i in reversed(range(self.color_history_list.__len__() - 1)):
             self.color_history_list[i+1].update_color(self.color_history_list[i].color)
 
         self.color_history_list[0].update_color(self.color_picker.currentColor())
+        self.editingFinished.emit()
     def open_color_picker_button_callback(self):
         self.color_picker.show()
 
@@ -297,6 +300,7 @@ class SpriteSettingControl(QWidget):
             self.info_label.setFont(self.font)
 
             self.colorpicker = SpriteColorPicker()
+            self.colorpicker.editingFinished.connect(self.editingFinished.emit)
 
             self.layout.addWidget(self.info_label)
             self.layout.addWidget(self.colorpicker)
@@ -974,14 +978,6 @@ class QLogo(QSpriteBase):
                 return -360,0
             case SpriteSetting.BRIGHTNESS:
                 return 50, 100
-            case SpriteSetting.DROP_SHADOW_HORIZONTAL_OFFSET:
-                return 50,100
-            case SpriteSetting.DROP_SHADOW_VERTICAL_OFFSET:
-                return 50, 100
-            case SpriteSetting.DROP_SHADOW_BLUR_STRENGTH:
-                return 50, 100
-            case SpriteSetting.DROP_SHADOW_OPACITY:
-                return 50, 100
 
     def set_initial_values(self):
         hor_range = self.edit_controls[SpriteSetting.HORIZONTAL_OFFSET.value].range
@@ -998,7 +994,7 @@ class QLogo(QSpriteBase):
 
     def update_pixmap(self):
         logo = self.grab_scene_portion(self.sprite_scene, self.sprite_size)
-        if self.drop_shadow is not None:
+        if hasattr(self, 'drop_shadow'):
             combined = QPixmap(self.sprite_size.size().toSize())
             combined.fill("transparent")
 
@@ -1007,7 +1003,7 @@ class QLogo(QSpriteBase):
 
 
             painter = QPainter(combined)
-            painter.drawPixmap(10,10,drop_shadow)
+            painter.drawPixmap(0,0,drop_shadow)
             painter.drawPixmap(0,0,logo)
             painter.end()
             self.setPixmap(combined)
@@ -1077,7 +1073,6 @@ class QDropShadow(QGraphicsPixmapItem):
         self.last_value = {}
         self.edit_controls = self.create_edit_controls()
 
-
         self.update_sprite()
     def load_new_image(self):
         self.sprite_image = self.logo_object.sprite_image
@@ -1088,34 +1083,65 @@ class QDropShadow(QGraphicsPixmapItem):
         pixmap = QPixmap(source_rect.size().toSize())
         pixmap.fill("transparent")
 
+        blur = QGraphicsBlurEffect()
+        blur.setBlurRadius(self.edit_controls[SpriteSetting.BLUR_STRENGTH.value].value)
+        #self.setGraphicsEffect(blur)
+
+        for item in scene.items():
+            item.setGraphicsEffect(blur)
         painter = QPainter(pixmap)
         painter.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform)
         scene.render(painter, QRectF(pixmap.rect()), source_rect)
         painter.end()
 
         return pixmap
-    def calculate_range(self,sprite_setting,rect):
+    def calculate_range(self,sprite_setting,rect,init=True):
+        if not init == True:
+            blur_radius = self.edit_controls[SpriteSetting.BLUR_STRENGTH.value].value
+        else:
+            blur_radius = 0
+
+        curr_logo_h_offset = self.logo_object.edit_controls[SpriteSetting.HORIZONTAL_OFFSET.value].value
+        curr_logo_v_offset = self.logo_object.edit_controls[SpriteSetting.VERTICAL_OFFSET.value].value
+
         match sprite_setting:
             case SpriteSetting.HORIZONTAL_OFFSET:
-                return 0,100
+                return (self.logo_object.edit_controls[SpriteSetting.HORIZONTAL_OFFSET].range[0]+blur_radius-curr_logo_h_offset,
+                        self.logo_object.edit_controls[SpriteSetting.HORIZONTAL_OFFSET].range[1]-blur_radius-curr_logo_h_offset)
             case SpriteSetting.VERTICAL_OFFSET:
-                return 0,100
+                return (self.logo_object.edit_controls[SpriteSetting.VERTICAL_OFFSET].range[0]+blur_radius-curr_logo_v_offset,
+                        self.logo_object.edit_controls[SpriteSetting.VERTICAL_OFFSET].range[1]-blur_radius-curr_logo_v_offset)
 
             case SpriteSetting.OPACITY:
                 return 50,100
             case SpriteSetting.BLUR_STRENGTH:
-                return 50,100
+                if not init == True:
+                    min_h = self.edit_controls[SpriteSetting.HORIZONTAL_OFFSET].range[0]
+                    max_h = self.edit_controls[SpriteSetting.HORIZONTAL_OFFSET].range[1]
+
+                    min_v = self.edit_controls[SpriteSetting.VERTICAL_OFFSET].range[0]
+                    max_v = self.edit_controls[SpriteSetting.VERTICAL_OFFSET].range[1]
+
+                    spread_h = abs(max_h - min_h)
+                    spread_v = abs(max_v - min_v)
+                    smaller_span = min(spread_h, spread_v)
+                    max_blur = smaller_span // 2
+                    return 0, max_blur
+                else:
+                    return 0, 1
     def update_all_ranges(self,rect):
         for setting in self.edit_controls:
             if setting in SpriteSetting.get_simple_setting_list():
-                self.edit_controls[setting].set_range(self.calculate_range(setting,rect))
+                self.edit_controls[setting].set_range(self.calculate_range(setting,rect,init=False))
     def update_sprite(self,hq_output=False):
         zoom = self.logo_object.edit_controls[SpriteSetting.ZOOM.value].value
         zoom_inverse = 1/zoom
-        horizontal_offset = self.logo_object.edit_controls[SpriteSetting.HORIZONTAL_OFFSET.value].value
-        vertical_offset = self.logo_object.edit_controls[SpriteSetting.VERTICAL_OFFSET.value].value
+        horizontal_offset = self.logo_object.edit_controls[SpriteSetting.HORIZONTAL_OFFSET.value].value + self.edit_controls[SpriteSetting.HORIZONTAL_OFFSET].value
+        vertical_offset = self.logo_object.edit_controls[SpriteSetting.VERTICAL_OFFSET.value].value + self.edit_controls[SpriteSetting.VERTICAL_OFFSET].value
         rotation = self.logo_object.edit_controls[SpriteSetting.ROTATION.value].value
-        brightness = self.logo_object.edit_controls[SpriteSetting.BRIGHTNESS.value].value - 30
+        brightness = self.logo_object.edit_controls[SpriteSetting.BRIGHTNESS.value].value
+        color = self.edit_controls[SpriteSetting.COLOR.value].colorpicker.get_color()
+        opacity = self.edit_controls[SpriteSetting.OPACITY.value].value
         image_size = self.sprite_image
 
         result = QImage(self.sprite_size.size().toSize(), QImage.Format.Format_ARGB32)
@@ -1124,6 +1150,7 @@ class QDropShadow(QGraphicsPixmapItem):
         painter.setRenderHints(QPainter.RenderHint.LosslessImageRendering,)
         painter.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform)
         painter.setRenderHint(QPainter.RenderHint.VerticalSubpixelPositioning)
+        painter.setOpacity(opacity / 100)
 
         t_ns = QTransform()
         t_ns.translate(horizontal_offset, vertical_offset)
@@ -1160,10 +1187,15 @@ class QDropShadow(QGraphicsPixmapItem):
 
         transformed_rect = t_s.mapRect(self.rect)
 
+        painter.save()
         painter.setCompositionMode(QPainter.CompositionMode.CompositionMode_SourceAtop)
         painter.setOpacity((100-brightness)/100)
         painter.fillRect(0 + self.offset.x(), 0 + self.offset.y(), image_size.width(), image_size.height(),
                          QColor(0, 0, 0))
+        painter.restore()
+        painter.setCompositionMode(QPainter.CompositionMode.CompositionMode_SourceAtop)
+        painter.fillRect(0 + self.offset.x(), 0 + self.offset.y(), image_size.width(), image_size.height(),
+                         color)
 
         painter.end()
 
@@ -1172,6 +1204,27 @@ class QDropShadow(QGraphicsPixmapItem):
 
         self.sprite.setPixmap(QPixmap(self._apply_flips(result)))
         self.update_pixmap()
+
+        recalculate_offsets = True
+        if self.initial_calc:
+            for setting in self.edit_controls:
+                self.last_value[setting] = self.edit_controls[setting].value
+
+            self.update_all_ranges(transformed_rect)
+            self.initial_calc = False
+        else:
+            for setting in self.last_value:
+                if self.edit_controls[setting].value != self.last_value[setting]:
+                    if setting in [SpriteSetting.HORIZONTAL_OFFSET , SpriteSetting.VERTICAL_OFFSET]:
+                        continue
+                    else:
+                        recalculate_offsets = True
+                        break
+
+        if recalculate_offsets:
+            self.update_all_ranges(transformed_rect)
+            for setting in self.edit_controls:
+                self.last_value[setting] = self.edit_controls[setting].value
 
     def toggle_visibility(self,state):
         self.is_visible = state
@@ -1198,7 +1251,7 @@ class QDropShadow(QGraphicsPixmapItem):
                                             setting=setting[0],
                                             range=self.calculate_range(setting[0],self.rect),
                                             **parameters)
-                edit.editingFinished.connect(self.update_sprite)
+                edit.editingFinished.connect(self.control_value_changed)
                 editable_values[setting[0].value] = edit
 
             if setting[0] == SpriteSetting.COLOR:
@@ -1206,10 +1259,12 @@ class QDropShadow(QGraphicsPixmapItem):
                                             setting=setting[0],
                                             range=None,
                                             **parameters)
-                edit.editingFinished.connect(self.update_sprite)
+                edit.editingFinished.connect(self.control_value_changed)
                 editable_values[setting[0].value] = edit
         return editable_values
-
+    def control_value_changed(self):
+        self.update_sprite()
+        self.logo_object.update_sprite()
     def add_edit_controls_to(self,layout:QLayout):
         for control in self.edit_controls:
             layout.addWidget(self.edit_controls[control])
