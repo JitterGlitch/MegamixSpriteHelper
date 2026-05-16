@@ -35,11 +35,9 @@ class SpriteSetting(StrEnum):
     ROTATION = "Rotation"
     ZOOM = "Zoom"
     BRIGHTNESS = "Brightness"
-    DROP_SHADOW_HORIZONTAL_OFFSET = "Drop Shadow Horizontal Offset"
-    DROP_SHADOW_VERTICAL_OFFSET = "Drop Shadow Vertical Offset"
-    DROP_SHADOW_BLUR_STRENGTH = "Drop Shadow Blur Strength"
-    DROP_SHADOW_COLOR = "Drop Shadow Color"
-    DROP_SHADOW_OPACITY = "Drop Shadow Opacity"
+    BLUR_STRENGTH = "Blur Strength"
+    COLOR = "Color"
+    OPACITY = "Opacity"
 
     @classmethod
     def get_simple_setting_list(cls):
@@ -49,10 +47,8 @@ class SpriteSetting(StrEnum):
             cls.ROTATION,
             cls.ZOOM,
             cls.BRIGHTNESS,
-            cls.DROP_SHADOW_HORIZONTAL_OFFSET,
-            cls.DROP_SHADOW_VERTICAL_OFFSET,
-            cls.DROP_SHADOW_BLUR_STRENGTH,
-            cls.DROP_SHADOW_OPACITY
+            cls.BLUR_STRENGTH,
+            cls.OPACITY
         )
 
 class PvBackLayout(Enum):
@@ -290,7 +286,7 @@ class SpriteSettingControl(QWidget):
             self.label.setVisible(True)
             self.spinbox.setVisible(False)
             return
-        if setting == SpriteSetting.DROP_SHADOW_COLOR:
+        if setting == SpriteSetting.COLOR:
             self.setFixedSize(160, 75)
 
             self.layout = QVBoxLayout(self)
@@ -459,6 +455,7 @@ class PathWatcher(QThread):
 
 class QSpriteBase(QGraphicsPixmapItem, QObject):
     SpriteUpdated = Signal()
+    NewImageLoaded = Signal()
     def __init__(self,
                  sprite:str,
                  sprite_type:SpriteType,
@@ -557,7 +554,7 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
                 edit.editingFinished.connect(self.update_sprite)
                 editable_values[setting[0].value] = edit
 
-            if setting[0] == SpriteSetting.DROP_SHADOW_COLOR:
+            if setting[0] == SpriteSetting.COLOR:
                 edit = SpriteSettingControl(sprite=self,
                                             setting=setting[0],
                                             range=None,
@@ -694,6 +691,7 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
         self.last_value = {}
         self.update_all_ranges(self.rect)
 
+        self.NewImageLoaded.emit()
         self.update_sprite()
         if reset_values:
             self.set_initial_values()
@@ -924,6 +922,7 @@ class QLogo(QSpriteBase):
 
     def add_sprite_specific_settings(self):
         self.drop_shadow = QDropShadow(self)
+        self.NewImageLoaded.connect(self.drop_shadow.load_new_image)
 
     def required_size(self) -> QSize:
         return QSize(1,1)
@@ -1008,7 +1007,7 @@ class QLogo(QSpriteBase):
 
 
             painter = QPainter(combined)
-            painter.drawPixmap(0,0,drop_shadow)
+            painter.drawPixmap(10,10,drop_shadow)
             painter.drawPixmap(0,0,logo)
             painter.end()
             self.setPixmap(combined)
@@ -1021,8 +1020,8 @@ class QDropShadow(QGraphicsPixmapItem):
         self.offset=QPoint(0,0)
         self.logo_object = logo_object
         #Take required info from Logo
-        self.sprite_image = logo_object.sprite_image
-        self.sprite_size = logo_object.sprite_size
+        self.sprite_image = self.logo_object.sprite_image
+        self.sprite_size = self.logo_object.sprite_size
 
         self.t_edges = get_transparent_edge_pixels(self.sprite_image)
         self.rect = get_real_image_area(self.sprite_image)
@@ -1040,31 +1039,31 @@ class QDropShadow(QGraphicsPixmapItem):
         self.type = SpriteType.DROP_SHADOW
 
         self.sprite_settings = [
-            (SpriteSetting.DROP_SHADOW_HORIZONTAL_OFFSET, {
+            (SpriteSetting.HORIZONTAL_OFFSET, {
                 'initial_value': 100,
                 'decimals': 0,
                 'rough_step': 1,
                 'precise_step': 1
             }),
-            (SpriteSetting.DROP_SHADOW_VERTICAL_OFFSET, {
+            (SpriteSetting.VERTICAL_OFFSET, {
                 'initial_value': 100,
                 'decimals': 0,
                 'rough_step': 1,
                 'precise_step': 1
             }),
-            (SpriteSetting.DROP_SHADOW_BLUR_STRENGTH, {
+            (SpriteSetting.BLUR_STRENGTH, {
                 'initial_value': 100,
                 'decimals': 0,
                 'rough_step': 1,
                 'precise_step': 1
             }),
-            (SpriteSetting.DROP_SHADOW_COLOR, {
+            (SpriteSetting.COLOR, {
                 'initial_value': 100,
                 'decimals': 0,
                 'rough_step': 1,
                 'precise_step': 1
             }),
-            (SpriteSetting.DROP_SHADOW_OPACITY, {
+            (SpriteSetting.OPACITY, {
                 'initial_value': 100,
                 'decimals': 0,
                 'rough_step': 1,
@@ -1080,6 +1079,10 @@ class QDropShadow(QGraphicsPixmapItem):
 
 
         self.update_sprite()
+    def load_new_image(self):
+        self.sprite_image = self.logo_object.sprite_image
+        self.t_edges = get_transparent_edge_pixels(self.sprite_image)
+        self.update_sprite()
 
     def grab_scene_portion(self,scene:QGraphicsScene, source_rect:QRectF) -> QPixmap:
         pixmap = QPixmap(source_rect.size().toSize())
@@ -1093,14 +1096,14 @@ class QDropShadow(QGraphicsPixmapItem):
         return pixmap
     def calculate_range(self,sprite_setting,rect):
         match sprite_setting:
-            case SpriteSetting.DROP_SHADOW_HORIZONTAL_OFFSET:
+            case SpriteSetting.HORIZONTAL_OFFSET:
                 return 0,100
-            case SpriteSetting.DROP_SHADOW_VERTICAL_OFFSET:
+            case SpriteSetting.VERTICAL_OFFSET:
                 return 0,100
 
-            case SpriteSetting.DROP_SHADOW_OPACITY:
+            case SpriteSetting.OPACITY:
                 return 50,100
-            case SpriteSetting.DROP_SHADOW_BLUR_STRENGTH:
+            case SpriteSetting.BLUR_STRENGTH:
                 return 50,100
     def update_all_ranges(self,rect):
         for setting in self.edit_controls:
@@ -1198,7 +1201,7 @@ class QDropShadow(QGraphicsPixmapItem):
                 edit.editingFinished.connect(self.update_sprite)
                 editable_values[setting[0].value] = edit
 
-            if setting[0] == SpriteSetting.DROP_SHADOW_COLOR:
+            if setting[0] == SpriteSetting.COLOR:
                 edit = SpriteSettingControl(sprite=self,
                                             setting=setting[0],
                                             range=None,
