@@ -995,18 +995,22 @@ class QLogo(QSpriteBase):
     def update_pixmap(self):
         logo = self.grab_scene_portion(self.sprite_scene, self.sprite_size)
         if hasattr(self, 'drop_shadow'):
-            combined = QPixmap(self.sprite_size.size().toSize())
-            combined.fill("transparent")
+            print(f"Drop shadow checkbox is: {self.drop_shadow.add_drop_shadow_checkbox.isChecked()}")
+            if self.drop_shadow.add_drop_shadow_checkbox.isChecked():
+                combined = QPixmap(self.sprite_size.size().toSize())
+                combined.fill("transparent")
 
-            self.drop_shadow.update_sprite()
-            drop_shadow = self.grab_scene_portion(self.drop_shadow.sprite_scene, self.drop_shadow.sprite_size)
+                self.drop_shadow.update_sprite()
+                drop_shadow = self.grab_scene_portion(self.drop_shadow.sprite_scene, self.drop_shadow.sprite_size)
 
 
-            painter = QPainter(combined)
-            painter.drawPixmap(0,0,drop_shadow)
-            painter.drawPixmap(0,0,logo)
-            painter.end()
-            self.setPixmap(combined)
+                painter = QPainter(combined)
+                painter.drawPixmap(0,0,drop_shadow)
+                painter.drawPixmap(0,0,logo)
+                painter.end()
+                self.setPixmap(combined)
+            else:
+                self.setPixmap(logo)
         else:
             self.setPixmap(logo)
 class QDropShadow(QGraphicsPixmapItem):
@@ -1033,6 +1037,12 @@ class QDropShadow(QGraphicsPixmapItem):
         self.sprite_scene.addItem(self.sprite)
 
         self.type = SpriteType.DROP_SHADOW
+
+        self.add_drop_shadow_checkbox = QCheckBox()
+        self.add_drop_shadow_checkbox.setChecked(False)
+        self.add_drop_shadow_checkbox.setText("Add Drop shadow")
+        self.add_drop_shadow_checkbox.clicked.connect(self.add_drop_shadow_checkbox_callback)
+
 
         self.sprite_settings = [
             (SpriteSetting.HORIZONTAL_OFFSET, {
@@ -1074,6 +1084,11 @@ class QDropShadow(QGraphicsPixmapItem):
         self.edit_controls = self.create_edit_controls()
 
         self.update_sprite()
+    def add_drop_shadow_checkbox_callback(self):
+        for control in self.edit_controls:
+            self.edit_controls[control].setVisible(self.add_drop_shadow_checkbox.isChecked())
+        self.logo_object.update_sprite()
+
     def load_new_image(self):
         self.sprite_image = self.logo_object.sprite_image
         self.t_edges = get_transparent_edge_pixels(self.sprite_image)
@@ -1152,12 +1167,6 @@ class QDropShadow(QGraphicsPixmapItem):
         painter.setRenderHint(QPainter.RenderHint.VerticalSubpixelPositioning)
         painter.setOpacity(opacity / 100)
 
-        t_ns = QTransform()
-        t_ns.translate(horizontal_offset, vertical_offset)
-        t_ns.translate((image_size.width() / 2), (image_size.height() / 2))
-        t_ns.rotate(rotation)
-        t_ns.translate(-(image_size.width() / 2), -(image_size.height() / 2))
-
         t_s = QTransform()
         t_s.translate(horizontal_offset, vertical_offset)
         t_s.translate((image_size.width() / 2), (image_size.height() / 2))
@@ -1166,23 +1175,10 @@ class QDropShadow(QGraphicsPixmapItem):
         t_s.scale(zoom, zoom)
 
 
-        if hq_output:
-            if isinstance(self.location, str):
-                if self.location.startswith(":"):
-                    self.location = qresource_to_bytes(self.location)
-            with Image.open(self.location) as image:
-                width = int(image_size.width() * zoom)
-                height = int(image_size.height() * zoom)
-                drawn_image = image.resize((width,height),Image.Resampling.LANCZOS).toqimage()
-
-            painter.setTransform(t_ns,combine=False)
-            if self.is_visible:
-                painter.drawPixmap(0 + self.offset.x(), 0 + self.offset.y(), QPixmap(drawn_image))
-        else:
-            painter.setTransform(t_s, combine=False)
-            drawn_image = QPixmap(self.sprite_image)
-            if self.is_visible:
-                painter.drawPixmap(0 + self.offset.x()*zoom_inverse, 0 + self.offset.y()*zoom_inverse, QPixmap(drawn_image))
+        painter.setTransform(t_s, combine=False)
+        drawn_image = QPixmap(self.sprite_image)
+        if self.is_visible:
+            painter.drawPixmap(0 + self.offset.x()*zoom_inverse, 0 + self.offset.y()*zoom_inverse, QPixmap(drawn_image))
 
 
         transformed_rect = t_s.mapRect(self.rect)
@@ -1266,8 +1262,10 @@ class QDropShadow(QGraphicsPixmapItem):
         self.update_sprite()
         self.logo_object.update_sprite()
     def add_edit_controls_to(self,layout:QLayout):
+        layout.addWidget(self.add_drop_shadow_checkbox)
         for control in self.edit_controls:
             layout.addWidget(self.edit_controls[control])
+            self.edit_controls[control].setVisible(self.add_drop_shadow_checkbox.isChecked())
 
         verticalSpacer = QSpacerItem(0, 0, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
         layout.addItem(verticalSpacer)
