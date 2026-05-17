@@ -570,10 +570,8 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
     def add_edit_controls_to(self,layout:QLayout):
         for control in self.edit_controls:
             layout.addWidget(self.edit_controls[control])
-
         verticalSpacer = QSpacerItem(0, 0, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
         layout.addItem(verticalSpacer)
-
     def grab_scene_portion(self,scene:QGraphicsScene, source_rect:QRectF) -> QPixmap:
         pixmap = QPixmap(source_rect.size().toSize())
         pixmap.fill("transparent")
@@ -928,6 +926,13 @@ class QLogo(QSpriteBase):
         self.drop_shadow = QDropShadow(self)
         self.NewImageLoaded.connect(self.drop_shadow.load_new_image)
 
+    def add_edit_controls_to(self,layout:QLayout):
+        for control in self.edit_controls:
+            layout.addWidget(self.edit_controls[control])
+        self.drop_shadow.add_edit_controls_to(layout)
+        verticalSpacer = QSpacerItem(0, 0, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
+        layout.addItem(verticalSpacer)
+
     def required_size(self) -> QSize:
         return QSize(1,1)
 
@@ -1266,11 +1271,6 @@ class QDropShadow(QGraphicsPixmapItem):
         for control in self.edit_controls:
             layout.addWidget(self.edit_controls[control])
             self.edit_controls[control].setVisible(self.add_drop_shadow_checkbox.isChecked())
-
-        verticalSpacer = QSpacerItem(0, 0, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
-        layout.addItem(verticalSpacer)
-
-
 
 class QSpriteSlave(QGraphicsPixmapItem):
 

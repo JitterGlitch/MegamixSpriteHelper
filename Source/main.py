@@ -701,7 +701,7 @@ class MainWindow(QMainWindow):
 
         self.C_Sprites.thumbnail.add_edit_controls_to(self.main_box.verticalLayout_12)
         self.C_Sprites.logo.add_edit_controls_to(self.main_box.verticalLayout_11)
-        self.C_Sprites.logo.drop_shadow.add_edit_controls_to(self.main_box.verticalLayout_11)
+        #self.C_Sprites.logo.drop_shadow.add_edit_controls_to(self.main_box.verticalLayout_11)
         self.C_Sprites.jacket.add_edit_controls_to(self.main_box.verticalLayout_10)
         self.C_Sprites.background.add_edit_controls_to(self.main_box.verticalLayout_8)
         self.selected_scenes_views = []
