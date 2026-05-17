@@ -144,6 +144,7 @@ class SpriteColorPicker(QWidget):
 
         self.color_picker = QColorDialog()
         self.color_picker.currentColorChanged.connect(self.drop_shadow_color_changed)
+        self.color_picker.colorSelected.connect(self.drop_shadow_color_accepted)
 
         self.color_history_list = []
         self.color_picker_layout = QHBoxLayout()
@@ -170,11 +171,11 @@ class SpriteColorPicker(QWidget):
     def get_color(self):
         return self.color_picker.currentColor()
     def drop_shadow_color_changed(self):
-        for i in reversed(range(self.color_history_list.__len__() - 1)):
-            self.color_history_list[i+1].update_color(self.color_history_list[i].color)
-
         self.color_history_list[0].update_color(self.color_picker.currentColor())
         self.editingFinished.emit()
+    def drop_shadow_color_accepted(self):
+        for i in reversed(range(self.color_history_list.__len__() - 1)):
+            self.color_history_list[i+1].update_color(self.color_history_list[i].color)
     def open_color_picker_button_callback(self):
         self.color_picker.show()
 
@@ -1000,7 +1001,6 @@ class QLogo(QSpriteBase):
     def update_pixmap(self):
         logo = self.grab_scene_portion(self.sprite_scene, self.sprite_size)
         if hasattr(self, 'drop_shadow'):
-            print(f"Drop shadow checkbox is: {self.drop_shadow.add_drop_shadow_checkbox.isChecked()}")
             if self.drop_shadow.add_drop_shadow_checkbox.isChecked():
                 combined = QPixmap(self.sprite_size.size().toSize())
                 combined.fill("transparent")
@@ -1105,8 +1105,6 @@ class QDropShadow(QGraphicsPixmapItem):
 
         blur = QGraphicsBlurEffect()
         blur.setBlurRadius(self.edit_controls[SpriteSetting.BLUR_STRENGTH.value].value)
-        #self.setGraphicsEffect(blur)
-
         for item in scene.items():
             item.setGraphicsEffect(blur)
         painter = QPainter(pixmap)
