@@ -1,0 +1,7 @@
+pillow~=12.0.0
+PySide6~=6.9.0
+
+PyYAML~=6.0.2
+superqt~=0.7.6
+pyqt-advanced-slider==1.1.1
+kkdlib~=0.1

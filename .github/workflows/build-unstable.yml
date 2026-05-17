@@ -1,0 +1,56 @@
+name: Build MegamixSpriteHelper
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build:
+    name: Build on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: windows-latest
+            artifact_name: MegamixSpriteHelper-Windows
+            path: dist/MegamixSpriteHelper
+            kkdlib_wheel: kkdlib-0.1.0-cp39-abi3-win_amd64.whl
+            icon: ./Source/Images/Icon.ico
+          - os: ubuntu-latest
+            artifact_name: MegamixSpriteHelper-Linux
+            path: dist/MegamixSpriteHelper
+            kkdlib_wheel: kkdlib-0.1.0-cp39-abi3-manylinux_2_35_x86_64.whl
+            icon: /Source/Images/Icon.ico
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install kkdlib wheel
+        shell: bash
+        run: |
+          pip install ./Source/ThirdParty/${{ matrix.kkdlib_wheel }}
+
+      - name: Install build tools & requirements
+        run: |
+          python -m pip install --upgrade pip
+          pip install pyinstaller
+          pip install -r ./Source/requirements.txt
+        shell: bash
+
+      - name: Build with PyInstaller
+        run: |
+          pyinstaller --onedir --icon=${{ matrix.icon }} -w --name MegamixSpriteHelper ./Source/main.py
+
+      - name: Upload Finished Build
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact_name }}
+          path: ${{ matrix.path }}
+          if-no-files-found: error
