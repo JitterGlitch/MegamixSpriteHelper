@@ -1,4 +1,4 @@
-name: Build unstable MegamixSpriteHelper version
+name: Build MegamixSpriteHelper
 
 on:
   push:
