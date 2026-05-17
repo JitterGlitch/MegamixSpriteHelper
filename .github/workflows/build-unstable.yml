@@ -16,10 +16,12 @@ jobs:
             artifact_name: MegamixSpriteHelper-Windows
             path: dist/MegamixSpriteHelper
             kkdlib_wheel: kkdlib-0.1.0-cp39-abi3-win_amd64.whl
+            icon: ./Source/Images/Icon.ico
           - os: ubuntu-latest
             artifact_name: MegamixSpriteHelper-Linux
             path: dist/MegamixSpriteHelper
             kkdlib_wheel: kkdlib-0.1.0-cp39-abi3-manylinux_2_35_x86_64.whl
+            icon: /Source/Images/Icon.ico
 
     steps:
       - name: Checkout repository
@@ -44,7 +46,7 @@ jobs:
 
       - name: Build with PyInstaller
         run: |
-          pyinstaller --onedir -c --name MegamixSpriteHelper ./Source/main.py
+          pyinstaller --onedir icon=${{ matrix.icon }} -w --name MegamixSpriteHelper ./Source/main.py
 
       - name: Upload Finished Build
         uses: actions/upload-artifact@v4
