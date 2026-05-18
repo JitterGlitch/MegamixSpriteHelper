@@ -51,7 +51,7 @@ jobs:
       - name: Create tarball for Linux
         if: matrix.os == 'ubuntu-latest'
         run: |
-          tar -czf MegamixSpriteHelper-Linux.tar.gz -C dist MegamixSpriteHelper
+          tar -cJf MegamixSpriteHelper-Linux.tar.xz -C dist MegamixSpriteHelper
 
       - name: Upload Finished Build
         if: matrix.os == 'ubuntu-latest'
