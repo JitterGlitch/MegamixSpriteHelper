@@ -58,7 +58,7 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: ${{ matrix.artifact_name }}
-          path: 'MegamixSpriteHelper-Linux.tar.gz'
+          path: 'MegamixSpriteHelper-Linux.tar.xz'
           archive: false
           if-no-files-found: error
 
