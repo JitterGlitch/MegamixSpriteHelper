@@ -48,7 +48,22 @@ jobs:
         run: |
           pyinstaller --onedir --icon=${{ matrix.icon }} -w --name MegamixSpriteHelper ./Source/main.py
 
+      - name: Create tarball for Linux
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          tar -czf MegamixSpriteHelper-Linux.tar.gz -C dist MegamixSpriteHelper
+
       - name: Upload Finished Build
+        if: matrix.os == 'ubuntu-latest'
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ matrix.artifact_name }}
+          path: 'MegamixSpriteHelper-Linux.tar.gz'
+          archive: false
+          if-no-files-found: error
+
+      - name: Upload Finished Build
+        if: matrix.os == 'windows-latest'
         uses: actions/upload-artifact@v7
         with:
           name: ${{ matrix.artifact_name }}
