@@ -143,6 +143,7 @@ class SpriteColorPicker(QWidget):
         self.open_color_picker_button.clicked.connect(self.open_color_picker_button_callback)
 
         self.color_picker = QColorDialog()
+        self.color_picker.setOption(QColorDialog.ColorDialogOption.ShowAlphaChannel)
         self.color_picker.currentColorChanged.connect(self.drop_shadow_color_changed)
         self.color_picker.colorSelected.connect(self.drop_shadow_color_accepted)
 
