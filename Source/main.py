@@ -870,21 +870,6 @@ class MainWindow(QMainWindow):
                     url = QUrl.fromLocalFile(temp_file)
                     QDesktopServices.openUrl(url)
 
-    def watcher_file_modified_action(self,path):
-        sleep(2)
-        keep_watching_path = False
-
-        for sprite in self.C_Sprites.list:
-            if path == sprite.location:
-                print(f"{sprite.type.value} image was changed")
-                if sprite.load_new_image(path,fallback=True) == "Updated":
-                     keep_watching_path = True
-
-        if keep_watching_path:
-            self.watcher.removePath(path)
-            self.watcher.addPath(path)
-        else:
-            self.watcher.removePath(path)
 
     def has_logo_toggle_callback(self):
         if self.has_logo_toggle.isChecked():
