@@ -10,6 +10,7 @@ from PySide6.QtWidgets import (QAbstractScrollArea, QCheckBox, QComboBox,
                                QTabWidget, QVBoxLayout, QWidget, QMenuBar)
 from superqt import QEnumComboBox, QFlowLayout
 from FarcCreator import Compression
+from SceneComposer import SpriteGroup
 
 import resources
 
@@ -96,16 +97,6 @@ class Ui_MainWindow(object):
         self.horizontalLayout = QHBoxLayout()
         self.horizontalLayout.setObjectName(u"horizontalLayout")
 
-        #This was used for scene toggles , might reuse
-        self.load_buttons_box_row3 = QHBoxLayout()
-        self.load_buttons_box_row3.setSpacing(5)
-        self.load_buttons_box_row3.setObjectName(u"load_buttons_box_row3")
-        self.load_buttons_box_row3.setSizeConstraint(QLayout.SizeConstraint.SetMinimumSize)
-        self.load_buttons_box_row3.setContentsMargins(-1, 0, -1, -1)
-
-
-
-
 
         self.current_sprite_combobox = QComboBox(self.grid)
         self.current_sprite_combobox.addItem("")
@@ -114,7 +105,14 @@ class Ui_MainWindow(object):
         self.current_sprite_combobox.addItem("")
         self.current_sprite_combobox.setObjectName(u"current_sprite_combobox")
 
-        self.load_buttons_box.addWidget(self.current_sprite_combobox)
+        self.sprite_group_combobox = QEnumComboBox(self.grid)
+        self.sprite_group_combobox.setEnumClass(SpriteGroup)
+
+        self.horizontalLayout.addWidget(self.current_sprite_combobox)
+        self.horizontalLayout.addWidget(self.sprite_group_combobox)
+
+
+        self.load_buttons_box.addLayout(self.horizontalLayout)
 
         self.sprite_options_v_layout = QVBoxLayout()
         self.sprite_options_v_layout.setContentsMargins(-1, 0, -1, -1)
@@ -270,7 +268,6 @@ class Ui_MainWindow(object):
         self.image_edit_scroll_area.setWidget(self.image_edit_area_widget_properties)
 
         self.load_buttons_box.addWidget(self.image_edit_scroll_area)
-        self.load_buttons_box.addLayout(self.load_buttons_box_row3)
 
         self.image_tab_vertical_layout = QVBoxLayout()
         self.image_tab_vertical_layout.setSpacing(5)

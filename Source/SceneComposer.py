@@ -55,6 +55,13 @@ class PvBackLayout(Enum):
     MMSongSelect = "Megamix Song Select"
     MMResult = "Megamix Result"
     FTResult = "Future Tone Result"
+
+class SpriteGroup(StrEnum):
+    DEFAULT = "Default"
+    EX = "_EX"
+
+    def __str__(self):
+        return f"{self.value}"
 ####################################################
 def round_up(number, decimal_places):
     factor = 10 ** decimal_places
