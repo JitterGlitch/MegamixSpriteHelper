@@ -1553,6 +1553,10 @@ class QMMResultScene(QGraphicsScene):
     def toggle_ui(self,state:bool):
         self.middle_layer_song_credit.setVisible(state)
         self.top_layer.setVisible(state)
+    def switch_sprite_group(self,sprite_object:QControllableSprites):
+        self.jacket.change_tracked_sprite(sprite_object.jacket)
+        self.logo.change_tracked_sprite(sprite_object.logo)
+        self.background.change_tracked_sprite(sprite_object.background)
 class QMMPracticeModeScene(QGraphicsScene):
     def __init__(self,jacket:QJacket, logo:QLogo, background:QSpriteBase):
         super().__init__()
@@ -1596,6 +1600,10 @@ class QMMPracticeModeScene(QGraphicsScene):
         self.top_layer.setVisible(state)
     def toggle_grid(self,state:bool):
         self.grid.setVisible(state)
+    def switch_sprite_group(self,sprite_object:QControllableSprites):
+        self.jacket.change_tracked_sprite(sprite_object.jacket)
+        self.logo.change_tracked_sprite(sprite_object.logo)
+        self.background.change_tracked_sprite(sprite_object.background)
 
 
 class QFTSongSelectScene(QGraphicsScene):
@@ -1637,6 +1645,10 @@ class QFTSongSelectScene(QGraphicsScene):
         self.top_layer_nc.setVisible(state)
     def toggle_ui(self,state:bool):
         self.top_layer.setVisible(state)
+    def switch_sprite_group(self,sprite_object:QControllableSprites):
+        self.jacket.change_tracked_sprite(sprite_object.jacket)
+        self.logo.change_tracked_sprite(sprite_object.logo)
+        self.background.change_tracked_sprite(sprite_object.background)
 class QFTResultScene(QGraphicsScene):
     def __init__(self,jacket:QJacket, logo:QLogo):
         super().__init__()
@@ -1678,6 +1690,9 @@ class QFTResultScene(QGraphicsScene):
     def toggle_ui(self,state:bool):
         self.top_layer.setVisible(state)
         self.middle_layer_song_credit.setVisible(state)
+    def switch_sprite_group(self,sprite_object:QControllableSprites):
+        self.jacket.change_tracked_sprite(sprite_object.jacket)
+        self.logo.change_tracked_sprite(sprite_object.logo)
 
 class QPVBackScene(QGraphicsScene):
     def __init__(self,mm_song_select:QMMSongSelectScene,mm_result:QMMResultScene,ft_result:QFTResultScene,logo=None,jacket=None,background=None):
@@ -1985,6 +2000,18 @@ class QPVBackScene(QGraphicsScene):
                 if sub_layout:
                     self.clear_layout(sub_layout)
 
+    def switch_sprite_group(self,sprite_object:QControllableSprites):
+        self.background.change_tracked_sprite(sprite_object.background)
+
+        self.mm_song_select_jacket.change_tracked_sprite(sprite_object.jacket)
+        self.mm_song_select_logo.change_tracked_sprite(sprite_object.logo)
+
+        self.mm_result_jacket.change_tracked_sprite(sprite_object.jacket)
+        self.mm_result_logo.change_tracked_sprite(sprite_object.logo)
+
+        self.ft_result_jacket.change_tracked_sprite(sprite_object.jacket)
+        self.ft_result_logo.change_tracked_sprite(sprite_object.logo)
+
 class QPreviewScenes:
     def __init__(self,C_Sprites:QControllableSprites):
         self.MM_SongSelect = QMMSongSelectScene(C_Sprites.jacket,
@@ -2007,12 +2034,14 @@ class QPreviewScenes:
 
         self.FT_Result = QFTResultScene(C_Sprites.jacket,
                                         C_Sprites.logo)
+
         self.PV_Back = QPVBackScene(self.MM_SongSelect,
                                     self.MM_Result,
                                     self.FT_Result,
                                     jacket=C_Sprites.jacket,
                                     logo=C_Sprites.logo,
                                     background=C_Sprites.background)
+
         self.PV_Back_Creator_Window = QPVBackScene(self.MM_SongSelect,
                                     self.MM_Result,
                                     self.FT_Result,
@@ -2020,11 +2049,13 @@ class QPreviewScenes:
                                     logo=C_Sprites.logo,
                                     background=C_Sprites.background)
 
+        self.scene_list = [self.MM_SongSelect,self.MM_Result,self.MM_PracticeMode,self.FT_SongSelect,self.FT_Result,self.PV_Back,self.PV_Back_Creator_Window]
         self.new_classics_scenes = [self.MM_SongSelect,self.MM_Result,self.FT_SongSelect,self.FT_Result]
 
 
     def switch_sprite_group(self,sprite_object):
-        self.MM_SongSelect.switch_sprite_group(sprite_object)
+        for scene in self.scene_list:
+            scene.switch_sprite_group(sprite_object)
 
 class SceneComposerObjects:
     def __init__(self):
