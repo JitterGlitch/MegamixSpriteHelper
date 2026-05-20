@@ -57,8 +57,8 @@ class PvBackLayout(Enum):
     FTResult = "Future Tone Result"
 
 class SpriteGroup(StrEnum):
-    DEFAULT = "Default"
-    EX = "_EX"
+    A = "Group 1"
+    B = "Group 2"
 
     def __str__(self):
         return f"{self.value}"
@@ -1345,6 +1345,13 @@ class QSpriteSlave(QGraphicsPixmapItem):
             transform = QTransform().rotate(self.rotation)
             image = image.transformed(transform, Qt.TransformationMode.SmoothTransformation)
             self.setPixmap(QPixmap(image))
+    def change_tracked_sprite(self,new_sprite):
+        self.tracked.sprite_slaves_list.remove(self)
+        self.tracked.SpriteUpdated.disconnect()
+
+        self.tracked = new_sprite
+        self.tracked.SpriteUpdated.connect(self.update_sprite)
+        self.tracked.sprite_slaves_list.append(self)
     def toggle_zoom_in(self,state):
         if not self.tracked.type == SpriteType.BACKGROUND:
             if not state:
@@ -1418,6 +1425,10 @@ class QControllableSprites:
         for sprite in self.list:
             sprite.bind_watcher(self.sprite_updater)
 
+    def update_sprites(self):
+        for sprite in self.list:
+            sprite.update_sprite()
+
 class QMMSongSelectScene(QGraphicsScene):
     def __init__(self,jacket:QJacket, logo:QLogo, background:QSpriteBase, thumbnail:QThumbnail):
         super().__init__()
@@ -1485,6 +1496,19 @@ class QMMSongSelectScene(QGraphicsScene):
         self.thumbnail_6.setVisible(state)
         self.thumbnail_7.setVisible(state)
         self.thumbnail_selected.setVisible(state)
+
+    def switch_sprite_group(self,sprite_object:QControllableSprites):
+        self.jacket.change_tracked_sprite(sprite_object.jacket)
+        self.logo.change_tracked_sprite(sprite_object.logo)
+        self.background.change_tracked_sprite(sprite_object.background)
+        self.thumbnail_1.change_tracked_sprite(sprite_object.thumbnail)
+        self.thumbnail_2.change_tracked_sprite(sprite_object.thumbnail)
+        self.thumbnail_3.change_tracked_sprite(sprite_object.thumbnail)
+        self.thumbnail_selected.change_tracked_sprite(sprite_object.thumbnail)
+        self.thumbnail_4.change_tracked_sprite(sprite_object.thumbnail)
+        self.thumbnail_5.change_tracked_sprite(sprite_object.thumbnail)
+        self.thumbnail_6.change_tracked_sprite(sprite_object.thumbnail)
+        self.thumbnail_7.change_tracked_sprite(sprite_object.thumbnail)
 
 class QMMResultScene(QGraphicsScene):
     def __init__(self,jacket:QJacket, logo:QLogo, background:QSpriteBase):
@@ -1998,7 +2022,19 @@ class QPreviewScenes:
 
         self.new_classics_scenes = [self.MM_SongSelect,self.MM_Result,self.FT_SongSelect,self.FT_Result]
 
+
+    def switch_sprite_group(self,sprite_object):
+        self.MM_SongSelect.switch_sprite_group(sprite_object)
+
 class SceneComposerObjects:
     def __init__(self):
-        self.C_Sprites = QControllableSprites()
-        self.P_Scenes = QPreviewScenes(self.C_Sprites)
+        self.Group_A_Sprites = QControllableSprites()
+        self.Group_B_Sprites = QControllableSprites()
+        self.P_Scenes = QPreviewScenes(self.Group_A_Sprites)
+
+        self.sprite_groups = {
+            SpriteGroup.A: self.Group_A_Sprites,
+            SpriteGroup.B: self.Group_B_Sprites
+        }
+    def enum_to_obj(self,sprite_group:SpriteGroup):
+        return self.sprite_groups[sprite_group]

@@ -19,6 +19,7 @@ from PySide6.QtGui import QPixmap, QPalette, QColor, QImage, QPainter, QGuiAppli
 from PySide6.QtWidgets import QApplication, QMainWindow, QWidget, QFileDialog, QMessageBox, QSizePolicy, QMenu, QMenuBar, QStyleFactory
 
 import SceneComposer
+from Source.SceneComposer import SpriteGroup
 from ui_SongFarcCreator import Ui_SongFarcCreatorWindow
 from widgets import QSmarterMenu
 
@@ -634,7 +635,8 @@ class MainWindow(QMainWindow):
 
         self.main_box.current_sprite_combobox.currentIndexChanged.connect(lambda: self.current_sprite_tab_switcher(self.main_box.current_sprite_combobox.currentIndex()))
 
-        self.main_box.sprite_group_combobox.setEnabled(False)
+        #self.main_box.sprite_group_combobox.setEnabled(False)
+        self.main_box.sprite_group_combobox.currentEnumChanged.connect(self.sprite_group_changed)
 
         self.display_scenes()
 
@@ -647,6 +649,15 @@ class MainWindow(QMainWindow):
 
 
 
+    def sprite_group_changed(self):
+        print(self.main_box.sprite_group_combobox.currentEnum())
+        match self.main_box.sprite_group_combobox.currentEnum():
+            case SpriteGroup.A:
+                self.P_Scenes.switch_sprite_group(self.SC.Group_A_Sprites)
+                self.SC.Group_A_Sprites.update_sprites()
+            case SpriteGroup.B:
+                self.P_Scenes.switch_sprite_group(self.SC.Group_B_Sprites)
+                self.SC.Group_B_Sprites.update_sprites()
 
     def resizeEvent(self,event):
         self.space_out_scenes()
@@ -662,37 +673,36 @@ class MainWindow(QMainWindow):
 
         match sprite:
             case "Background":
-                self.main_box.load_image_button.setEnabled(self.C_Sprites.background.controls_enabled)
-                self.main_box.flip_vertical_button.setEnabled(self.C_Sprites.background.controls_enabled)
-                self.main_box.flip_horizontal_button.setEnabled(self.C_Sprites.background.controls_enabled)
+                self.main_box.load_image_button.setEnabled(self.SC.enum_to_obj(self.main_box.sprite_group_combobox.currentEnum()).background.controls_enabled)
+                self.main_box.flip_vertical_button.setEnabled(self.SC.enum_to_obj(self.main_box.sprite_group_combobox.currentEnum()).background.controls_enabled)
+                self.main_box.flip_horizontal_button.setEnabled(self.SC.enum_to_obj(self.main_box.sprite_group_combobox.currentEnum()).background.controls_enabled)
             case "Jacket":
-                self.main_box.load_image_button.setEnabled(self.C_Sprites.jacket.controls_enabled)
-                self.main_box.flip_vertical_button.setEnabled(self.C_Sprites.jacket.controls_enabled)
-                self.main_box.flip_horizontal_button.setEnabled(self.C_Sprites.jacket.controls_enabled)
+                self.main_box.load_image_button.setEnabled(self.SC.enum_to_obj(self.main_box.sprite_group_combobox.currentEnum()).jacket.controls_enabled)
+                self.main_box.flip_vertical_button.setEnabled(self.SC.enum_to_obj(self.main_box.sprite_group_combobox.currentEnum()).jacket.controls_enabled)
+                self.main_box.flip_horizontal_button.setEnabled(self.SC.enum_to_obj(self.main_box.sprite_group_combobox.currentEnum()).jacket.controls_enabled)
             case "Logo":
-                self.main_box.load_image_button.setEnabled(self.C_Sprites.logo.controls_enabled)
-                self.main_box.flip_vertical_button.setEnabled(self.C_Sprites.logo.controls_enabled)
-                self.main_box.flip_horizontal_button.setEnabled(self.C_Sprites.logo.controls_enabled)
+                self.main_box.load_image_button.setEnabled(self.SC.enum_to_obj(self.main_box.sprite_group_combobox.currentEnum()).logo.controls_enabled)
+                self.main_box.flip_vertical_button.setEnabled(self.SC.enum_to_obj(self.main_box.sprite_group_combobox.currentEnum()).logo.controls_enabled)
+                self.main_box.flip_horizontal_button.setEnabled(self.SC.enum_to_obj(self.main_box.sprite_group_combobox.currentEnum()).logo.controls_enabled)
             case "Thumbnail":
-                self.main_box.load_image_button.setEnabled(self.C_Sprites.thumbnail.controls_enabled)
-                self.main_box.flip_vertical_button.setEnabled(self.C_Sprites.thumbnail.controls_enabled)
-                self.main_box.flip_horizontal_button.setEnabled(self.C_Sprites.thumbnail.controls_enabled)
+                self.main_box.load_image_button.setEnabled(self.SC.enum_to_obj(self.main_box.sprite_group_combobox.currentEnum()).thumbnail.controls_enabled)
+                self.main_box.flip_vertical_button.setEnabled(self.SC.enum_to_obj(self.main_box.sprite_group_combobox.currentEnum()).thumbnail.controls_enabled)
+                self.main_box.flip_horizontal_button.setEnabled(self.SC.enum_to_obj(self.main_box.sprite_group_combobox.currentEnum()).thumbnail.controls_enabled)
 
     def flip_current_sprite(self,flip_type):
         current_sprite = self.main_box.current_sprite_combobox.currentText()
         match current_sprite:
             case "Background":
-                self.C_Sprites.background.toggle_flip(flip_type)
+                self.SC.enum_to_obj(self.main_box.sprite_group_combobox.currentEnum()).background.toggle_flip(flip_type)
             case "Jacket":
-                self.C_Sprites.jacket.toggle_flip(flip_type)
+                self.SC.enum_to_obj(self.main_box.sprite_group_combobox.currentEnum()).jacket.toggle_flip(flip_type)
             case "Logo":
-                self.C_Sprites.logo.toggle_flip(flip_type)
+                self.SC.enum_to_obj(self.main_box.sprite_group_combobox.currentEnum()).logo.toggle_flip(flip_type)
             case "Thumbnail":
-                self.C_Sprites.thumbnail.toggle_flip(flip_type)
+                self.SC.enum_to_obj(self.main_box.sprite_group_combobox.currentEnum()).thumbnail.toggle_flip(flip_type)
 
     def display_scenes(self):
         self.SC = SceneComposer.SceneComposerObjects()
-        self.C_Sprites = self.SC.C_Sprites
         self.P_Scenes = self.SC.P_Scenes
 
         self.populate_display_scene_menu()
@@ -700,10 +710,16 @@ class MainWindow(QMainWindow):
         self.mm_practice_toggle.setChecked(False)
         self.pv_back_toggle.setChecked(False)
 
-        self.C_Sprites.thumbnail.add_edit_controls_to(self.main_box.verticalLayout_12)
-        self.C_Sprites.logo.add_edit_controls_to(self.main_box.verticalLayout_11)
-        self.C_Sprites.jacket.add_edit_controls_to(self.main_box.verticalLayout_10)
-        self.C_Sprites.background.add_edit_controls_to(self.main_box.verticalLayout_8)
+        self.SC.Group_A_Sprites.thumbnail.add_edit_controls_to(self.main_box.verticalLayout_12)
+        self.SC.Group_A_Sprites.logo.add_edit_controls_to(self.main_box.verticalLayout_11)
+        self.SC.Group_A_Sprites.jacket.add_edit_controls_to(self.main_box.verticalLayout_10)
+        self.SC.Group_A_Sprites.background.add_edit_controls_to(self.main_box.verticalLayout_8)
+
+        self.SC.Group_B_Sprites.thumbnail.add_edit_controls_to(self.main_box.verticalLayout_12)
+        self.SC.Group_B_Sprites.logo.add_edit_controls_to(self.main_box.verticalLayout_11)
+        self.SC.Group_B_Sprites.jacket.add_edit_controls_to(self.main_box.verticalLayout_10)
+        self.SC.Group_B_Sprites.background.add_edit_controls_to(self.main_box.verticalLayout_8)
+
         self.selected_scenes_views = []
 
 
@@ -816,14 +832,14 @@ class MainWindow(QMainWindow):
 
     def generate_preview(self,target:OutputTarget):
         #Update sprites if the zoom was changed
-        if self.C_Sprites.jacket.edit_controls[SpriteSetting.ZOOM.value].value != 1.0:
-            self.C_Sprites.jacket.update_sprite(hq_output=True)
-        if self.C_Sprites.background.edit_controls[SpriteSetting.ZOOM.value].value != 1.0:
-            self.C_Sprites.background.update_sprite(hq_output=True)
-        if self.C_Sprites.thumbnail.edit_controls[SpriteSetting.ZOOM.value].value != 1.0:
-            self.C_Sprites.thumbnail.update_sprite(hq_output=True)
-        if self.C_Sprites.logo.edit_controls[SpriteSetting.ZOOM.value].value != 1.0:
-            self.C_Sprites.logo.update_sprite(hq_output=True)
+        if self.SC.enum_to_obj(self.main_box.sprite_group_combobox.currentEnum()).jacket.edit_controls[SpriteSetting.ZOOM.value].value != 1.0:
+            self.SC.enum_to_obj(self.main_box.sprite_group_combobox.currentEnum()).jacket.update_sprite(hq_output=True)
+        if self.SC.enum_to_obj(self.main_box.sprite_group_combobox.currentEnum()).background.edit_controls[SpriteSetting.ZOOM.value].value != 1.0:
+            self.SC.enum_to_obj(self.main_box.sprite_group_combobox.currentEnum()).background.update_sprite(hq_output=True)
+        if self.SC.enum_to_obj(self.main_box.sprite_group_combobox.currentEnum()).thumbnail.edit_controls[SpriteSetting.ZOOM.value].value != 1.0:
+            self.SC.enum_to_obj(self.main_box.sprite_group_combobox.currentEnum()).thumbnail.update_sprite(hq_output=True)
+        if self.SC.enum_to_obj(self.main_box.sprite_group_combobox.currentEnum()).logo.edit_controls[SpriteSetting.ZOOM.value].value != 1.0:
+            self.SC.enum_to_obj(self.main_box.sprite_group_combobox.currentEnum()).logo.update_sprite(hq_output=True)
 
         if len(self.selected_scenes) == 0:
             return
@@ -877,12 +893,12 @@ class MainWindow(QMainWindow):
         else:
             state = False
 
-        for sprite_slave in self.C_Sprites.logo.sprite_slaves_list:
+        for sprite_slave in self.SC.Group_A_Sprites.logo.sprite_slaves_list:
             sprite_slave: QSpriteSlave
             if sprite_slave.tracked.type == SpriteType.LOGO and sprite_slave.zoomed_in == True:
                 sprite_slave.toggle_zoom_in(True)
 
-        self.C_Sprites.logo.toggle_visibility(state)
+        self.SC.Group_A_Sprites.logo.toggle_visibility(state)
         self.export_logo.setEnabled(state)
         self.song_farc_creator.main_box.logo_checkbox.setEnabled(state)
         self.song_farc_creator.main_box.logo_checkbox.setChecked(state)
@@ -897,13 +913,13 @@ class MainWindow(QMainWindow):
         sprite_object = None
         match sprite:
             case "Background":
-                sprite_object = self.C_Sprites.background
+                sprite_object = self.SC.enum_to_obj(self.main_box.sprite_group_combobox.currentEnum()).background
             case "Jacket":
-                sprite_object = self.C_Sprites.jacket
+                sprite_object = self.SC.enum_to_obj(self.main_box.sprite_group_combobox.currentEnum()).jacket
             case "Thumbnail":
-                sprite_object = self.C_Sprites.thumbnail
+                sprite_object = self.SC.enum_to_obj(self.main_box.sprite_group_combobox.currentEnum()).thumbnail
             case "Logo":
-                sprite_object = self.C_Sprites.logo
+                sprite_object = self.SC.enum_to_obj(self.main_box.sprite_group_combobox.currentEnum()).logo
 
         image_location = QFileDialog.getOpenFileName(self,
                                                  f"Open {sprite_object.type.value} image",
@@ -1044,8 +1060,8 @@ class SongFarcCreatorWindow(QWidget):
 
 
     def create_background_jacket_texture(self):
-        main_window.C_Sprites.background.update_sprite(hq_output=True)
-        main_window.C_Sprites.jacket.update_sprite(hq_output=True)
+        main_window.Group_A_Sprites.background.update_sprite(hq_output=True)
+        main_window.Group_A_Sprites.jacket.update_sprite(hq_output=True)
 
         background_jacket_texture = QImage(QSize(2048, 1024),QImage.Format.Format_ARGB32)
         background_jacket_texture.fill(Qt.GlobalColor.transparent)
@@ -1055,21 +1071,21 @@ class SongFarcCreatorWindow(QWidget):
         painter.setRenderHint(QPainter.RenderHint.VerticalSubpixelPositioning)
 
         #Background needs to be extended bit beyond what game uses to prevent light edges on sides
-        painter.drawPixmap(1,1,main_window.C_Sprites.background.pixmap().scaled(1282,722))
-        painter.drawPixmap(2,2,main_window.C_Sprites.background.pixmap())
+        painter.drawPixmap(1, 1, main_window.Group_A_Sprites.background.pixmap().scaled(1282, 722))
+        painter.drawPixmap(2, 2, main_window.Group_A_Sprites.background.pixmap())
 
         #To prevent jagged edges on the jacket , semi-transparent edges are added to create poor-man's anti-aliasing
         painter.setOpacity(50 / 255)
-        painter.drawImage(1286, 2,main_window.C_Sprites.jacket.image_without_fix.scaled(502,502))
+        painter.drawImage(1286, 2, main_window.Group_A_Sprites.jacket.image_without_fix.scaled(502, 502))
         painter.setOpacity(255)
-        painter.drawImage(1287, 3,main_window.C_Sprites.jacket.image_without_fix)
+        painter.drawImage(1287, 3, main_window.Group_A_Sprites.jacket.image_without_fix)
         painter.end()
 
         return background_jacket_texture
     def create_logo_texture(self):
-        main_window.C_Sprites.logo.update_sprite(hq_output=True)
+        main_window.Group_A_Sprites.logo.update_sprite(hq_output=True)
 
-        logo = main_window.C_Sprites.logo.pixmap()
+        logo = main_window.Group_A_Sprites.logo.pixmap()
         logo_texture = QImage(QSize(1024, 512), QImage.Format.Format_ARGB32)
         logo_texture.fill(Qt.GlobalColor.transparent)
         painter = QPainter(logo_texture)
@@ -1080,9 +1096,9 @@ class SongFarcCreatorWindow(QWidget):
         painter.end()
         return logo_texture
     def create_thumbnail_texture(self) -> QImage:
-        main_window.C_Sprites.thumbnail.update_sprite(hq_output=True)
+        main_window.Group_A_Sprites.thumbnail.update_sprite(hq_output=True)
 
-        thumbnail = QPixmap(main_window.C_Sprites.thumbnail.pixmap_no_mask)
+        thumbnail = QPixmap(main_window.Group_A_Sprites.thumbnail.pixmap_no_mask)
         thumbnail_dummy = QPixmap(u":icon/Images/Dummy/SONG_JK_THUMBNAIL_DUMMY.png")
         thumbnail_texture = QImage(QSize(128, 64), QImage.Format.Format_RGBA8888)
         thumbnail_texture.fill(Qt.GlobalColor.transparent)
@@ -1111,9 +1127,9 @@ class SongFarcCreatorWindow(QWidget):
         painter_fixer.end()
         return thumbnail_texture
     def create_pv_back_texture(self):
-        main_window.C_Sprites.background.update_sprite(hq_output=True)
-        main_window.C_Sprites.jacket.update_sprite(hq_output=True)
-        main_window.C_Sprites.logo.update_sprite(hq_output=True)
+        main_window.Group_A_Sprites.background.update_sprite(hq_output=True)
+        main_window.Group_A_Sprites.jacket.update_sprite(hq_output=True)
+        main_window.Group_A_Sprites.logo.update_sprite(hq_output=True)
 
 
 
