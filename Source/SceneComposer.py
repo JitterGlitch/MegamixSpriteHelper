@@ -57,8 +57,8 @@ class PvBackLayout(Enum):
     FTResult = "Future Tone Result"
 
 class SpriteGroup(StrEnum):
-    A = "Group 1"
-    B = "Group 2"
+    A = "Group A"
+    B = "Group B"
 
     def __str__(self):
         return f"{self.value}"
