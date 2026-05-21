@@ -16,7 +16,7 @@ import yaml
 from PIL import Image
 from PySide6.QtCore import Qt, QFileSystemWatcher, QSize, Signal, QRectF, QStandardPaths, QUrl, QFile, QIODevice, QByteArray, QRect, QThread, QTimer
 from PySide6.QtGui import QPixmap, QPalette, QColor, QImage, QPainter, QGuiApplication, QDesktopServices, QImageWriter, QAction, QImageReader
-from PySide6.QtWidgets import QApplication, QMainWindow, QWidget, QFileDialog, QMessageBox, QSizePolicy, QMenu, QMenuBar, QStyleFactory
+from PySide6.QtWidgets import QApplication, QMainWindow, QWidget, QFileDialog, QMessageBox, QSizePolicy, QMenu, QMenuBar, QStyleFactory, QSpacerItem
 
 import SceneComposer
 from Source.SceneComposer import SpriteGroup
@@ -656,10 +656,23 @@ class MainWindow(QMainWindow):
                 self.P_Scenes.switch_sprite_group(self.SC.Group_A_Sprites)
                 self.has_logo_toggle.setChecked(self.SC.Group_A_Sprites.logo.is_visible)
                 self.SC.Group_A_Sprites.update_sprites()
+
+                for sprite in self.SC.Group_A_Sprites.list:
+                    sprite.hide_edit_controls(False)
+
+                for sprite in self.SC.Group_B_Sprites.list:
+                    sprite.hide_edit_controls(True)
+
             case SpriteGroup.B:
                 self.has_logo_toggle.setChecked(self.SC.Group_B_Sprites.logo.is_visible)
                 self.P_Scenes.switch_sprite_group(self.SC.Group_B_Sprites)
                 self.SC.Group_B_Sprites.update_sprites()
+
+                for sprite in self.SC.Group_B_Sprites.list:
+                    sprite.hide_edit_controls(False)
+
+                for sprite in self.SC.Group_A_Sprites.list:
+                    sprite.hide_edit_controls(True)
 
     def resizeEvent(self,event):
         self.space_out_scenes()
@@ -721,6 +734,19 @@ class MainWindow(QMainWindow):
         self.SC.Group_B_Sprites.logo.add_edit_controls_to(self.main_box.verticalLayout_11)
         self.SC.Group_B_Sprites.jacket.add_edit_controls_to(self.main_box.verticalLayout_10)
         self.SC.Group_B_Sprites.background.add_edit_controls_to(self.main_box.verticalLayout_8)
+
+        for sprite in self.SC.Group_B_Sprites.list:
+            sprite.hide_edit_controls(True)
+
+        sprite_control_layout = [self.main_box.verticalLayout_12,
+                                 self.main_box.verticalLayout_11,
+                                 self.main_box.verticalLayout_10,
+                                 self.main_box.verticalLayout_8]
+
+        verticalSpacer = QSpacerItem(0, 0, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
+
+        for layout in sprite_control_layout:
+            layout.addItem(verticalSpacer)
 
         self.selected_scenes_views = []
 
