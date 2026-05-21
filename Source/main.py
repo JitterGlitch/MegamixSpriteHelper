@@ -725,23 +725,23 @@ class MainWindow(QMainWindow):
         self.mm_practice_toggle.setChecked(False)
         self.pv_back_toggle.setChecked(False)
 
-        self.SC.Group_A_Sprites.thumbnail.add_edit_controls_to(self.main_box.verticalLayout_12)
-        self.SC.Group_A_Sprites.logo.add_edit_controls_to(self.main_box.verticalLayout_11)
-        self.SC.Group_A_Sprites.jacket.add_edit_controls_to(self.main_box.verticalLayout_10)
-        self.SC.Group_A_Sprites.background.add_edit_controls_to(self.main_box.verticalLayout_8)
+        self.SC.Group_A_Sprites.thumbnail.add_edit_controls_to(self.main_box.thumbnail_control_layout)
+        self.SC.Group_A_Sprites.logo.add_edit_controls_to(self.main_box.logo_control_layout)
+        self.SC.Group_A_Sprites.jacket.add_edit_controls_to(self.main_box.jacket_control_layout)
+        self.SC.Group_A_Sprites.background.add_edit_controls_to(self.main_box.background_control_layout)
 
-        self.SC.Group_B_Sprites.thumbnail.add_edit_controls_to(self.main_box.verticalLayout_12)
-        self.SC.Group_B_Sprites.logo.add_edit_controls_to(self.main_box.verticalLayout_11)
-        self.SC.Group_B_Sprites.jacket.add_edit_controls_to(self.main_box.verticalLayout_10)
-        self.SC.Group_B_Sprites.background.add_edit_controls_to(self.main_box.verticalLayout_8)
+        self.SC.Group_B_Sprites.thumbnail.add_edit_controls_to(self.main_box.thumbnail_control_layout)
+        self.SC.Group_B_Sprites.logo.add_edit_controls_to(self.main_box.logo_control_layout)
+        self.SC.Group_B_Sprites.jacket.add_edit_controls_to(self.main_box.jacket_control_layout)
+        self.SC.Group_B_Sprites.background.add_edit_controls_to(self.main_box.background_control_layout)
 
         for sprite in self.SC.Group_B_Sprites.list:
             sprite.hide_edit_controls(True)
 
-        sprite_control_layout = [self.main_box.verticalLayout_12,
-                                 self.main_box.verticalLayout_11,
-                                 self.main_box.verticalLayout_10,
-                                 self.main_box.verticalLayout_8]
+        sprite_control_layout = [self.main_box.thumbnail_control_layout,
+                                 self.main_box.logo_control_layout,
+                                 self.main_box.jacket_control_layout,
+                                 self.main_box.background_control_layout]
 
         verticalSpacer = QSpacerItem(0, 0, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
 
