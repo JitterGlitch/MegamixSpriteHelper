@@ -2049,7 +2049,7 @@ class QPreviewScenes:
                                     logo=C_Sprites.logo,
                                     background=C_Sprites.background)
 
-        self.scene_list = [self.MM_SongSelect,self.MM_Result,self.MM_PracticeMode,self.FT_SongSelect,self.FT_Result,self.PV_Back,self.PV_Back_Creator_Window]
+        self.scene_list = [self.MM_SongSelect,self.MM_Result,self.MM_PracticeMode,self.FT_SongSelect,self.FT_Result,self.PV_Back]
         self.new_classics_scenes = [self.MM_SongSelect,self.MM_Result,self.FT_SongSelect,self.FT_Result]
 
 

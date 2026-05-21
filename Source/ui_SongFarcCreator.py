@@ -12,6 +12,7 @@ from PySide6.QtWidgets import (QAbstractScrollArea, QApplication, QCheckBox, QCo
 from superqt import QEnumComboBox
 
 import FarcCreator
+from Source.SceneComposer import SpriteGroup
 
 
 class Ui_SongFarcCreatorWindow(object):
@@ -110,6 +111,44 @@ class Ui_SongFarcCreatorWindow(object):
 
         self.MainVLayout.addLayout(self.song_info_settings_H_layout)
 
+        self.sprite_group_chooser_layout = QVBoxLayout()
+        self.sprite_group_chooser_layout.setObjectName(u"sprite_group_layout")
+        self.sprite_group_chooser_layout.setContentsMargins(-1, -1, -1, 0)
+
+        self.sprite_group_chooser_label = QLabel()
+        self.sprite_group_chooser_label.setText("Choose which group to use for:")
+        self.sprite_group_chooser_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+        self.default_sprite_group_label = QLabel()
+        self.default_sprite_group_label.setText("Default Sprites")
+
+        self.ex_sprite_group_label = QLabel()
+        self.ex_sprite_group_label.setText("_EX Sprites")
+
+        self.pv_back_sprite_group_label = QLabel()
+        self.pv_back_sprite_group_label.setText("PV_BACK Sprites")
+
+        self.default_sprite_group_combobox = QEnumComboBox()
+        self.default_sprite_group_combobox.setEnumClass(SpriteGroup)
+
+        self.ex_sprite_group_combobox = QEnumComboBox()
+        self.ex_sprite_group_combobox.setEnumClass(SpriteGroup)
+
+        self.pv_back_sprite_group_combobox = QEnumComboBox()
+        self.pv_back_sprite_group_combobox.setEnumClass(SpriteGroup)
+
+        self.sprite_group_chooser_layout.addWidget(self.sprite_group_chooser_label)
+        self.sprite_group_chooser_layout.addWidget(self.default_sprite_group_label)
+        self.sprite_group_chooser_layout.addWidget(self.default_sprite_group_combobox)
+        self.sprite_group_chooser_layout.addWidget(self.ex_sprite_group_label)
+        self.sprite_group_chooser_layout.addWidget(self.ex_sprite_group_combobox)
+        self.sprite_group_chooser_layout.addWidget(self.pv_back_sprite_group_label)
+        self.sprite_group_chooser_layout.addWidget(self.pv_back_sprite_group_combobox)
+
+
+        self.MainVLayout.addLayout(self.sprite_group_chooser_layout)
+
+
         self.horizontalLayout_2 = QHBoxLayout()
         self.horizontalLayout_2.setObjectName(u"horizontalLayout_2")
         self.horizontalLayout_2.setSizeConstraint(QLayout.SizeConstraint.SetDefaultConstraint)
@@ -121,6 +160,7 @@ class Ui_SongFarcCreatorWindow(object):
         sizePolicy1.setVerticalStretch(0)
         sizePolicy1.setHeightForWidth(self.scrollArea_2.sizePolicy().hasHeightForWidth())
         self.scrollArea_2.setSizePolicy(sizePolicy1)
+        self.scrollArea_2.setMinimumHeight(160)
         self.scrollArea_2.setMaximumSize(QSize(16777215, 50000))
         self.scrollArea_2.setSizeAdjustPolicy(QAbstractScrollArea.SizeAdjustPolicy.AdjustIgnored)
         self.scrollArea_2.setWidgetResizable(True)

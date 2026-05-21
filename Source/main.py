@@ -635,12 +635,11 @@ class MainWindow(QMainWindow):
 
         self.main_box.current_sprite_combobox.currentIndexChanged.connect(lambda: self.current_sprite_tab_switcher(self.main_box.current_sprite_combobox.currentIndex()))
 
-        #self.main_box.sprite_group_combobox.setEnabled(False)
         self.main_box.sprite_group_combobox.currentEnumChanged.connect(self.sprite_group_changed)
 
         self.display_scenes()
 
-        self.song_farc_creator.init_preview(self.P_Scenes.PV_Back_Creator_Window)
+        self.song_farc_creator.init_preview(self.SC.P_Scenes.PV_Back_Creator_Window)
         self.song_farc_creator.main_box.logo_checkbox.toggled.connect(self.song_farc_creator.scene_view.scene().toggle_logo_visibility)
 
 
@@ -650,10 +649,9 @@ class MainWindow(QMainWindow):
 
 
     def sprite_group_changed(self):
-        print(self.main_box.sprite_group_combobox.currentEnum())
         match self.main_box.sprite_group_combobox.currentEnum():
             case SpriteGroup.A:
-                self.P_Scenes.switch_sprite_group(self.SC.Group_A_Sprites)
+                self.SC.P_Scenes.switch_sprite_group(self.SC.Group_A_Sprites)
                 self.has_logo_toggle.setChecked(self.SC.Group_A_Sprites.logo.is_visible)
                 self.SC.Group_A_Sprites.update_sprites()
 
@@ -665,7 +663,7 @@ class MainWindow(QMainWindow):
 
             case SpriteGroup.B:
                 self.has_logo_toggle.setChecked(self.SC.Group_B_Sprites.logo.is_visible)
-                self.P_Scenes.switch_sprite_group(self.SC.Group_B_Sprites)
+                self.SC.P_Scenes.switch_sprite_group(self.SC.Group_B_Sprites)
                 self.SC.Group_B_Sprites.update_sprites()
 
                 for sprite in self.SC.Group_B_Sprites.list:
@@ -718,7 +716,6 @@ class MainWindow(QMainWindow):
 
     def display_scenes(self):
         self.SC = SceneComposer.SceneComposerObjects()
-        self.P_Scenes = self.SC.P_Scenes
 
         self.populate_display_scene_menu()
 
@@ -762,12 +759,12 @@ class MainWindow(QMainWindow):
         self.pv_back_toggle = self.display_scenes_menu.addAction("PV Back")
 
         self.scene_toggle_list = []
-        self.scene_toggle_list.append((self.mm_song_select_toggle, self.P_Scenes.MM_SongSelect))
-        self.scene_toggle_list.append((self.ft_song_select_toggle, self.P_Scenes.FT_SongSelect))
-        self.scene_toggle_list.append((self.mm_result_toggle,self.P_Scenes.MM_Result))
-        self.scene_toggle_list.append((self.ft_result_toggle,self.P_Scenes.FT_Result))
-        self.scene_toggle_list.append((self.mm_practice_toggle, self.P_Scenes.MM_PracticeMode))
-        self.scene_toggle_list.append((self.pv_back_toggle,self.P_Scenes.PV_Back))
+        self.scene_toggle_list.append((self.mm_song_select_toggle, self.SC.P_Scenes.MM_SongSelect))
+        self.scene_toggle_list.append((self.ft_song_select_toggle, self.SC.P_Scenes.FT_SongSelect))
+        self.scene_toggle_list.append((self.mm_result_toggle,self.SC.P_Scenes.MM_Result))
+        self.scene_toggle_list.append((self.ft_result_toggle,self.SC.P_Scenes.FT_Result))
+        self.scene_toggle_list.append((self.mm_practice_toggle, self.SC.P_Scenes.MM_PracticeMode))
+        self.scene_toggle_list.append((self.pv_back_toggle,self.SC.P_Scenes.PV_Back))
 
         self.new_classics_toggle = QAction("Show New Classics UI")
         self.new_classics_toggle.setCheckable(True)
@@ -823,14 +820,14 @@ class MainWindow(QMainWindow):
     def populate_configure_scene_menu(self):
         self.config_scenes_menu.clear()
         self.config_scenes_menu.addSection("Apply to all scenes")
-        new_classic_toggleable_scene_present = any(item in self.P_Scenes.new_classics_scenes for item in self.selected_scenes)
+        new_classic_toggleable_scene_present = any(item in self.SC.P_Scenes.new_classics_scenes for item in self.selected_scenes)
 
         if len(self.selected_scenes) > 0:
             self.config_scenes_menu.addAction(self.has_logo_toggle)
 
         if new_classic_toggleable_scene_present:
             self.config_scenes_menu.addAction(self.new_classics_toggle)
-            for scene in self.P_Scenes.new_classics_scenes:
+            for scene in self.SC.P_Scenes.new_classics_scenes:
                 self.new_classics_toggle.toggled.connect(scene.toggle_new_classics)
 
 
@@ -1029,6 +1026,7 @@ class SongFarcCreatorWindow(QWidget):
         self.main_box.setupUi(self)
 
         self.main_box.export_farc_pushbutton.pressed.connect(self.export_background_jacket_logo_farc_button_callback)
+        self.main_box.pv_back_sprite_group_combobox.currentEnumChanged.connect(self.switch_pv_back_scene_sprite_group)
 
     def init_preview(self,scene):
         self.scene_view = QScalingGraphicsScene()
@@ -1043,7 +1041,6 @@ class SongFarcCreatorWindow(QWidget):
         self.scene_view.setBaseSize(QSize(512, 288))
         self.scene_view.setRenderHint(QPainter.Antialiasing, True)
         self.scene_view.setRenderHint(QPainter.SmoothPixmapTransform, True)
-        # scene_view.setBackgroundBrush(self.palette().color(QPalette.ColorRole.Window))
         self.scene_view.setBackgroundBrush(Qt.black)
         self.scene_view.set_forced_size(QSize(640,360))
 
@@ -1062,19 +1059,19 @@ class SongFarcCreatorWindow(QWidget):
         else:
             config.last_used_directory = Path(output_location)
 
-            bg_jk = Image.fromqimage(self.create_background_jacket_texture()).transpose(Image.Transpose.FLIP_TOP_BOTTOM)
+            bg_jk = Image.fromqimage(self.create_background_jacket_texture(self.main_box.default_sprite_group_combobox.currentEnum())).transpose(Image.Transpose.FLIP_TOP_BOTTOM)
 
             song_id = pad_number(int(self.main_box.farc_song_id_spinbox.value()))
             compression = self.main_box.compression_comboBox.currentEnum()
             print(compression)
 
             if self.main_box.logo_checkbox.isChecked():
-                logo = Image.fromqimage(self.create_logo_texture()).transpose(Image.Transpose.FLIP_TOP_BOTTOM)
+                logo = Image.fromqimage(self.create_logo_texture(self.main_box.default_sprite_group_combobox.currentEnum())).transpose(Image.Transpose.FLIP_TOP_BOTTOM)
             else:
                 logo = None
 
             if self.main_box.pv_back_sprite_checkbox.isChecked():
-                pv_back_texture = Image.fromqimage(self.create_pv_back_texture()).transpose(Image.Transpose.FLIP_TOP_BOTTOM)
+                pv_back_texture = Image.fromqimage(self.create_pv_back_texture(self.main_box.pv_back_sprite_group_combobox.currentEnum())).transpose(Image.Transpose.FLIP_TOP_BOTTOM)
             else:
                 pv_back_texture = None
 
@@ -1083,34 +1080,38 @@ class SongFarcCreatorWindow(QWidget):
             if self.main_box.generate_spr_db_after_export_checkbox.isChecked():
                 main_window.generate_spr_db_button_callback(path=output_location)
 
+    def switch_pv_back_scene_sprite_group(self):
+        self.scene_view.scene().switch_sprite_group(main_window.SC.enum_to_obj(self.main_box.pv_back_sprite_group_combobox.currentEnum()))
+        main_window.SC.enum_to_obj(self.main_box.pv_back_sprite_group_combobox.currentEnum()).update_sprites()
 
-    def create_background_jacket_texture(self):
-        main_window.Group_A_Sprites.background.update_sprite(hq_output=True)
-        main_window.Group_A_Sprites.jacket.update_sprite(hq_output=True)
+    def create_background_jacket_texture(self,sprite_group:SpriteGroup):
+        main_window.SC.enum_to_obj(sprite_group).background.update_sprite(hq_output=True)
+        main_window.SC.enum_to_obj(sprite_group).jacket.update_sprite(hq_output=True)
 
         background_jacket_texture = QImage(QSize(2048, 1024),QImage.Format.Format_ARGB32)
         background_jacket_texture.fill(Qt.GlobalColor.transparent)
+
         painter = QPainter(background_jacket_texture)
         painter.setRenderHint(QPainter.RenderHint.LosslessImageRendering)
         painter.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform)
         painter.setRenderHint(QPainter.RenderHint.VerticalSubpixelPositioning)
 
         #Background needs to be extended bit beyond what game uses to prevent light edges on sides
-        painter.drawPixmap(1, 1, main_window.Group_A_Sprites.background.pixmap().scaled(1282, 722))
-        painter.drawPixmap(2, 2, main_window.Group_A_Sprites.background.pixmap())
+        painter.drawPixmap(1, 1, main_window.SC.enum_to_obj(sprite_group).background.pixmap().scaled(1282, 722))
+        painter.drawPixmap(2, 2, main_window.SC.enum_to_obj(sprite_group).background.pixmap())
 
         #To prevent jagged edges on the jacket , semi-transparent edges are added to create poor-man's anti-aliasing
         painter.setOpacity(50 / 255)
-        painter.drawImage(1286, 2, main_window.Group_A_Sprites.jacket.image_without_fix.scaled(502, 502))
+        painter.drawImage(1286, 2, main_window.SC.enum_to_obj(sprite_group).jacket.image_without_fix.scaled(502, 502))
         painter.setOpacity(255)
-        painter.drawImage(1287, 3, main_window.Group_A_Sprites.jacket.image_without_fix)
+        painter.drawImage(1287, 3, main_window.SC.enum_to_obj(sprite_group).jacket.image_without_fix)
         painter.end()
 
         return background_jacket_texture
-    def create_logo_texture(self):
-        main_window.Group_A_Sprites.logo.update_sprite(hq_output=True)
+    def create_logo_texture(self,sprite_group:SpriteGroup):
+        main_window.SC.enum_to_obj(sprite_group).logo.update_sprite(hq_output=True)
 
-        logo = main_window.Group_A_Sprites.logo.pixmap()
+        logo = main_window.SC.enum_to_obj(sprite_group).logo.pixmap()
         logo_texture = QImage(QSize(1024, 512), QImage.Format.Format_ARGB32)
         logo_texture.fill(Qt.GlobalColor.transparent)
         painter = QPainter(logo_texture)
@@ -1120,10 +1121,10 @@ class SongFarcCreatorWindow(QWidget):
         painter.drawPixmap(2,2,logo)
         painter.end()
         return logo_texture
-    def create_thumbnail_texture(self) -> QImage:
-        main_window.Group_A_Sprites.thumbnail.update_sprite(hq_output=True)
+    def create_thumbnail_texture(self,sprite_group:SpriteGroup) -> QImage:
+        main_window.SC.enum_to_obj(sprite_group).thumbnail.update_sprite(hq_output=True)
 
-        thumbnail = QPixmap(main_window.Group_A_Sprites.thumbnail.pixmap_no_mask)
+        thumbnail = QPixmap(main_window.SC.enum_to_obj(sprite_group).thumbnail.pixmap_no_mask)
         thumbnail_dummy = QPixmap(u":icon/Images/Dummy/SONG_JK_THUMBNAIL_DUMMY.png")
         thumbnail_texture = QImage(QSize(128, 64), QImage.Format.Format_RGBA8888)
         thumbnail_texture.fill(Qt.GlobalColor.transparent)
@@ -1151,10 +1152,10 @@ class SongFarcCreatorWindow(QWidget):
         painter_fixer.drawImage(0, 0, thumbnail_base)
         painter_fixer.end()
         return thumbnail_texture
-    def create_pv_back_texture(self):
-        main_window.Group_A_Sprites.background.update_sprite(hq_output=True)
-        main_window.Group_A_Sprites.jacket.update_sprite(hq_output=True)
-        main_window.Group_A_Sprites.logo.update_sprite(hq_output=True)
+    def create_pv_back_texture(self,sprite_group:SpriteGroup):
+        main_window.SC.enum_to_obj(sprite_group).background.update_sprite(hq_output=True)
+        main_window.SC.enum_to_obj(sprite_group).jacket.update_sprite(hq_output=True)
+        main_window.SC.enum_to_obj(sprite_group).logo.update_sprite(hq_output=True)
 
 
 
@@ -1180,7 +1181,7 @@ class SongFarcCreatorWindow(QWidget):
             print("Directory wasn't chosen")
         else:
             config.last_used_directory = Path(save_location).parent
-            background_jacket_texture = self.create_background_jacket_texture()
+            background_jacket_texture = self.create_background_jacket_texture(main_window.main_box.sprite_group_combobox.currentEnum())
             background_jacket_texture.save(save_location,"png")
     def export_thumbnail_button_callback(self):
         save_location = QFileDialog.getSaveFileName(self, "Save File", str(config.last_used_directory) + "/Thumbnail Texture.png", "Images (*.png)")[0]
@@ -1188,7 +1189,7 @@ class SongFarcCreatorWindow(QWidget):
             print("Directory wasn't chosen")
         else:
             config.last_used_directory = Path(save_location)
-            thumbnail_texture = self.create_thumbnail_texture()
+            thumbnail_texture = self.create_thumbnail_texture(main_window.main_box.sprite_group_combobox.currentEnum())
             thumbnail_texture.save(save_location,"png")
 
     def export_logo_button_callback(self):
@@ -1202,7 +1203,7 @@ class SongFarcCreatorWindow(QWidget):
             print("Directory wasn't chosen")
         else:
             config.last_used_directory = Path(filename).parent
-            logo_texture = self.create_logo_texture()
+            logo_texture = self.create_logo_texture(main_window.main_box.sprite_group_combobox.currentEnum())
             logo_texture.save(filename, "png")
 
 
