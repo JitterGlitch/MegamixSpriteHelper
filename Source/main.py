@@ -654,8 +654,10 @@ class MainWindow(QMainWindow):
         match self.main_box.sprite_group_combobox.currentEnum():
             case SpriteGroup.A:
                 self.P_Scenes.switch_sprite_group(self.SC.Group_A_Sprites)
+                self.has_logo_toggle.setChecked(self.SC.Group_A_Sprites.logo.is_visible)
                 self.SC.Group_A_Sprites.update_sprites()
             case SpriteGroup.B:
+                self.has_logo_toggle.setChecked(self.SC.Group_B_Sprites.logo.is_visible)
                 self.P_Scenes.switch_sprite_group(self.SC.Group_B_Sprites)
                 self.SC.Group_B_Sprites.update_sprites()
 
@@ -888,17 +890,14 @@ class MainWindow(QMainWindow):
 
 
     def has_logo_toggle_callback(self):
-        if self.has_logo_toggle.isChecked():
-            state = True
-        else:
-            state = False
+        state = self.has_logo_toggle.isChecked()
 
-        for sprite_slave in self.SC.Group_A_Sprites.logo.sprite_slaves_list:
+        for sprite_slave in self.SC.enum_to_obj(self.main_box.sprite_group_combobox.currentEnum()).logo.sprite_slaves_list:
             sprite_slave: QSpriteSlave
             if sprite_slave.tracked.type == SpriteType.LOGO and sprite_slave.zoomed_in == True:
                 sprite_slave.toggle_zoom_in(True)
 
-        self.SC.Group_A_Sprites.logo.toggle_visibility(state)
+        self.SC.enum_to_obj(self.main_box.sprite_group_combobox.currentEnum()).logo.toggle_visibility(state)
         self.export_logo.setEnabled(state)
         self.song_farc_creator.main_box.logo_checkbox.setEnabled(state)
         self.song_farc_creator.main_box.logo_checkbox.setChecked(state)
