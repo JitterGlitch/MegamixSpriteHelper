@@ -653,6 +653,11 @@ class MainWindow(QMainWindow):
             case SpriteGroup.A:
                 self.SC.P_Scenes.switch_sprite_group(self.SC.Group_A_Sprites)
                 self.has_logo_toggle.setChecked(self.SC.Group_A_Sprites.logo.is_visible)
+
+                for sprite in self.SC.Group_A_Sprites.list:
+                    for slave in sprite.sprite_slaves_list:
+                        slave.tracked.SpriteUpdated.connect(slave.update_sprite)
+
                 self.SC.Group_A_Sprites.update_sprites()
 
                 for sprite in self.SC.Group_A_Sprites.list:
@@ -664,6 +669,11 @@ class MainWindow(QMainWindow):
             case SpriteGroup.B:
                 self.has_logo_toggle.setChecked(self.SC.Group_B_Sprites.logo.is_visible)
                 self.SC.P_Scenes.switch_sprite_group(self.SC.Group_B_Sprites)
+
+                for sprite in self.SC.Group_B_Sprites.list:
+                    for slave in sprite.sprite_slaves_list:
+                        slave.tracked.SpriteUpdated.connect(slave.update_sprite)
+
                 self.SC.Group_B_Sprites.update_sprites()
 
                 for sprite in self.SC.Group_B_Sprites.list:
@@ -954,7 +964,7 @@ class MainWindow(QMainWindow):
             ret= sprite_object.load_new_image(image_location)
             match ret[0]:
                 case "Updated":
-                    self.song_farc_creator.switch_pv_back_scene_sprite_group()
+                    pass
                 case "Image too small":
                     iw = ret[1]
                     ih = ret[2]
