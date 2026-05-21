@@ -1051,6 +1051,11 @@ class SongFarcCreatorWindow(QWidget):
     def export_background_jacket_logo_farc_button_callback(self):
         output_location = QFileDialog.getExistingDirectory(self, "Choose folder to save farc file to", str(config.last_used_directory))
 
+        logo = None
+        pv_back_texture = None
+        ex_bg_jk = None
+        ex_logo_included = False
+
         if output_location == "":
             print("Directory wasn't chosen")
         else:
@@ -1058,21 +1063,24 @@ class SongFarcCreatorWindow(QWidget):
 
             bg_jk = Image.fromqimage(self.create_background_jacket_texture(self.main_box.default_sprite_group_combobox.currentEnum())).transpose(Image.Transpose.FLIP_TOP_BOTTOM)
 
-            song_id = pad_number(int(self.main_box.farc_song_id_spinbox.value()))
-            compression = self.main_box.compression_comboBox.currentEnum()
-            print(compression)
+            if self.main_box.ex_sprites_checkbox.isChecked():
+                ex_bg_jk = Image.fromqimage(self.create_background_jacket_texture(self.main_box.ex_sprite_group_combobox.currentEnum())).transpose(Image.Transpose.FLIP_TOP_BOTTOM)
 
             if self.main_box.logo_checkbox.isChecked():
-                logo = Image.fromqimage(self.create_logo_texture(self.main_box.default_sprite_group_combobox.currentEnum())).transpose(Image.Transpose.FLIP_TOP_BOTTOM)
-            else:
-                logo = None
+                if self.main_box.ex_sprites_checkbox.isChecked():
+                    logo = Image.fromqimage(self.create_logo_texture(self.main_box.default_sprite_group_combobox.currentEnum(),
+                                                                     self.main_box.ex_sprite_group_combobox.currentEnum())).transpose(Image.Transpose.FLIP_TOP_BOTTOM)
+                    ex_logo_included = True
+                else:
+                    logo = Image.fromqimage(self.create_logo_texture(self.main_box.default_sprite_group_combobox.currentEnum())).transpose(Image.Transpose.FLIP_TOP_BOTTOM)
 
             if self.main_box.pv_back_sprite_checkbox.isChecked():
                 pv_back_texture = Image.fromqimage(self.create_pv_back_texture(self.main_box.pv_back_sprite_group_combobox.currentEnum())).transpose(Image.Transpose.FLIP_TOP_BOTTOM)
-            else:
-                pv_back_texture = None
 
-            FarcCreator.create_jk_bg_logo_farc(song_id, bg_jk, logo, output_location,compression,pv_back_texture=pv_back_texture)
+            song_id = pad_number(int(self.main_box.farc_song_id_spinbox.value()))
+            compression = self.main_box.compression_comboBox.currentEnum()
+
+            FarcCreator.create_jk_bg_logo_farc(song_id, bg_jk, logo, output_location,compression,pv_back_texture=pv_back_texture,ex_bg_jk_texture=ex_bg_jk,ex_logo_included=ex_logo_included)
 
             if self.main_box.generate_spr_db_after_export_checkbox.isChecked():
                 main_window.generate_spr_db_button_callback(path=output_location)
@@ -1105,17 +1113,30 @@ class SongFarcCreatorWindow(QWidget):
         painter.end()
 
         return background_jacket_texture
-    def create_logo_texture(self,sprite_group:SpriteGroup):
+    def create_logo_texture(self,sprite_group:SpriteGroup,ex_sprite_group:SpriteGroup=None):
         main_window.SC.enum_to_obj(sprite_group).logo.update_sprite(hq_output=True)
-
         logo = main_window.SC.enum_to_obj(sprite_group).logo.pixmap()
-        logo_texture = QImage(QSize(1024, 512), QImage.Format.Format_ARGB32)
+
+        if ex_sprite_group is not None:
+            main_window.SC.enum_to_obj(ex_sprite_group).logo.update_sprite(hq_output=True)
+            ex_logo = main_window.SC.enum_to_obj(ex_sprite_group).logo.pixmap()
+            logo_texture = QImage(QSize(1024, 1024), QImage.Format.Format_ARGB32)
+        else:
+            logo_texture = QImage(QSize(1024, 512), QImage.Format.Format_ARGB32)
+            ex_logo = None
+
         logo_texture.fill(Qt.GlobalColor.transparent)
+
         painter = QPainter(logo_texture)
         painter.setRenderHint(QPainter.RenderHint.LosslessImageRendering)
         painter.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform)
         painter.setRenderHint(QPainter.RenderHint.VerticalSubpixelPositioning)
+
         painter.drawPixmap(2,2,logo)
+
+        if ex_sprite_group is not None:
+            painter.drawPixmap(2,514,ex_logo)
+
         painter.end()
         return logo_texture
     def create_thumbnail_texture(self,sprite_group:SpriteGroup) -> QImage:
