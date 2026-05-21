@@ -954,7 +954,7 @@ class MainWindow(QMainWindow):
             ret= sprite_object.load_new_image(image_location)
             match ret[0]:
                 case "Updated":
-                    pass
+                    self.song_farc_creator.switch_pv_back_scene_sprite_group()
                 case "Image too small":
                     iw = ret[1]
                     ih = ret[2]
@@ -964,9 +964,6 @@ class MainWindow(QMainWindow):
                     show_message_box(f"{sprite} image is too small.",
                                      f"Required image size for {sprite} is {rw}x{rh}.\n"
                                      f"Loaded image is {iw}x{ih}, ignoring transparent area.")
-
-
-
 
     def generate_spr_db_button_callback(self,path=None):
         spr_path = path
