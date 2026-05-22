@@ -940,6 +940,13 @@ class QLogo(QSpriteBase):
             layout.addWidget(self.edit_controls[control])
         self.drop_shadow.add_edit_controls_to(layout)
 
+    def hide_edit_controls(self,state):
+        for control in self.edit_controls:
+            self.edit_controls[control].setVisible(not state)
+
+        self.drop_shadow.hide_edit_controls(state)
+
+
     def required_size(self) -> QSize:
         return QSize(1,1)
 
@@ -1267,6 +1274,17 @@ class QDropShadow(QGraphicsPixmapItem):
                 edit.editingFinished.connect(self.control_value_changed)
                 editable_values[setting[0].value] = edit
         return editable_values
+
+    def hide_edit_controls(self,state):
+        if self.add_drop_shadow_checkbox.isChecked():
+
+            for control in self.edit_controls:
+                self.edit_controls[control].setVisible(not state)
+
+            self.add_drop_shadow_checkbox.setVisible(not state)
+        else:
+            self.add_drop_shadow_checkbox.setVisible(not state)
+
     def control_value_changed(self):
         self.update_sprite()
         self.logo_object.update_sprite()
