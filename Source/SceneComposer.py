@@ -57,6 +57,7 @@ class PvBackLayout(Enum):
 class SpriteGroup(StrEnum):
     A = "Group A"
     B = "Group B"
+    C = "Group C"
 
     def __str__(self):
         return f"{self.value}"
@@ -707,9 +708,6 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
         if reset_values:
             self.set_initial_values()
 
-        if self.type == SpriteType.THUMBNAIL:
-            print(self.t_edges)
-            print(self.rect)
         return ["Updated"]
     def bind_watcher(self,watcher:PathWatcher):
         self.watcher = watcher
@@ -917,9 +915,7 @@ class QJacket(QSpriteBase):
             self.edit_controls[SpriteSetting.ZOOM.value].setValue(self.edit_controls[SpriteSetting.ZOOM.value].range[1])
 
     def update_pixmap(self):
-        print(self.sprite_size)
         self.image_without_fix = (self.grab_scene_portion(self.sprite_scene,QRectF(0.000000, 0.000000, 500.000000, 500.000000)).toImage())
-        print(self.image_without_fix.size())
         self.setPixmap(QPixmap(self.apply_fix(self.image_without_fix)))
 class QBackground(QSpriteBase):
     def __init__(self,sprite,size):
@@ -2077,11 +2073,13 @@ class SceneComposerObjects:
     def __init__(self):
         self.Group_A_Sprites = QControllableSprites()
         self.Group_B_Sprites = QControllableSprites()
+        self.Group_C_Sprites = QControllableSprites()
         self.P_Scenes = QPreviewScenes(self.Group_A_Sprites)
 
         self.sprite_groups = {
             SpriteGroup.A: self.Group_A_Sprites,
-            SpriteGroup.B: self.Group_B_Sprites
+            SpriteGroup.B: self.Group_B_Sprites,
+            SpriteGroup.C: self.Group_C_Sprites
         }
     def enum_to_obj(self,sprite_group:SpriteGroup):
         return self.sprite_groups[sprite_group]

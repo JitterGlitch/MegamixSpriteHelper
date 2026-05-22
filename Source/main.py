@@ -649,38 +649,27 @@ class MainWindow(QMainWindow):
 
 
     def sprite_group_changed(self):
-        match self.main_box.sprite_group_combobox.currentEnum():
-            case SpriteGroup.A:
-                self.SC.P_Scenes.switch_sprite_group(self.SC.Group_A_Sprites)
-                self.has_logo_toggle.setChecked(self.SC.Group_A_Sprites.logo.is_visible)
+        current_enum = self.main_box.sprite_group_combobox.currentEnum()
+        current_sprite_object = self.SC.enum_to_obj(current_enum)
 
-                for sprite in self.SC.Group_A_Sprites.list:
-                    for slave in sprite.sprite_slaves_list:
-                        slave.tracked.SpriteUpdated.connect(slave.update_sprite)
+        non_active_sprite_object_list = list(self.SC.sprite_groups.values())
+        non_active_sprite_object_list.remove(current_sprite_object)
 
-                self.SC.Group_A_Sprites.update_sprites()
+        self.SC.P_Scenes.switch_sprite_group(current_sprite_object)
+        self.has_logo_toggle.setChecked(current_sprite_object.logo.is_visible)
 
-                for sprite in self.SC.Group_A_Sprites.list:
-                    sprite.hide_edit_controls(False)
+        for sprite in current_sprite_object.list:
+            for slave in sprite.sprite_slaves_list:
+                slave.tracked.SpriteUpdated.connect(slave.update_sprite)
 
-                for sprite in self.SC.Group_B_Sprites.list:
-                    sprite.hide_edit_controls(True)
+        current_sprite_object.update_sprites()
 
-            case SpriteGroup.B:
-                self.has_logo_toggle.setChecked(self.SC.Group_B_Sprites.logo.is_visible)
-                self.SC.P_Scenes.switch_sprite_group(self.SC.Group_B_Sprites)
+        for sprite in current_sprite_object.list:
+            sprite.hide_edit_controls(False)
 
-                for sprite in self.SC.Group_B_Sprites.list:
-                    for slave in sprite.sprite_slaves_list:
-                        slave.tracked.SpriteUpdated.connect(slave.update_sprite)
-
-                self.SC.Group_B_Sprites.update_sprites()
-
-                for sprite in self.SC.Group_B_Sprites.list:
-                    sprite.hide_edit_controls(False)
-
-                for sprite in self.SC.Group_A_Sprites.list:
-                    sprite.hide_edit_controls(True)
+        for sprite_object in non_active_sprite_object_list:
+            for sprite in sprite_object.list:
+                sprite.hide_edit_controls(True)
 
     def resizeEvent(self,event):
         self.space_out_scenes()
@@ -732,18 +721,22 @@ class MainWindow(QMainWindow):
         self.mm_practice_toggle.setChecked(False)
         self.pv_back_toggle.setChecked(False)
 
-        self.SC.Group_A_Sprites.thumbnail.add_edit_controls_to(self.main_box.thumbnail_control_layout)
-        self.SC.Group_A_Sprites.logo.add_edit_controls_to(self.main_box.logo_control_layout)
-        self.SC.Group_A_Sprites.jacket.add_edit_controls_to(self.main_box.jacket_control_layout)
-        self.SC.Group_A_Sprites.background.add_edit_controls_to(self.main_box.background_control_layout)
+        current_enum = self.main_box.sprite_group_combobox.currentEnum()
+        current_sprite_object = self.SC.enum_to_obj(current_enum)
 
-        self.SC.Group_B_Sprites.thumbnail.add_edit_controls_to(self.main_box.thumbnail_control_layout)
-        self.SC.Group_B_Sprites.logo.add_edit_controls_to(self.main_box.logo_control_layout)
-        self.SC.Group_B_Sprites.jacket.add_edit_controls_to(self.main_box.jacket_control_layout)
-        self.SC.Group_B_Sprites.background.add_edit_controls_to(self.main_box.background_control_layout)
+        sprite_object_list = list(self.SC.sprite_groups.values())
 
-        for sprite in self.SC.Group_B_Sprites.list:
-            sprite.hide_edit_controls(True)
+        for sprite_object in sprite_object_list:
+            sprite_object.thumbnail.add_edit_controls_to(self.main_box.thumbnail_control_layout)
+            sprite_object.logo.add_edit_controls_to(self.main_box.logo_control_layout)
+            sprite_object.jacket.add_edit_controls_to(self.main_box.jacket_control_layout)
+            sprite_object.background.add_edit_controls_to(self.main_box.background_control_layout)
+
+        sprite_object_list.remove(current_sprite_object)
+
+        for sprite_object in sprite_object_list:
+            for sprite in sprite_object.list:
+                sprite.hide_edit_controls(True)
 
         sprite_control_layout = [self.main_box.thumbnail_control_layout,
                                  self.main_box.logo_control_layout,
