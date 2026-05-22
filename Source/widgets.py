@@ -1,13 +1,12 @@
 import re
 from enum import Enum
 
-from PySide6.QtCore import (QSize, Qt, Signal, QTimer)
-from PySide6.QtGui import (QBrush, QColor, QFont, QPalette, QMouseEvent, QPixmap, QAction)
+from PySide6.QtCore import (Qt, QTimer)
+from PySide6.QtGui import (QBrush, QColor, QPalette, QMouseEvent, QPixmap)
 from PySide6.QtWidgets import (QDoubleSpinBox, QHBoxLayout,
                                QLabel, QPushButton,
-                               QSpinBox,
-                               QVBoxLayout, QWidget, QSlider, QMenu)
-from superqt import QDoubleSlider, QSearchableComboBox
+                               QSpinBox, QWidget, QMenu)
+from superqt import QSearchableComboBox
 
 class Stylesheet(Enum):
     SCROLL_AREA_CONFLICT = ".QScrollArea {border: 1px solid rgb(235,51,101);border-radius: 2px;}"

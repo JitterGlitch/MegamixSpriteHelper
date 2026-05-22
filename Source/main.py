@@ -6,7 +6,7 @@ import sys
 from concurrent.futures import ThreadPoolExecutor
 from enum import Enum, auto
 from pathlib import Path
-from time import sleep
+
 
 import PIL.ImageShow
 
@@ -14,9 +14,9 @@ import kkdlib
 
 import yaml
 from PIL import Image
-from PySide6.QtCore import Qt, QFileSystemWatcher, QSize, Signal, QRectF, QStandardPaths, QUrl, QFile, QIODevice, QByteArray, QRect, QThread, QTimer
-from PySide6.QtGui import QPixmap, QPalette, QColor, QImage, QPainter, QGuiApplication, QDesktopServices, QImageWriter, QAction, QImageReader
-from PySide6.QtWidgets import QApplication, QMainWindow, QWidget, QFileDialog, QMessageBox, QSizePolicy, QMenu, QMenuBar, QStyleFactory, QSpacerItem
+from PySide6.QtCore import Qt, QSize, Signal, QRectF, QStandardPaths, QUrl
+from PySide6.QtGui import QPixmap, QPalette, QColor, QImage, QPainter, QGuiApplication, QDesktopServices, QAction, QImageReader
+from PySide6.QtWidgets import QApplication, QMainWindow, QWidget, QFileDialog, QMessageBox, QSizePolicy, QSpacerItem
 
 import SceneComposer
 from Source.SceneComposer import SpriteGroup
@@ -25,7 +25,7 @@ from widgets import QSmarterMenu
 
 
 from FarcCreator import FarcCreator
-from SceneComposer import QControllableSprites, QPreviewScenes, SpriteSetting, QSpriteSlave, SpriteType, QScalingGraphicsScene, PvBackLayout
+from SceneComposer import SpriteSetting, QSpriteSlave, SpriteType, QScalingGraphicsScene, PvBackLayout
 from ThirdParty.auto_creat_mod_spr_db import Manager,add_farc_to_Manager,read_farc
 from ui_SpriteHelper import Ui_MainWindow
 from ui_ThumbnailIDField import Ui_ThumbnailIDField

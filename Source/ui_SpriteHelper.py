@@ -1,14 +1,13 @@
 from PySide6.QtCore import (QCoreApplication, QLocale,
                             QMetaObject, QRect,
                             QSize, Qt)
-from PySide6.QtGui import (QFont, QIcon,
-                           QPainter)
-from PySide6.QtWidgets import (QAbstractScrollArea, QCheckBox, QComboBox,
+from PySide6.QtGui import (QFont, QIcon)
+from PySide6.QtWidgets import (QAbstractScrollArea, QComboBox,
                                QDoubleSpinBox, QFrame, QGridLayout, QHBoxLayout,
                                QLabel, QLayout, QPushButton,
                                QScrollArea, QSizePolicy, QSpacerItem, QStackedWidget,
                                QTabWidget, QVBoxLayout, QWidget, QMenuBar)
-from superqt import QEnumComboBox, QFlowLayout
+from superqt import QEnumComboBox
 from FarcCreator import Compression
 from SceneComposer import SpriteGroup
 

@@ -2,15 +2,13 @@ import io
 import math
 from enum import Enum, auto, StrEnum
 from pathlib import Path
-from typing import Callable
 
-import PIL
 import PySide6
 import hashlib
 from PIL import Image
-from PySide6.QtCore import Qt, QRectF, QPoint, Signal, QObject, QSize, QRect, QIODevice, QFile, QThread, QFileSystemWatcher, QTimer, QBuffer, QByteArray
+from PySide6.QtCore import Qt, QRectF, QPoint, Signal, QObject, QSize, QRect, QIODevice, QFile, QThread, QTimer
 from PySide6.QtGui import QImage, QPixmap, QPainter, QTransform, QColor, QPen, QMouseEvent, QFont
-from PySide6.QtWidgets import QGraphicsPixmapItem, QFileDialog, QGraphicsScene, QLayout, QGraphicsView, QWidget, QSpacerItem, QSizePolicy, QScrollArea, QCheckBox, QRadioButton, QLabel, QVBoxLayout, QDoubleSpinBox, QSlider, QColorDialog, QPushButton, QHBoxLayout, QGraphicsBlurEffect
+from PySide6.QtWidgets import QGraphicsPixmapItem, QFileDialog, QGraphicsScene, QLayout, QGraphicsView, QWidget, QScrollArea, QCheckBox, QRadioButton, QLabel, QVBoxLayout, QDoubleSpinBox, QSlider, QColorDialog, QPushButton, QHBoxLayout, QGraphicsBlurEffect
 from superqt import QDoubleSlider
 from superqt.utils import qthrottled
 

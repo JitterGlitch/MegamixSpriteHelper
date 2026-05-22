@@ -1,13 +1,10 @@
-from PySide6.QtCore import (QCoreApplication, QDate, QDateTime, QLocale,
-                            QMetaObject, QObject, QPoint, QRect,
-                            QSize, QTime, QUrl, Qt, QRectF)
-from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
-    QFont, QFontDatabase, QGradient, QIcon,
-    QImage, QKeySequence, QLinearGradient, QPainter,
-    QPalette, QPixmap, QRadialGradient, QTransform)
-from PySide6.QtWidgets import (QAbstractScrollArea, QApplication, QCheckBox, QComboBox,
-    QDoubleSpinBox, QGraphicsView, QHBoxLayout, QLabel,
-    QLayout, QPushButton, QRadioButton, QScrollArea,
+from PySide6.QtCore import (QCoreApplication,
+                            QMetaObject, QRect,
+                            QSize, Qt)
+
+from PySide6.QtWidgets import (QAbstractScrollArea, QCheckBox,
+    QDoubleSpinBox, QHBoxLayout, QLabel,
+    QLayout, QPushButton, QScrollArea,
     QSizePolicy, QSpacerItem, QVBoxLayout, QWidget)
 from superqt import QEnumComboBox
 
