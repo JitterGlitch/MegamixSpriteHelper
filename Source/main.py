@@ -343,7 +343,9 @@ class ThumbnailWindow(QWidget):
             self.update_thumbnail_count_labels()
 
             if not results:
-                show_message_box("No valid Thumbnail files found","No valid Thumbnail files found\nValid thumbnail image must be 128x64.\nNo other images will get loaded.")
+                show_message_box("No valid Thumbnail files found","No valid Thumbnail files found\n"
+                                                                  "Valid thumbnail image must be 128x64.\n"
+                                                                  "No other images will get loaded.")
 
 
     def scan_folder_for_thumbnails(self):
@@ -684,19 +686,19 @@ class MainWindow(QMainWindow):
         self.main_box.load_image_button.setText(f"Load {sprite} Image")
 
         match sprite:
-            case "Background":
+            case SpriteType.BACKGROUND:
                 self.main_box.load_image_button.setEnabled(self.SC.enum_to_obj(self.main_box.sprite_group_combobox.currentEnum()).background.controls_enabled)
                 self.main_box.flip_vertical_button.setEnabled(self.SC.enum_to_obj(self.main_box.sprite_group_combobox.currentEnum()).background.controls_enabled)
                 self.main_box.flip_horizontal_button.setEnabled(self.SC.enum_to_obj(self.main_box.sprite_group_combobox.currentEnum()).background.controls_enabled)
-            case "Jacket":
+            case SpriteType.JACKET:
                 self.main_box.load_image_button.setEnabled(self.SC.enum_to_obj(self.main_box.sprite_group_combobox.currentEnum()).jacket.controls_enabled)
                 self.main_box.flip_vertical_button.setEnabled(self.SC.enum_to_obj(self.main_box.sprite_group_combobox.currentEnum()).jacket.controls_enabled)
                 self.main_box.flip_horizontal_button.setEnabled(self.SC.enum_to_obj(self.main_box.sprite_group_combobox.currentEnum()).jacket.controls_enabled)
-            case "Logo":
+            case SpriteType.LOGO:
                 self.main_box.load_image_button.setEnabled(self.SC.enum_to_obj(self.main_box.sprite_group_combobox.currentEnum()).logo.controls_enabled)
                 self.main_box.flip_vertical_button.setEnabled(self.SC.enum_to_obj(self.main_box.sprite_group_combobox.currentEnum()).logo.controls_enabled)
                 self.main_box.flip_horizontal_button.setEnabled(self.SC.enum_to_obj(self.main_box.sprite_group_combobox.currentEnum()).logo.controls_enabled)
-            case "Thumbnail":
+            case SpriteType.THUMBNAIL:
                 self.main_box.load_image_button.setEnabled(self.SC.enum_to_obj(self.main_box.sprite_group_combobox.currentEnum()).thumbnail.controls_enabled)
                 self.main_box.flip_vertical_button.setEnabled(self.SC.enum_to_obj(self.main_box.sprite_group_combobox.currentEnum()).thumbnail.controls_enabled)
                 self.main_box.flip_horizontal_button.setEnabled(self.SC.enum_to_obj(self.main_box.sprite_group_combobox.currentEnum()).thumbnail.controls_enabled)
@@ -704,13 +706,13 @@ class MainWindow(QMainWindow):
     def flip_current_sprite(self,flip_type):
         current_sprite = self.main_box.current_sprite_combobox.currentText()
         match current_sprite:
-            case "Background":
+            case SpriteType.BACKGROUND:
                 self.SC.enum_to_obj(self.main_box.sprite_group_combobox.currentEnum()).background.toggle_flip(flip_type)
-            case "Jacket":
+            case SpriteType.JACKET:
                 self.SC.enum_to_obj(self.main_box.sprite_group_combobox.currentEnum()).jacket.toggle_flip(flip_type)
-            case "Logo":
+            case SpriteType.LOGO:
                 self.SC.enum_to_obj(self.main_box.sprite_group_combobox.currentEnum()).logo.toggle_flip(flip_type)
-            case "Thumbnail":
+            case SpriteType.THUMBNAIL:
                 self.SC.enum_to_obj(self.main_box.sprite_group_combobox.currentEnum()).thumbnail.toggle_flip(flip_type)
 
     def display_scenes(self):
@@ -927,7 +929,7 @@ class MainWindow(QMainWindow):
         self.export_logo.setEnabled(state)
         self.song_farc_creator.main_box.logo_checkbox.setEnabled(state)
         self.song_farc_creator.main_box.logo_checkbox.setChecked(state)
-        if self.main_box.current_sprite_combobox.currentText() == "Logo":
+        if self.main_box.current_sprite_combobox.currentText() == SpriteType.LOGO:
             self.main_box.load_image_button.setEnabled(state)
             self.main_box.flip_vertical_button.setEnabled(state)
             self.main_box.flip_horizontal_button.setEnabled(state)
@@ -937,13 +939,13 @@ class MainWindow(QMainWindow):
     def load_new_sprite_image(self,sprite):
         sprite_object = None
         match sprite:
-            case "Background":
+            case SpriteType.BACKGROUND:
                 sprite_object = self.SC.enum_to_obj(self.main_box.sprite_group_combobox.currentEnum()).background
-            case "Jacket":
+            case SpriteType.JACKET:
                 sprite_object = self.SC.enum_to_obj(self.main_box.sprite_group_combobox.currentEnum()).jacket
-            case "Thumbnail":
+            case SpriteType.THUMBNAIL:
                 sprite_object = self.SC.enum_to_obj(self.main_box.sprite_group_combobox.currentEnum()).thumbnail
-            case "Logo":
+            case SpriteType.LOGO:
                 sprite_object = self.SC.enum_to_obj(self.main_box.sprite_group_combobox.currentEnum()).logo
 
         image_location = QFileDialog.getOpenFileName(self,

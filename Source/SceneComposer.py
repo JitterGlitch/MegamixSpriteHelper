@@ -977,7 +977,6 @@ class QLogo(QSpriteBase):
                 width_factor = self.sprite_size.size().width() / self.sprite_image.width()
                 height_factor = self.sprite_size.size().height() / self.sprite_image.height()
 
-                #TODO Round it up to number of decimals specified in sprite settings
                 if width_factor > 1:
                     width_factor = 1
                 if height_factor > 1:
