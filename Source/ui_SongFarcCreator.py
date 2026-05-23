@@ -9,7 +9,7 @@ from PySide6.QtWidgets import (QAbstractScrollArea, QCheckBox,
 from superqt import QEnumComboBox
 
 import FarcCreator
-from Source.SceneComposer import SpriteGroup
+from SceneComposer import SpriteGroup
 
 
 class Ui_SongFarcCreatorWindow(object):
