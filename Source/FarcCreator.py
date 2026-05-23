@@ -142,7 +142,7 @@ class FarcCreator:
 
         spr.add_spr(logo, str("SONG_LOGO" + song_id))
 
-        if ex_logo_included is not None:
+        if ex_logo_included:
             spr.add_spr(ex_logo, str("SONG_LOGO" + song_id +"_EX"))
 
         if pv_back_texture is not None:
