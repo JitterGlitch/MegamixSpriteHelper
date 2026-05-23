@@ -19,7 +19,7 @@ from PySide6.QtGui import QPixmap, QPalette, QColor, QImage, QPainter, QGuiAppli
 from PySide6.QtWidgets import QApplication, QMainWindow, QWidget, QFileDialog, QMessageBox, QSizePolicy, QSpacerItem
 
 import SceneComposer
-from Source.SceneComposer import SpriteGroup
+from SceneComposer import SpriteGroup
 from ui_SongFarcCreator import Ui_SongFarcCreatorWindow
 from widgets import QSmarterMenu
 
