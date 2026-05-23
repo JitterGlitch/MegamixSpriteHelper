@@ -53,73 +53,69 @@ class Manager:
 
     def write_db(self, _file_path):
         len_sprinfo = len(self.sprinfo_list)
+        self.spr_list = []
+        for sprinfo in self.sprinfo_list:
+            self.spr_list.extend(sprinfo.Sprites_list)
+            self.spr_list.extend(sprinfo.Textures_list)
+
         len_spr = len(self.spr_list)
         sprinfo_start = 16
         spr_start = len_sprinfo * 16 + sprinfo_start
-        spr_no_data_lenght = 16 - ((len_spr * 12) % 16)
+
+        spr_no_data_lenght = (16 - ((len_spr * 12) % 16)) % 16
         str_start = spr_start + (len_spr * 12) + spr_no_data_lenght
 
         with open(_file_path, "wb+") as f:
-            # write head info
             f.write(len_sprinfo.to_bytes(4, byteorder="little"))
             f.write(sprinfo_start.to_bytes(4, byteorder="little"))
             f.write(len_spr.to_bytes(4, byteorder="little"))
             f.write(spr_start.to_bytes(4, byteorder="little"))
+
             max_len = len(self.sprinfo_list)
-            for i in range(len(self.sprinfo_list)):
-                process = i / max_len
-                process = str(process * 100)[:5]
+            for i in range(max_len):
                 sprinfo = self.sprinfo_list[i]
-                #print(f"\rCreat new mod_spr_db:{process}%", end="")
-                # write sprinfo
-                # write id
+
                 f.seek(sprinfo_start)
                 f.write(sprinfo.id.to_bytes(4, byteorder="little"))
-                # write str start point
                 f.write(str_start.to_bytes(4, byteorder="little"))
-                # write file str start point
-                file_str_start = len(sprinfo.info_str) + str_start + 1
+
+                info_str_bytes = sprinfo.info_str.encode("UTF-8") + b"\x00"
+                file_str_bytes = sprinfo.file_str.encode("UTF-8") + b"\x00"
+
+                file_str_start = str_start + len(info_str_bytes)
                 f.write(file_str_start.to_bytes(4, byteorder="little"))
-                # wrile info id
-                f.write(sprinfo.info_id.to_bytes(4, byteorder="little"))
+
+                f.write(i.to_bytes(4, byteorder="little"))
 
                 sprinfo_start += 16
 
-                # write str
                 f.seek(str_start)
-                f.write(sprinfo.info_str.encode("UTF-8"))
-                f.write(b"\x00")
-                f.write(sprinfo.file_str.encode("UTF-8"))
+                f.write(info_str_bytes)
+                f.write(file_str_bytes)
+                str_start += len(info_str_bytes) + len(file_str_bytes)
 
-                str_start = f.tell() + 1
-                # write Sprites and Textures
                 temp_list = sprinfo.Sprites_list + sprinfo.Textures_list
-                if len(temp_list) > 0:
-                    for k in temp_list:
-                        f.seek(spr_start)
-                        f.write(k.id.to_bytes(4, byteorder="little"))
-                        # write str start point
-                        f.write(str_start.to_bytes(4, byteorder="little"))
-                        # wrile index
-                        f.write(k.index.to_bytes(2, byteorder="little"))
-                        # wrile info id
-                        info_id = k.info_id
-                        if not k.is_spr:
-                            # \x00\x00 mean spr
-                            # \x00\x10 mean tex
-                            info_id += 4096
-                        f.write(info_id.to_bytes(2, byteorder="little"))
+                for k in temp_list:
+                    f.seek(spr_start)
+                    f.write(k.id.to_bytes(4, byteorder="little"))
+                    f.write(str_start.to_bytes(4, byteorder="little"))
+                    f.write(k.index.to_bytes(2, byteorder="little"))
 
-                        spr_start += 12
+                    info_id_val = i
+                    if not k.is_spr:
+                        info_id_val += 4096
+                    f.write(info_id_val.to_bytes(2, byteorder="little"))
 
-                        f.seek(str_start)
-                        f.write(k.info_str.encode("UTF-8"))
+                    spr_start += 12
 
-                        str_start = f.tell() + 1
+                    k_info_str_bytes = k.info_str.encode("UTF-8") + b"\x00"
+                    f.seek(str_start)
+                    f.write(k_info_str_bytes)
+                    str_start += len(k_info_str_bytes)
+
             file_size = f.tell()
-            #print("\rCreat new mod_spr_db:100.00%")
-            #print("Done!")
-            f.write(b"\x00" * (16 - (file_size % 16)))
+            padding = (16 - (file_size % 16)) % 16
+            f.write(b"\x00" * padding)
 
     def add_spr(self, data):
         #print(f"add {data.info_str}")
@@ -191,16 +187,23 @@ class Manager:
     def Remove_Sprites(self, data):
         _Sprite_Info = self.sprinfo_id_dict[data.info_id]
         if type(data) == SpriteSetInfo:
-            for i in range(len(_Sprite_Info.Sprites_list)):
+            while len(_Sprite_Info.Sprites_list) > 0:
                 self.Remove_Sprites(_Sprite_Info.Sprites_list[0])
-            for i in range(len(_Sprite_Info.Textures_list)):
+            while len(_Sprite_Info.Textures_list) > 0:
                 self.Remove_Sprites(_Sprite_Info.Textures_list[0])
+
+            if _Sprite_Info in self.sprinfo_list:
+                self.sprinfo_list.remove(_Sprite_Info)
+
         elif type(data) == Sprites:
             if data.is_spr:
-                _Sprite_Info.Sprites_list.remove(data)
+                if data in _Sprite_Info.Sprites_list:
+                    _Sprite_Info.Sprites_list.remove(data)
             else:
-                _Sprite_Info.Textures_list.remove(data)
-            self.spr_list.remove(data)
+                if data in _Sprite_Info.Textures_list:
+                    _Sprite_Info.Textures_list.remove(data)
+            if data in self.spr_list:
+                self.spr_list.remove(data)
 
 
 class SpriteSetInfo:
