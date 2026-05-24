@@ -44,6 +44,12 @@ jobs:
           pip install -r ./Source/requirements.txt
         shell: bash
 
+      - name: Generate and compile QRC
+        run: |
+          cd ./Source
+          python ./Source/generate_resources.py ./Source/Images --output resources --prefix icon
+          cd ..
+
       - name: Build with PyInstaller
         run: |
           pyinstaller --onedir --icon=${{ matrix.icon }} -w --name MegamixSpriteHelper ./Source/main.py

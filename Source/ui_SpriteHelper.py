@@ -11,7 +11,7 @@ from superqt import QEnumComboBox
 from FarcCreator import Compression
 from SceneComposer import SpriteGroup
 
-import resources
+import resources_rc
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
