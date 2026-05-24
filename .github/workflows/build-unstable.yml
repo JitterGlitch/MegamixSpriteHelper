@@ -47,7 +47,7 @@ jobs:
       - name: Generate and compile QRC
         run: |
           cd ./Source
-          python ./Source/generate_resources.py ./Source/Images --output resources --prefix icon
+          python generate_resources.py Images --output resources --prefix icon
           cd ..
 
       - name: Build with PyInstaller
