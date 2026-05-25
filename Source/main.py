@@ -5,6 +5,7 @@ import sys
 
 from concurrent.futures import ThreadPoolExecutor
 from enum import Enum, auto
+from multiprocessing.util import is_exiting
 from pathlib import Path
 
 
@@ -63,7 +64,7 @@ class ThumbnailIDFieldWidget(QWidget):
     removeRequested = Signal(QWidget)
     thumb_count_request = Signal()
 
-    def __init__(self,parent=None,variant=False, inferred_id=None):
+    def __init__(self,parent=None,variant=False, inferred_id:str=None):
 
         super(ThumbnailIDFieldWidget, self).__init__(parent)
         self.variant = variant
@@ -81,8 +82,15 @@ class ThumbnailIDFieldWidget(QWidget):
         self.config_dropdown = QMenu(self.ui.config_button)
         self.config_dropdown.addAction(self.toggle_ex)
 
+        is_ex = False
+
         if inferred_id:
-            self.ui.song_id_spinbox.setValue(float(inferred_id))
+            if type(inferred_id) is str:
+                if inferred_id.endswith("_EX"):
+                    inferred_id = inferred_id.removesuffix("_EX")
+                    is_ex = True
+
+        self.ui.song_id_spinbox.setValue(float(inferred_id))
         self.ui.song_id_spinbox.editingFinished.connect(self.thumb_count_request.emit)
         self.ui.config_button.clicked.connect(self.config_button_callback)
 
@@ -91,6 +99,10 @@ class ThumbnailIDFieldWidget(QWidget):
         else:
             self.ui.id_line_button.clicked.connect(lambda: self.removeRequested.emit(self))
 
+        if is_ex:
+            self.toggle_ex.setChecked(True)
+
+
     def config_button_callback(self):
         self.config_dropdown.popup(self.ui.config_button.mapToGlobal(QPoint(0, self.ui.config_button.height())))
 
@@ -98,11 +110,12 @@ class ThumbnailIDFieldWidget(QWidget):
         if self.toggle_ex.isChecked():
 
             self.ui.song_id_spinbox.setSuffix("_EX")
+            self.ui.song_id_spinbox.editingFinished.emit()
 
         else:
 
             self.ui.song_id_spinbox.setSuffix("")
-
+            self.ui.song_id_spinbox.editingFinished.emit()
 
 
 
@@ -211,9 +224,11 @@ class ThumbnailWindow(QWidget):
             thumbnail_widget.setStyleSheet("")
 
             for id_field in thumbnail_widget.id_field_list:
+
+                thumb_id = str(int(id_field.ui.song_id_spinbox.value())) + str(id_field.ui.song_id_spinbox.suffix())
                 id_field.setStyleSheet("")
-                id_seen.append(id_field.ui.song_id_spinbox.value())
-                if  id_field.ui.song_id_spinbox.value() == 0:
+                id_seen.append(thumb_id)
+                if  thumb_id in ("0","0_EX"):
                     thumbnail_widget.setStyleSheet(Stylesheet.SCROLL_AREA_UNFILLED.value)
                     id_field.setStyleSheet(Stylesheet.ID_FIELD_PLACEHOLDER.value)
                     left_to_fillout = left_to_fillout + 1
@@ -228,11 +243,12 @@ class ThumbnailWindow(QWidget):
             else:
                 seen.add(i)
 
-        duplicates = list(filter(lambda a: a != 0, duplicates))
+        duplicates = list(filter(lambda a: a not in ("0","0_EX"), duplicates))
 
         for thumbnail_widget in self.thumbnail_widgets:
             for id_field in thumbnail_widget.id_field_list:
-                if id_field.ui.song_id_spinbox.value() in duplicates:
+                thumb_id = str(int(id_field.ui.song_id_spinbox.value())) + str(id_field.ui.song_id_spinbox.suffix())
+                if thumb_id in duplicates:
                     id_field.setPalette(self.id_conflict_palette)
                     thumbnail_widget.setStyleSheet(Stylesheet.SCROLL_AREA_CONFLICT.value)
                     id_field.setStyleSheet(Stylesheet.ID_FIELD_CONFLICT.value)
@@ -282,9 +298,21 @@ class ThumbnailWindow(QWidget):
         if not inferred_id_list:
             image_name = Path(image_path).stem
             image_name = image_name.removeprefix("pv_")
+            is_ex = False
             print(image_name)
+
+            if image_name.endswith("_EX"):
+                image_name = image_name.removesuffix("_EX")
+                is_ex = True
+                print("Removing suffix")
+                print(image_name)
+
             if image_name.isdigit() and len(image_name) >= 3:
-                id_list = [image_name]
+                print(image_name)
+                if is_ex:
+                    id_list = [str(image_name)+"_EX"]
+                else:
+                    id_list = [str(image_name)]
                 inferred_id_list.append([image_path,id_list])
             else:
                 inferred_id_list.append((image_path,[]))
@@ -491,7 +519,7 @@ class ThumbnailWindow(QWidget):
                     image = str(thumb_widget.image_path)
                     ids = []
                     for id_field in thumb_widget.id_field_list:
-                        ids.append(int(id_field.ui.song_id_spinbox.value()))
+                        ids.append(str(int(id_field.ui.song_id_spinbox.value())) + str(id_field.ui.song_id_spinbox.suffix()))
                     remember_data.append([image,ids])
 
                 if Path('remembered_ids.yaml').exists():
