@@ -270,7 +270,7 @@ class ThumbnailWindow(QWidget):
 
     def space_out_thumbnails(self):
         width = self.main_box.verticalLayout.geometry().width()
-        widget_width = 365
+        widget_width = 395
         columns = (width // widget_width) - 1
         x = 0
         y = 0
