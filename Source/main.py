@@ -14,9 +14,9 @@ import kkdlib
 
 import yaml
 from PIL import Image
-from PySide6.QtCore import Qt, QSize, Signal, QRectF, QStandardPaths, QUrl
+from PySide6.QtCore import Qt, QSize, Signal, QRectF, QStandardPaths, QUrl, QPoint
 from PySide6.QtGui import QPixmap, QPalette, QColor, QImage, QPainter, QGuiApplication, QDesktopServices, QAction, QImageReader
-from PySide6.QtWidgets import QApplication, QMainWindow, QWidget, QFileDialog, QMessageBox, QSizePolicy, QSpacerItem
+from PySide6.QtWidgets import QApplication, QMainWindow, QWidget, QFileDialog, QMessageBox, QSizePolicy, QSpacerItem, QMenu
 
 import SceneComposer
 from SceneComposer import SpriteGroup
@@ -66,20 +66,42 @@ class ThumbnailIDFieldWidget(QWidget):
     def __init__(self,parent=None,variant=False, inferred_id=None):
 
         super(ThumbnailIDFieldWidget, self).__init__(parent)
-        self.variant = variant    #False cannot be removed, spawns with button to add more id fields
-                                                #True can be removed, spawns with button to remove itself.
+        self.variant = variant
 
-        self.value = None #This should contain Song ID , needs to check if it's under ID limit.
+
+        self.value = None
         self.ui = Ui_ThumbnailIDField()
         self.ui.setupUi(self,variant)
+
+        self.toggle_ex = QAction()
+        self.toggle_ex.setCheckable(True)
+        self.toggle_ex.setText("Set as _EX sprite")
+        self.toggle_ex.toggled.connect(self.toggle_ex_action)
+
+        self.config_dropdown = QMenu(self.ui.config_button)
+        self.config_dropdown.addAction(self.toggle_ex)
+
         if inferred_id:
             self.ui.song_id_spinbox.setValue(float(inferred_id))
         self.ui.song_id_spinbox.editingFinished.connect(self.thumb_count_request.emit)
+        self.ui.config_button.clicked.connect(self.config_button_callback)
 
         if variant:
             self.ui.id_line_button.clicked.connect(lambda: self.additionalRequested.emit(self))
         else:
             self.ui.id_line_button.clicked.connect(lambda: self.removeRequested.emit(self))
+
+    def config_button_callback(self):
+        self.config_dropdown.popup(self.ui.config_button.mapToGlobal(QPoint(0, self.ui.config_button.height())))
+
+    def toggle_ex_action(self):
+        if self.toggle_ex.isChecked():
+
+            self.ui.song_id_spinbox.setSuffix("_EX")
+
+        else:
+
+            self.ui.song_id_spinbox.setSuffix("")
 
 
 
