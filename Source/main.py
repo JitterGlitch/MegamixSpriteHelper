@@ -118,11 +118,11 @@ class ThumbnailWidget(QWidget):
         id_field.additionalRequested.connect(self.add_id_field)
         id_field.thumb_count_request.connect(lambda: self.thumb_count_request.emit())
         self.id_field_list.append(id_field)
-        self.ui.formLayout.addRow(id_field)
+        self.ui.thumbnail_id_formLayout.addRow(id_field)
         self.thumb_count_request.emit()
 
     def remove_id_field(self,widget):
-        self.ui.formLayout.removeRow(widget)
+        self.ui.thumbnail_id_formLayout.removeRow(widget)
         self.id_field_list.remove(widget)
         self.thumb_count_request.emit()
 
@@ -212,7 +212,7 @@ class ThumbnailWindow(QWidget):
             for id_field in thumbnail_widget.id_field_list:
                 if id_field.ui.song_id_spinbox.value() in duplicates:
                     id_field.setPalette(self.id_conflict_palette)
-                    id_field.parent().parent().parent().parent().setStyleSheet(Stylesheet.SCROLL_AREA_CONFLICT.value)
+                    thumbnail_widget.setStyleSheet(Stylesheet.SCROLL_AREA_CONFLICT.value)
                     id_field.setStyleSheet(Stylesheet.ID_FIELD_CONFLICT.value)
                     left_to_fillout = left_to_fillout + 1
 

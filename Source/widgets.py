@@ -5,16 +5,20 @@ from PySide6.QtCore import (Qt, QTimer)
 from PySide6.QtGui import (QBrush, QColor, QPalette, QMouseEvent, QPixmap)
 from PySide6.QtWidgets import (QDoubleSpinBox, QHBoxLayout,
                                QLabel, QPushButton,
-                               QSpinBox, QWidget, QMenu)
+                               QSpinBox, QWidget, QMenu, QScrollArea)
 from superqt import QSearchableComboBox
 
 class Stylesheet(Enum):
-    SCROLL_AREA_CONFLICT = ".QScrollArea {border: 1px solid rgb(235,51,101);border-radius: 2px;}"
-    SCROLL_AREA_UNFILLED = ".QScrollArea {border: 1px solid rgb(123,104,238);border-radius: 2px;}"
+    SCROLL_AREA_CONFLICT = ".OuterFrame {border: 1px solid rgb(235,51,101);border-radius: 2px;}"
+    SCROLL_AREA_UNFILLED = ".OuterFrame {border: 1px solid rgb(123,104,238);border-radius: 2px;}"
     ID_FIELD_CONFLICT = ".PlaceholderDoubleSpinBox {color: rgb(235,51,101);}"
     ID_FIELD_PLACEHOLDER = ".PlaceholderDoubleSpinBox {color: rgb(155,155,155);}"
     SPRITE_VALUE_LABEL =":hover {background-color: rgba(155,155,155,50);}"
     LABEL_PLACEHOLDER = ".QLabel {color: rgb(155,155,155);}"
+
+class OuterFrame(QScrollArea):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
 class PlaceholderDoubleSpinBox(QDoubleSpinBox):
     def __init__(self, *args, **kwargs):

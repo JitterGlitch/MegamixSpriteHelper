@@ -1,6 +1,6 @@
 from PySide6.QtCore import (QCoreApplication, QMetaObject, QSize, Qt)
 from PySide6.QtGui import (QBrush, QColor,QPalette, QPixmap)
-from PySide6.QtWidgets import ( QFormLayout,QPushButton,QSizePolicy)
+from PySide6.QtWidgets import (QFormLayout, QPushButton, QSizePolicy, QHBoxLayout)
 from widgets import PlaceholderDoubleSpinBox
 
 class Ui_ThumbnailIDField(object):
@@ -8,9 +8,10 @@ class Ui_ThumbnailIDField(object):
                 if not Form.objectName():
                         Form.setObjectName(u"Form")
                 Form.resize(208, 45)
-                self.formLayout = QFormLayout(Form)
+                self.formLayout = QHBoxLayout(Form)
                 self.formLayout.setObjectName(u"formLayout")
                 self.formLayout.setContentsMargins(0, 0, 0, 0)
+                self.formLayout.setSpacing(0)
 
                 self.song_id_spinbox = PlaceholderDoubleSpinBox(Form)
                 self.song_id_spinbox.setObjectName(u"song_id_spinbox")
@@ -26,7 +27,7 @@ class Ui_ThumbnailIDField(object):
                 self.song_id_spinbox.setMaximumSize(QSize(154, 27))
                 self.song_id_spinbox.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-                self.formLayout.setWidget(0, QFormLayout.ItemRole.LabelRole, self.song_id_spinbox)
+                self.formLayout.addWidget(self.song_id_spinbox)
 
                 match variant:
                         case False:
@@ -47,7 +48,7 @@ class Ui_ThumbnailIDField(object):
                                 palette.setBrush(QPalette.ColorGroup.Active, QPalette.ColorRole.ButtonText, brush)
                                 self.id_line_button.setPalette(palette)
 
-                                self.formLayout.setWidget(0, QFormLayout.ItemRole.FieldRole, self.id_line_button)
+                                self.formLayout.addWidget(self.id_line_button)
 
                                 QMetaObject.connectSlotsByName(Form)
                                 self.retranslateUi(Form,False)
@@ -68,11 +69,17 @@ class Ui_ThumbnailIDField(object):
                                 palette.setBrush(QPalette.ColorGroup.Active, QPalette.ColorRole.ButtonText, brush)
                                 self.id_line_button.setPalette(palette)
 
-                                self.formLayout.setWidget(0, QFormLayout.ItemRole.FieldRole, self.id_line_button)
+                                self.formLayout.addWidget(self.id_line_button)
 
                                 QMetaObject.connectSlotsByName(Form)
                                 self.retranslateUi(Form, True)
 
+                self.config_button = QPushButton(Form)
+                self.config_button.setMinimumSize(QSize(30, 27))
+                self.config_button.setMaximumSize(QSize(30, 27))
+                self.config_button.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+                self.config_button.setIcon(QPixmap(":icon/Images/Wrench.png"))
+                self.formLayout.addWidget(self.config_button)
 
         # setupUi
 

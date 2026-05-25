@@ -3,6 +3,9 @@ from PySide6.QtWidgets import ( QFormLayout, QHBoxLayout, QLabel,
     QLayout, QPushButton, QScrollArea, QSizePolicy,
     QVBoxLayout, QWidget)
 
+from widgets import OuterFrame
+
+
 class Ui_ThumbnailWidget(object):
     def setupUi(self, ThumbnailWidget):
         if not ThumbnailWidget.objectName():
@@ -14,77 +17,90 @@ class Ui_ThumbnailWidget(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(ThumbnailWidget.sizePolicy().hasHeightForWidth())
         ThumbnailWidget.setSizePolicy(sizePolicy)
-        ThumbnailWidget.setMinimumSize(QSize(365, 133))
-        ThumbnailWidget.setMaximumSize(QSize(365, 133))
-        ThumbnailWidget.setBaseSize(QSize(310, 133))
-        self.horizontalLayout = QHBoxLayout(ThumbnailWidget)
-        self.horizontalLayout.setSpacing(0)
-        self.horizontalLayout.setObjectName(u"horizontalLayout")
-        self.horizontalLayout.setContentsMargins(0, 0, 0, 0)
-        self.thumbnail_h_layout = QHBoxLayout()
-        self.thumbnail_h_layout.setObjectName(u"thumbnail_h_layout")
+        ThumbnailWidget.setMinimumSize(QSize(395, 133))
+        ThumbnailWidget.setMaximumSize(QSize(395, 133))
+        ThumbnailWidget.setBaseSize(QSize(395, 133))
+
+        self.scrollArea_contents = QWidget()
+        self.scrollArea_contents.setContentsMargins(0,0,0,0)
+        self.scrollArea_contents.setGeometry(QRect(0, 0, 395, 133))
+
+        self.main_thumbnail_layout = QHBoxLayout(ThumbnailWidget)
+        self.main_thumbnail_layout.setSpacing(0)
+        self.main_thumbnail_layout.setContentsMargins(0, 0, 0, 0)
+        self.thumbnail_info_layout = QHBoxLayout(self.scrollArea_contents)
+
+
         self.thumbnail_image = QLabel(ThumbnailWidget)
-        self.thumbnail_image.setObjectName(u"thumbnail_image")
+
         sizePolicy1 = QSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
         sizePolicy1.setHorizontalStretch(0)
         sizePolicy1.setVerticalStretch(0)
-        sizePolicy1.setHeightForWidth(self.thumbnail_image.sizePolicy().hasHeightForWidth())
+
         self.thumbnail_image.setSizePolicy(sizePolicy1)
         self.thumbnail_image.setMinimumSize(QSize(128, 64))
         self.thumbnail_image.setMaximumSize(QSize(128, 64))
         self.thumbnail_image.setBaseSize(QSize(128, 64))
 
-        self.thumbnail_h_layout.addWidget(self.thumbnail_image)
 
-        self.verticalLayout = QVBoxLayout()
-        self.verticalLayout.setObjectName(u"verticalLayout")
-        self.scrollArea = QScrollArea(ThumbnailWidget)
-        self.scrollArea.setObjectName(u"scrollArea")
+        self.outer_frame_scrollArea = OuterFrame(ThumbnailWidget)
+
+        self.thumbnail_info_scrollArea = QScrollArea()
+
         sizePolicy2 = QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         sizePolicy2.setHorizontalStretch(0)
         sizePolicy2.setVerticalStretch(0)
-        sizePolicy2.setHeightForWidth(self.scrollArea.sizePolicy().hasHeightForWidth())
-        self.scrollArea.setSizePolicy(sizePolicy2)
-        self.scrollArea.setMinimumSize(QSize(208, 37))
-        self.scrollArea.setMaximumSize(QSize(208, 95))
-        self.scrollArea.setFocusPolicy(Qt.FocusPolicy.NoFocus)
-        self.scrollArea.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
-        self.scrollArea.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        self.scrollArea.setWidgetResizable(True)
+
+        self.thumbnail_info_scrollArea.setSizePolicy(sizePolicy2)
+
+        self.thumbnail_info_scrollArea.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+        self.thumbnail_info_scrollArea.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+        self.thumbnail_info_scrollArea.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.thumbnail_info_scrollArea.setWidgetResizable(True)
+
         self.scrollAreaWidgetContents = QWidget()
-        self.scrollAreaWidgetContents.setObjectName(u"scrollAreaWidgetContents")
-        self.scrollAreaWidgetContents.setGeometry(QRect(0, 0, 206, 92))
-        self.formLayout = QFormLayout(self.scrollAreaWidgetContents)
-        self.formLayout.setObjectName(u"formLayout")
-        self.formLayout.setSizeConstraint(QLayout.SizeConstraint.SetDefaultConstraint)
-        self.formLayout.setFieldGrowthPolicy(QFormLayout.FieldGrowthPolicy.ExpandingFieldsGrow)
-        self.formLayout.setHorizontalSpacing(0)
-        self.formLayout.setVerticalSpacing(0)
-        self.formLayout.setContentsMargins(0, 0, 0, 0)
-        self.scrollArea.setWidget(self.scrollAreaWidgetContents)
+        self.scrollAreaWidgetContents.setGeometry(QRect(0, 0, 225, 92))
 
-        self.verticalLayout.addWidget(self.scrollArea)
+        self.thumbnail_info_scrollArea.setWidget(self.scrollAreaWidgetContents)
 
-        self.thumbnail_v_layout = QVBoxLayout()
-        self.thumbnail_v_layout.setObjectName(u"thumbnail_v_layout")
+        self.thumbnail_id_formLayout = QFormLayout(self.scrollAreaWidgetContents)
+        self.thumbnail_id_formLayout.setSizeConstraint(QLayout.SizeConstraint.SetDefaultConstraint)
+        self.thumbnail_id_formLayout.setFieldGrowthPolicy(QFormLayout.FieldGrowthPolicy.ExpandingFieldsGrow)
+        self.thumbnail_id_formLayout.setHorizontalSpacing(0)
+        self.thumbnail_id_formLayout.setVerticalSpacing(0)
+        self.thumbnail_id_formLayout.setContentsMargins(0, 0, 0, 0)
+
+
+
         self.remove_thumbnail_button = QPushButton(ThumbnailWidget)
-        self.remove_thumbnail_button.setObjectName(u"remove_thumbnail_button")
-        sizePolicy1.setHeightForWidth(self.remove_thumbnail_button.sizePolicy().hasHeightForWidth())
         self.remove_thumbnail_button.setSizePolicy(sizePolicy1)
-        self.remove_thumbnail_button.setMinimumSize(QSize(206, 27))
-        self.remove_thumbnail_button.setMaximumSize(QSize(206, 27))
+        self.remove_thumbnail_button.setMinimumSize(QSize(128, 27))
+        self.remove_thumbnail_button.setMaximumSize(QSize(128, 27))
         self.remove_thumbnail_button.setFocusPolicy(Qt.FocusPolicy.NoFocus)
 
-        self.thumbnail_v_layout.addWidget(self.remove_thumbnail_button)
+
+        self.image_r_button_layout = QVBoxLayout()
+        self.image_r_button_layout.addWidget(self.thumbnail_image)
+        self.image_r_button_layout.addWidget(self.remove_thumbnail_button)
+
+        self.thumbnail_info_layout.addLayout(self.image_r_button_layout)
+        self.thumbnail_info_layout.addWidget(self.thumbnail_info_scrollArea)
+
+        self.outer_frame_scrollArea.setSizePolicy(sizePolicy2)
+        self.outer_frame_scrollArea.setMinimumSize(QSize(395, 133))
+        self.outer_frame_scrollArea.setMaximumSize(QSize(395, 133))
+        self.outer_frame_scrollArea.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+        self.outer_frame_scrollArea.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+        self.outer_frame_scrollArea.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.outer_frame_scrollArea.setWidgetResizable(True)
 
 
-        self.verticalLayout.addLayout(self.thumbnail_v_layout)
+        self.outer_frame_scrollArea.setWidget(self.scrollArea_contents)
 
 
-        self.thumbnail_h_layout.addLayout(self.verticalLayout)
 
 
-        self.horizontalLayout.addLayout(self.thumbnail_h_layout)
+        #self.main_thumbnail_layout.addLayout(self.thumbnail_info_layout)
 
 
         self.retranslateUi(ThumbnailWidget)
@@ -95,6 +111,6 @@ class Ui_ThumbnailWidget(object):
     def retranslateUi(self, ThumbnailWidget):
         ThumbnailWidget.setWindowTitle(QCoreApplication.translate("ThumbnailWidget", u"Thumbnail Widget", None))
         self.thumbnail_image.setText("")
-        self.remove_thumbnail_button.setText(QCoreApplication.translate("ThumbnailWidget", u"Remove Thumbnail", None))
+        self.remove_thumbnail_button.setText(QCoreApplication.translate("ThumbnailWidget", u"Remove", None))
     # retranslateUi
 

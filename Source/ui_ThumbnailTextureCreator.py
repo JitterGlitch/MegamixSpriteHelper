@@ -14,8 +14,8 @@ class Ui_ThumbnailTextureCreator(object):
     def setupUi(self, ThumbnailTextureCreator):
         if not ThumbnailTextureCreator.objectName():
             ThumbnailTextureCreator.setObjectName(u"ThumbnailTextureCreator")
-        ThumbnailTextureCreator.resize(742, 600)
-        ThumbnailTextureCreator.setMinimumSize(QSize(742, 600))
+        ThumbnailTextureCreator.resize(850, 600)
+        ThumbnailTextureCreator.setMinimumSize(QSize(850, 600))
         icon = QIcon()
         icon.addFile(u":/icon/Icon-red.png", QSize(), QIcon.Mode.Normal, QIcon.State.Off)
         ThumbnailTextureCreator.setWindowIcon(icon)
@@ -48,10 +48,7 @@ class Ui_ThumbnailTextureCreator(object):
 
         self.gridLayout_2.addWidget(self.load_image_button, 1, 0, 1, 1)
 
-        # self.mod_name_lineedit = QLineEdit(ThumbnailTextureCreator)
-        # self.mod_name_lineedit.setObjectName(u"mod_name_lineedit")
-        # self.mod_name_lineedit.setMaxLength(200)
-        # self.mod_name_lineedit.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
         self.mod_name_lineedit = SongpackNameInput()
 
         self.gridLayout_2.addWidget(self.mod_name_lineedit, 2, 0, 1, 1)
@@ -72,7 +69,6 @@ class Ui_ThumbnailTextureCreator(object):
         self.farc_compression_label.setMaximumSize(QSize(110,33))
 
         self.H_Layout.addWidget(self.farc_compression_label)
-        #self.gridLayout_2.addWidget(self.farc_compression_label, 3, 1 ,1 ,1)
 
         self.farc_compression_combobox = QEnumComboBox()
         self.farc_compression_combobox.setEnumClass(Compression)
