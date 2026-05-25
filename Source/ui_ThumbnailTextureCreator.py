@@ -111,6 +111,6 @@ class Ui_ThumbnailTextureCreator(object):
         self.load_folder_button.setText(QCoreApplication.translate("ThumbnailTextureCreator", u"Load from folder", None))
         self.load_image_button.setText(QCoreApplication.translate("ThumbnailTextureCreator", u"Load image", None))
         self.export_farc_button.setText(QCoreApplication.translate("ThumbnailTextureCreator", u"Export Farc", None))
-        self.delete_all_thumbs_button.setText(QCoreApplication.translate("ThumbnailTextureCreator", u"Delete all thumbnails", None))
+        self.delete_all_thumbs_button.setText(QCoreApplication.translate("ThumbnailTextureCreator", u"Remove all thumbnails", None))
     # retranslateUi
 
