@@ -5,7 +5,6 @@ import sys
 
 from concurrent.futures import ThreadPoolExecutor
 from enum import Enum, auto
-from multiprocessing.util import is_exiting
 from pathlib import Path
 
 
@@ -608,6 +607,9 @@ class ThumbnailWindow(QWidget):
         for i in range(self.main_box.mod_name_lineedit.combo_box.count()):
             self.main_box.mod_name_lineedit.combo_box.removeItem(i)
         self.main_box.mod_name_lineedit.combo_box.addItems(remember_data)
+        self.main_box.mod_name_lineedit.combo_box.setCurrentText("")
+        self.main_box.mod_name_lineedit.label_set_placeholder_text()
+
 
     def fill_combobox_suggestions(self):
         if Path('remembered_names.yaml').exists():
