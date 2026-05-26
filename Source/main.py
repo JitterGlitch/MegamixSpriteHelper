@@ -660,10 +660,6 @@ class MainWindow(QMainWindow):
 
         self.menu = self.main_box.menu
 
-        self.file_menu = self.menu.addMenu("File")
-        self.open_project = self.file_menu.addAction("Open Project...", self.close)
-        self.save_project = self.file_menu.addAction("Save Project", self.close)
-
         self.export_menu = self.menu.addMenu("Export")
         self.export_menu.addAction("Create Song Sprite Farc", lambda: self.song_farc_creator.show())
         self.export_menu.addAction("Create Thumbnail Farc", lambda: self.thumbnail_creator.show())
