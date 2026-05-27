@@ -1905,11 +1905,6 @@ class QPVBackScene(QGraphicsScene):
         if self.options_layout:
             self.clear_layout(self.options_layout)
 
-            label = QLabel("Scene Options")
-            label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-
-            self.options_layout.addWidget(label)
-
         match self.current_layout:
             case PvBackLayout.MMSongSelect:
                 self.scene_config_menu.addAction("Change to MM Result Layout").triggered.connect(lambda: self.toggle_layout(PvBackLayout.MMResult))

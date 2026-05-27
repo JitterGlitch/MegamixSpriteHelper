@@ -1100,7 +1100,7 @@ class SongFarcCreatorWindow(QWidget):
         scene.toggle_layout(PvBackLayout.MMSongSelect)
         scene.add_layouts_to_window()
 
-        self.main_box.horizontalLayout.addWidget(self.scene_view)
+        self.main_box.pv_back_preview_layout.addWidget(self.scene_view)
     def export_background_jacket_logo_farc_button_callback(self):
         output_location = QFileDialog.getExistingDirectory(self, "Choose folder to save farc file to", str(config.last_used_directory))
 
