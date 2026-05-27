@@ -109,11 +109,10 @@ class Ui_SongFarcCreatorWindow(object):
         self.MainVLayout.addLayout(self.song_info_settings_H_layout)
 
         self.sprite_group_chooser_layout = QVBoxLayout()
-        self.sprite_group_chooser_layout.setObjectName(u"sprite_group_layout")
         self.sprite_group_chooser_layout.setContentsMargins(-1, -1, -1, 0)
 
         self.sprite_group_chooser_label = QLabel()
-        self.sprite_group_chooser_label.setText("Choose which group to use for:")
+        self.sprite_group_chooser_label.setText("Select Sprite Group For:")
         self.sprite_group_chooser_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         self.default_sprite_group_label = QLabel()
