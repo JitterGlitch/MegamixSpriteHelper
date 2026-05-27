@@ -88,8 +88,11 @@ class ThumbnailIDFieldWidget(QWidget):
                 if inferred_id.endswith("_EX"):
                     inferred_id = inferred_id.removesuffix("_EX")
                     is_ex = True
+            self.ui.song_id_spinbox.setValue(float(inferred_id))
 
-        self.ui.song_id_spinbox.setValue(float(inferred_id))
+        else:
+            self.ui.song_id_spinbox.setValue(0)
+
         self.ui.song_id_spinbox.editingFinished.connect(self.thumb_count_request.emit)
         self.ui.config_button.clicked.connect(self.config_button_callback)
 
