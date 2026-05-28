@@ -647,6 +647,29 @@ class ThumbnailWindow(QWidget):
 
 
 ###################################################################################################
+def export_texture_button_callback(texture:TextureType):
+    match texture:
+        case TextureType.JACKET_BACKGROUND:
+            texture_image = main_window.SC.create_background_jacket_texture(main_window.main_box.sprite_group_combobox.currentEnum())
+        case TextureType.LOGO:
+            texture_image = main_window.SC.create_logo_texture(main_window.main_box.sprite_group_combobox.currentEnum())
+        case TextureType.THUMBNAIL:
+            texture_image = main_window.SC.create_thumbnail_texture(main_window.main_box.sprite_group_combobox.currentEnum())
+        case TextureType.PV_BACK:
+            texture_image = main_window.SC.create_pv_back_texture(main_window.main_box.sprite_group_combobox.currentEnum())
+
+    filename, _ = QFileDialog.getSaveFileName(
+        None,
+        "Save " + texture,
+        str(config.last_used_directory) + f"/{texture}.png",
+        "PNG Files (*.png)"
+    )
+    if filename == "":
+        print("Directory wasn't chosen")
+    else:
+        config.last_used_directory = Path(filename).parent
+        texture_image.save(filename, "png")
+
 class MainWindow(QMainWindow):
 
 
@@ -670,10 +693,10 @@ class MainWindow(QMainWindow):
 
         self.export_menu.addSection("Textures")
 
-        self.export_menu.addAction(f"Export {TextureType.JACKET_BACKGROUND}", lambda: self.song_farc_creator.export_texture_button_callback(TextureType.JACKET_BACKGROUND))
-        self.export_menu.addAction(f"Export {TextureType.LOGO}", lambda: self.song_farc_creator.export_texture_button_callback(TextureType.LOGO))
-        self.export_menu.addAction(f"Export {TextureType.THUMBNAIL}", lambda: self.song_farc_creator.export_texture_button_callback(TextureType.THUMBNAIL))
-        self.export_menu.addAction(f"Export {TextureType.PV_BACK}", lambda: self.song_farc_creator.export_texture_button_callback(TextureType.PV_BACK))
+        self.export_menu.addAction(f"Export {TextureType.JACKET_BACKGROUND}", lambda: export_texture_button_callback(TextureType.JACKET_BACKGROUND))
+        self.export_menu.addAction(f"Export {TextureType.LOGO}", lambda: export_texture_button_callback(TextureType.LOGO))
+        self.export_menu.addAction(f"Export {TextureType.THUMBNAIL}", lambda: export_texture_button_callback(TextureType.THUMBNAIL))
+        self.export_menu.addAction(f"Export {TextureType.PV_BACK}", lambda: export_texture_button_callback(TextureType.PV_BACK))
 
 
         self.config_scenes_menu = QSmarterMenu("Configure Scenes",self)
@@ -1120,21 +1143,21 @@ class SongFarcCreatorWindow(QWidget):
         else:
             config.last_used_directory = Path(output_location)
 
-            bg_jk = Image.fromqimage(self.create_background_jacket_texture(self.main_box.default_sprite_group_combobox.currentEnum())).transpose(Image.Transpose.FLIP_TOP_BOTTOM)
+            bg_jk = Image.fromqimage(main_window.SC.create_background_jacket_texture(self.main_box.default_sprite_group_combobox.currentEnum())).transpose(Image.Transpose.FLIP_TOP_BOTTOM)
 
             if self.main_box.ex_sprites_checkbox.isChecked():
-                ex_bg_jk = Image.fromqimage(self.create_background_jacket_texture(self.main_box.ex_sprite_group_combobox.currentEnum())).transpose(Image.Transpose.FLIP_TOP_BOTTOM)
+                ex_bg_jk = Image.fromqimage(main_window.SC.create_background_jacket_texture(self.main_box.ex_sprite_group_combobox.currentEnum())).transpose(Image.Transpose.FLIP_TOP_BOTTOM)
 
             if self.main_box.logo_checkbox.isChecked():
                 if self.main_box.ex_sprites_checkbox.isChecked():
-                    logo = Image.fromqimage(self.create_logo_texture(self.main_box.default_sprite_group_combobox.currentEnum(),
+                    logo = Image.fromqimage(main_window.SC.create_logo_texture(self.main_box.default_sprite_group_combobox.currentEnum(),
                                                                      self.main_box.ex_sprite_group_combobox.currentEnum())).transpose(Image.Transpose.FLIP_TOP_BOTTOM)
                     ex_logo_included = True
                 else:
-                    logo = Image.fromqimage(self.create_logo_texture(self.main_box.default_sprite_group_combobox.currentEnum())).transpose(Image.Transpose.FLIP_TOP_BOTTOM)
+                    logo = Image.fromqimage(main_window.SC.create_logo_texture(self.main_box.default_sprite_group_combobox.currentEnum())).transpose(Image.Transpose.FLIP_TOP_BOTTOM)
 
             if self.main_box.pv_back_sprite_checkbox.isChecked():
-                pv_back_texture = Image.fromqimage(self.create_pv_back_texture(self.main_box.pv_back_sprite_group_combobox.currentEnum())).transpose(Image.Transpose.FLIP_TOP_BOTTOM)
+                pv_back_texture = Image.fromqimage(main_window.SC.create_pv_back_texture(self.main_box.pv_back_sprite_group_combobox.currentEnum())).transpose(Image.Transpose.FLIP_TOP_BOTTOM)
 
             song_id = pad_number(int(self.main_box.farc_song_id_spinbox.value()))
             compression = self.main_box.compression_comboBox.currentEnum()
@@ -1147,133 +1170,6 @@ class SongFarcCreatorWindow(QWidget):
     def switch_pv_back_scene_sprite_group(self):
         self.scene_view.scene().switch_sprite_group(main_window.SC.enum_to_obj(self.main_box.pv_back_sprite_group_combobox.currentEnum()))
         main_window.SC.enum_to_obj(self.main_box.pv_back_sprite_group_combobox.currentEnum()).update_sprites()
-
-    def create_background_jacket_texture(self,sprite_group:SpriteGroup):
-        main_window.SC.enum_to_obj(sprite_group).background.update_sprite(hq_output=True)
-        main_window.SC.enum_to_obj(sprite_group).jacket.update_sprite(hq_output=True)
-
-        background_jacket_texture = QImage(QSize(2048, 1024),QImage.Format.Format_ARGB32)
-        background_jacket_texture.fill(Qt.GlobalColor.transparent)
-
-        painter = QPainter(background_jacket_texture)
-        painter.setRenderHint(QPainter.RenderHint.LosslessImageRendering)
-        painter.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform)
-        painter.setRenderHint(QPainter.RenderHint.VerticalSubpixelPositioning)
-
-        #Background needs to be extended bit beyond what game uses to prevent light edges on sides
-        painter.drawPixmap(1, 1, main_window.SC.enum_to_obj(sprite_group).background.pixmap().scaled(1282, 722))
-        painter.drawPixmap(2, 2, main_window.SC.enum_to_obj(sprite_group).background.pixmap())
-
-        #To prevent jagged edges on the jacket , semi-transparent edges are added to create poor-man's anti-aliasing
-        painter.setOpacity(50 / 255)
-        painter.drawImage(1286, 2, main_window.SC.enum_to_obj(sprite_group).jacket.image_without_fix.scaled(502, 502))
-        painter.setOpacity(255)
-        painter.drawImage(1287, 3, main_window.SC.enum_to_obj(sprite_group).jacket.image_without_fix)
-        painter.end()
-
-        return background_jacket_texture
-    def create_logo_texture(self,sprite_group:SpriteGroup,ex_sprite_group:SpriteGroup=None):
-        main_window.SC.enum_to_obj(sprite_group).logo.update_sprite(hq_output=True)
-        logo = main_window.SC.enum_to_obj(sprite_group).logo.pixmap()
-
-        if ex_sprite_group is not None:
-            main_window.SC.enum_to_obj(ex_sprite_group).logo.update_sprite(hq_output=True)
-            ex_logo = main_window.SC.enum_to_obj(ex_sprite_group).logo.pixmap()
-            logo_texture = QImage(QSize(1024, 1024), QImage.Format.Format_ARGB32)
-        else:
-            logo_texture = QImage(QSize(1024, 512), QImage.Format.Format_ARGB32)
-            ex_logo = None
-
-        logo_texture.fill(Qt.GlobalColor.transparent)
-
-        painter = QPainter(logo_texture)
-        painter.setRenderHint(QPainter.RenderHint.LosslessImageRendering)
-        painter.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform)
-        painter.setRenderHint(QPainter.RenderHint.VerticalSubpixelPositioning)
-
-        painter.drawPixmap(2,2,logo)
-
-        if ex_sprite_group is not None:
-            painter.drawPixmap(2,514,ex_logo)
-
-        painter.end()
-        return logo_texture
-    def create_thumbnail_texture(self,sprite_group:SpriteGroup) -> QImage:
-        main_window.SC.enum_to_obj(sprite_group).thumbnail.update_sprite(hq_output=True)
-
-        thumbnail = QPixmap(main_window.SC.enum_to_obj(sprite_group).thumbnail.pixmap_no_mask)
-        thumbnail_dummy = QPixmap(u":icon/Images/Dummy/SONG_JK_THUMBNAIL_DUMMY.png")
-        thumbnail_texture = QImage(QSize(128, 64), QImage.Format.Format_RGBA8888)
-        thumbnail_texture.fill(Qt.GlobalColor.transparent)
-
-        thumbnail_base = QImage(QSize(128, 64), QImage.Format.Format_RGBA8888)
-        thumbnail_base.fill(Qt.GlobalColor.transparent)
-
-
-        painter = QPainter(thumbnail_base)
-        painter.setRenderHint(QPainter.RenderHint.LosslessImageRendering)
-        painter.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform)
-        painter.setRenderHint(QPainter.RenderHint.VerticalSubpixelPositioning)
-        painter.drawPixmap(0, 0, thumbnail_dummy)
-        painter.setCompositionMode(QPainter.CompositionMode.CompositionMode_SourceIn)
-        painter.drawPixmap(0, 0, thumbnail)
-
-
-
-        painter.end()
-
-        painter_fixer = QPainter(thumbnail_texture)
-        painter_fixer.setOpacity(50/255)
-        painter_fixer.drawImage(-1,-1, thumbnail_base.scaled(130,66))
-        painter_fixer.setOpacity(255)
-        painter_fixer.drawImage(0, 0, thumbnail_base)
-        painter_fixer.end()
-        return thumbnail_texture
-    def create_pv_back_texture(self,sprite_group:SpriteGroup):
-        main_window.SC.enum_to_obj(sprite_group).background.update_sprite(hq_output=True)
-        main_window.SC.enum_to_obj(sprite_group).jacket.update_sprite(hq_output=True)
-        main_window.SC.enum_to_obj(sprite_group).logo.update_sprite(hq_output=True)
-
-
-
-        pv_back_texture = QImage(QSize(2048, 2048), QImage.Format.Format_ARGB32)
-        pv_back_texture.fill(Qt.GlobalColor.transparent)
-
-        painter = QPainter(pv_back_texture)
-        painter.setRenderHint(QPainter.RenderHint.LosslessImageRendering)
-        painter.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform)
-        painter.setRenderHint(QPainter.RenderHint.VerticalSubpixelPositioning)
-        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
-
-        self.scene_view.scene().render(painter, target=QRectF(1, 1, 1922, 1082))
-        self.scene_view.scene().render(painter, target=QRectF(2, 2, 1920, 1080))
-
-        painter.end()
-
-        return pv_back_texture
-
-    def export_texture_button_callback(self,texture:TextureType):
-        match texture:
-            case TextureType.JACKET_BACKGROUND:
-                texture_image = self.create_background_jacket_texture(main_window.main_box.sprite_group_combobox.currentEnum())
-            case TextureType.LOGO:
-                texture_image = self.create_logo_texture(main_window.main_box.sprite_group_combobox.currentEnum())
-            case TextureType.THUMBNAIL:
-                texture_image = self.create_thumbnail_texture(main_window.main_box.sprite_group_combobox.currentEnum())
-            case TextureType.PV_BACK:
-                texture_image = self.create_pv_back_texture(main_window.main_box.sprite_group_combobox.currentEnum())
-
-        filename, _ = QFileDialog.getSaveFileName(
-            None,
-            "Save " + texture,
-            str(config.last_used_directory) + f"/{texture}.png",
-            "PNG Files (*.png)"
-        )
-        if filename == "":
-            print("Directory wasn't chosen")
-        else:
-            config.last_used_directory = Path(filename).parent
-            texture_image.save(filename, "png")
 
 
 if __name__ == "__main__":

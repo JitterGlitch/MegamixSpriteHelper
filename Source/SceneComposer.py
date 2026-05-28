@@ -2083,3 +2083,105 @@ class SceneComposerObjects:
         }
     def enum_to_obj(self,sprite_group:SpriteGroup):
         return self.sprite_groups[sprite_group]
+
+    def create_background_jacket_texture(self, sprite_group: SpriteGroup):
+        self.enum_to_obj(sprite_group).background.update_sprite(hq_output=True)
+        self.enum_to_obj(sprite_group).jacket.update_sprite(hq_output=True)
+
+        background_jacket_texture = QImage(QSize(2048, 1024), QImage.Format.Format_ARGB32)
+        background_jacket_texture.fill(Qt.GlobalColor.transparent)
+
+        painter = QPainter(background_jacket_texture)
+        painter.setRenderHint(QPainter.RenderHint.LosslessImageRendering)
+        painter.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform)
+        painter.setRenderHint(QPainter.RenderHint.VerticalSubpixelPositioning)
+
+        # Background needs to be extended bit beyond what game uses to prevent light edges on sides
+        painter.drawPixmap(1, 1, self.enum_to_obj(sprite_group).background.pixmap().scaled(1282, 722))
+        painter.drawPixmap(2, 2, self.enum_to_obj(sprite_group).background.pixmap())
+
+        # To prevent jagged edges on the jacket , semi-transparent edges are added to create poor-man's anti-aliasing
+        painter.setOpacity(50 / 255)
+        painter.drawImage(1286, 2, self.enum_to_obj(sprite_group).jacket.image_without_fix.scaled(502, 502))
+        painter.setOpacity(255)
+        painter.drawImage(1287, 3, self.enum_to_obj(sprite_group).jacket.image_without_fix)
+        painter.end()
+
+        return background_jacket_texture
+
+    def create_logo_texture(self, sprite_group: SpriteGroup, ex_sprite_group: SpriteGroup = None):
+        self.enum_to_obj(sprite_group).logo.update_sprite(hq_output=True)
+        logo = self.enum_to_obj(sprite_group).logo.pixmap()
+
+        if ex_sprite_group is not None:
+            self.enum_to_obj(ex_sprite_group).logo.update_sprite(hq_output=True)
+            ex_logo = self.enum_to_obj(ex_sprite_group).logo.pixmap()
+            logo_texture = QImage(QSize(1024, 1024), QImage.Format.Format_ARGB32)
+        else:
+            logo_texture = QImage(QSize(1024, 512), QImage.Format.Format_ARGB32)
+            ex_logo = None
+
+        logo_texture.fill(Qt.GlobalColor.transparent)
+
+        painter = QPainter(logo_texture)
+        painter.setRenderHint(QPainter.RenderHint.LosslessImageRendering)
+        painter.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform)
+        painter.setRenderHint(QPainter.RenderHint.VerticalSubpixelPositioning)
+
+        painter.drawPixmap(2, 2, logo)
+
+        if ex_sprite_group is not None:
+            painter.drawPixmap(2, 514, ex_logo)
+
+        painter.end()
+        return logo_texture
+
+    def create_thumbnail_texture(self, sprite_group: SpriteGroup) -> QImage:
+        self.enum_to_obj(sprite_group).thumbnail.update_sprite(hq_output=True)
+
+        thumbnail = QPixmap(self.enum_to_obj(sprite_group).thumbnail.pixmap_no_mask)
+        thumbnail_dummy = QPixmap(u":icon/Images/Dummy/SONG_JK_THUMBNAIL_DUMMY.png")
+        thumbnail_texture = QImage(QSize(128, 64), QImage.Format.Format_RGBA8888)
+        thumbnail_texture.fill(Qt.GlobalColor.transparent)
+
+        thumbnail_base = QImage(QSize(128, 64), QImage.Format.Format_RGBA8888)
+        thumbnail_base.fill(Qt.GlobalColor.transparent)
+
+        painter = QPainter(thumbnail_base)
+        painter.setRenderHint(QPainter.RenderHint.LosslessImageRendering)
+        painter.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform)
+        painter.setRenderHint(QPainter.RenderHint.VerticalSubpixelPositioning)
+        painter.drawPixmap(0, 0, thumbnail_dummy)
+        painter.setCompositionMode(QPainter.CompositionMode.CompositionMode_SourceIn)
+        painter.drawPixmap(0, 0, thumbnail)
+
+        painter.end()
+
+        painter_fixer = QPainter(thumbnail_texture)
+        painter_fixer.setOpacity(50 / 255)
+        painter_fixer.drawImage(-1, -1, thumbnail_base.scaled(130, 66))
+        painter_fixer.setOpacity(255)
+        painter_fixer.drawImage(0, 0, thumbnail_base)
+        painter_fixer.end()
+        return thumbnail_texture
+
+    def create_pv_back_texture(self, sprite_group: SpriteGroup):
+        self.enum_to_obj(sprite_group).background.update_sprite(hq_output=True)
+        self.enum_to_obj(sprite_group).jacket.update_sprite(hq_output=True)
+        self.enum_to_obj(sprite_group).logo.update_sprite(hq_output=True)
+
+        pv_back_texture = QImage(QSize(2048, 2048), QImage.Format.Format_ARGB32)
+        pv_back_texture.fill(Qt.GlobalColor.transparent)
+
+        painter = QPainter(pv_back_texture)
+        painter.setRenderHint(QPainter.RenderHint.LosslessImageRendering)
+        painter.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform)
+        painter.setRenderHint(QPainter.RenderHint.VerticalSubpixelPositioning)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+
+        self.P_Scenes.PV_Back_Creator_Window.render(painter, target=QRectF(1, 1, 1922, 1082))
+        self.P_Scenes.PV_Back_Creator_Window.render(painter, target=QRectF(2, 2, 1920, 1080))
+
+        painter.end()
+
+        return pv_back_texture
