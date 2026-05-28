@@ -177,6 +177,15 @@ def pad_number(number):
         return "00" + str(number)
 
 
+def next_power_of_two(n):
+    if n <= 0:
+        return 1
+    p = 1
+    while p < n:
+        p *= 2
+    return p
+
+
 class ThumbnailWindow(QWidget):
     resized = Signal()
     NameDeleteRequest = Signal()
@@ -499,7 +508,7 @@ class ThumbnailWindow(QWidget):
                 thumbnail_texture.save(str(config.script_directory) + "/Thumbnail Texture.png","png")
                 compression = self.main_box.farc_compression_combobox.currentEnum()
 
-                FarcCreator.create_thumbnail_farc(thumbnail_positions,thumbnail_texture.transpose(Image.FLIP_TOP_BOTTOM),chosen_dir,mod_name,compression)
+                FarcCreator.create_thumbnail_farc(thumbnail_positions,thumbnail_texture.transpose(Image.Transpose.FLIP_TOP_BOTTOM),chosen_dir,mod_name,compression)
 
                 msgBox = QMessageBox()
                 msgBox.setWindowTitle(" ")
@@ -558,14 +567,6 @@ class ThumbnailWindow(QWidget):
 
                 self.known_ids = self.read_saved_ids()
 
-    def next_power_of_two(self,n):
-        if n <= 0:
-            return 1
-        p = 1
-        while p < n:
-            p *= 2
-        return p
-
     def calculate_texture_grid(self, thumb_amount):
         if thumb_amount <= 0:
             return 0, 0
@@ -580,7 +581,7 @@ class ThumbnailWindow(QWidget):
             rows = math.ceil(thumb_amount / 7)
 
             total_height = rows * 66  # Height of a thumbnail plus 2 pixels of a gap
-            tex_height = self.next_power_of_two(total_height)
+            tex_height = next_power_of_two(total_height)
             area = (tex_width, tex_height)
         return area
 
@@ -671,13 +672,12 @@ def export_texture_button_callback(texture:TextureType):
         texture_image.save(filename, "png")
 
 class MainWindow(QMainWindow):
-
-
-
     def __init__(self):
         super(MainWindow, self).__init__()
         self.main_box = Ui_MainWindow()
         self.main_box.setupUi(self)
+        self.SC = SceneComposer.SceneComposerObjects()
+
         self.setWindowTitle("Megamix Sprite Helper" + " " + str(config.version))
 
         # Prepare new window
@@ -711,9 +711,7 @@ class MainWindow(QMainWindow):
 
         self.main_box.flip_horizontal_button.clicked.connect(lambda: self.flip_current_sprite(Qt.Orientation.Horizontal))
         self.main_box.flip_vertical_button.clicked.connect(lambda: self.flip_current_sprite(Qt.Orientation.Vertical))
-
         self.main_box.current_sprite_combobox.currentIndexChanged.connect(lambda: self.current_sprite_tab_switcher(self.main_box.current_sprite_combobox.currentIndex()))
-
         self.main_box.sprite_group_combobox.currentEnumChanged.connect(self.sprite_group_changed)
 
         self.display_scenes()
@@ -793,8 +791,6 @@ class MainWindow(QMainWindow):
                 self.SC.enum_to_obj(self.main_box.sprite_group_combobox.currentEnum()).thumbnail.toggle_flip(flip_type)
 
     def display_scenes(self):
-        self.SC = SceneComposer.SceneComposerObjects()
-
         self.populate_display_scene_menu()
 
         self.mm_practice_toggle.setChecked(False)
@@ -874,7 +870,7 @@ class MainWindow(QMainWindow):
 
 
         for toggle in self.scene_toggle_list:
-            if toggle[0].isChecked() == True:
+            if toggle[0].isChecked():
                 self.selected_scenes.append(toggle[1])
 
 
@@ -938,15 +934,10 @@ class MainWindow(QMainWindow):
                 x = x + 1
 
     def generate_preview(self,target:OutputTarget):
-        #Update sprites if the zoom was changed
-        if self.SC.enum_to_obj(self.main_box.sprite_group_combobox.currentEnum()).jacket.edit_controls[SpriteSetting.ZOOM.value].value != 1.0:
-            self.SC.enum_to_obj(self.main_box.sprite_group_combobox.currentEnum()).jacket.update_sprite(hq_output=True)
-        if self.SC.enum_to_obj(self.main_box.sprite_group_combobox.currentEnum()).background.edit_controls[SpriteSetting.ZOOM.value].value != 1.0:
-            self.SC.enum_to_obj(self.main_box.sprite_group_combobox.currentEnum()).background.update_sprite(hq_output=True)
-        if self.SC.enum_to_obj(self.main_box.sprite_group_combobox.currentEnum()).thumbnail.edit_controls[SpriteSetting.ZOOM.value].value != 1.0:
-            self.SC.enum_to_obj(self.main_box.sprite_group_combobox.currentEnum()).thumbnail.update_sprite(hq_output=True)
-        if self.SC.enum_to_obj(self.main_box.sprite_group_combobox.currentEnum()).logo.edit_controls[SpriteSetting.ZOOM.value].value != 1.0:
-            self.SC.enum_to_obj(self.main_box.sprite_group_combobox.currentEnum()).logo.update_sprite(hq_output=True)
+        self.SC.enum_to_obj(self.main_box.sprite_group_combobox.currentEnum()).jacket.update_sprite(hq_output=True)
+        self.SC.enum_to_obj(self.main_box.sprite_group_combobox.currentEnum()).background.update_sprite(hq_output=True)
+        self.SC.enum_to_obj(self.main_box.sprite_group_combobox.currentEnum()).thumbnail.update_sprite(hq_output=True)
+        self.SC.enum_to_obj(self.main_box.sprite_group_combobox.currentEnum()).logo.update_sprite(hq_output=True)
 
         if len(self.selected_scenes) == 0:
             return
@@ -1003,7 +994,6 @@ class MainWindow(QMainWindow):
                 sprite_slave.toggle_zoom_in(True)
 
         self.SC.enum_to_obj(self.main_box.sprite_group_combobox.currentEnum()).logo.toggle_visibility(state)
-        self.export_logo.setEnabled(state)
         self.song_farc_creator.main_box.logo_checkbox.setEnabled(state)
         self.song_farc_creator.main_box.logo_checkbox.setChecked(state)
         if self.main_box.current_sprite_combobox.currentText() == SpriteType.LOGO:
