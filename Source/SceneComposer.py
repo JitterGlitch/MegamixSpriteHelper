@@ -27,6 +27,12 @@ class SpriteType(StrEnum):
     LOGO = "Logo"
     DROP_SHADOW = "Drop Shadow"
 
+class TextureType(StrEnum):
+    JACKET_BACKGROUND = "Jacket & Background Texture"
+    LOGO = "Logo Texture"
+    THUMBNAIL = "Thumbnail Texture"
+    PV_BACK = "PV_BACK Texture"
+
 class SpriteSetting(StrEnum):
     HORIZONTAL_OFFSET = "Horizontal Offset"
     VERTICAL_OFFSET = "Vertical Offset"

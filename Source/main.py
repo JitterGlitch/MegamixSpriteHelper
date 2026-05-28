@@ -19,7 +19,7 @@ from PySide6.QtGui import QPixmap, QPalette, QColor, QImage, QPainter, QGuiAppli
 from PySide6.QtWidgets import QApplication, QMainWindow, QWidget, QFileDialog, QMessageBox, QSizePolicy, QSpacerItem, QMenu
 
 import SceneComposer
-from SceneComposer import SpriteGroup
+from SceneComposer import SpriteGroup, TextureType
 from ui_SongFarcCreator import Ui_SongFarcCreatorWindow
 from widgets import QSmarterMenu
 
@@ -667,10 +667,13 @@ class MainWindow(QMainWindow):
         self.export_menu.addAction("Create Song Sprite Farc", lambda: self.song_farc_creator.show())
         self.export_menu.addAction("Create Thumbnail Farc", lambda: self.thumbnail_creator.show())
         self.export_menu.addAction("Generate Sprite Database", lambda: self.generate_spr_db_button_callback())
+
         self.export_menu.addSection("Textures")
-        self.export_menu.addAction("Export Thumbnail Texture", self.song_farc_creator.export_thumbnail_button_callback)
-        self.export_logo = self.export_menu.addAction("Export Logo Texture", self.song_farc_creator.export_logo_button_callback)
-        self.export_menu.addAction("Export Jacket/Background Texture", self.song_farc_creator.export_background_jacket_button_callback)
+
+        self.export_menu.addAction(f"Export {TextureType.JACKET_BACKGROUND}", lambda: self.song_farc_creator.export_texture_button_callback(TextureType.JACKET_BACKGROUND))
+        self.export_menu.addAction(f"Export {TextureType.LOGO}", lambda: self.song_farc_creator.export_texture_button_callback(TextureType.LOGO))
+        self.export_menu.addAction(f"Export {TextureType.THUMBNAIL}", lambda: self.song_farc_creator.export_texture_button_callback(TextureType.THUMBNAIL))
+        self.export_menu.addAction(f"Export {TextureType.PV_BACK}", lambda: self.song_farc_creator.export_texture_button_callback(TextureType.PV_BACK))
 
 
         self.config_scenes_menu = QSmarterMenu("Configure Scenes",self)
@@ -1248,37 +1251,29 @@ class SongFarcCreatorWindow(QWidget):
         painter.end()
 
         return pv_back_texture
-    def export_background_jacket_button_callback(self):
-        save_location = QFileDialog.getSaveFileName(self, "Save File",str(config.last_used_directory)+"/Background Texture.png","Images (*.png)")[0]
 
-        if save_location == "":
-            print("Directory wasn't chosen")
-        else:
-            config.last_used_directory = Path(save_location).parent
-            background_jacket_texture = self.create_background_jacket_texture(main_window.main_box.sprite_group_combobox.currentEnum())
-            background_jacket_texture.save(save_location,"png")
-    def export_thumbnail_button_callback(self):
-        save_location = QFileDialog.getSaveFileName(self, "Save File", str(config.last_used_directory) + "/Thumbnail Texture.png", "Images (*.png)")[0]
-        if save_location == "":
-            print("Directory wasn't chosen")
-        else:
-            config.last_used_directory = Path(save_location)
-            thumbnail_texture = self.create_thumbnail_texture(main_window.main_box.sprite_group_combobox.currentEnum())
-            thumbnail_texture.save(save_location,"png")
+    def export_texture_button_callback(self,texture:TextureType):
+        match texture:
+            case TextureType.JACKET_BACKGROUND:
+                texture_image = self.create_background_jacket_texture(main_window.main_box.sprite_group_combobox.currentEnum())
+            case TextureType.LOGO:
+                texture_image = self.create_logo_texture(main_window.main_box.sprite_group_combobox.currentEnum())
+            case TextureType.THUMBNAIL:
+                texture_image = self.create_thumbnail_texture(main_window.main_box.sprite_group_combobox.currentEnum())
+            case TextureType.PV_BACK:
+                texture_image = self.create_pv_back_texture(main_window.main_box.sprite_group_combobox.currentEnum())
 
-    def export_logo_button_callback(self):
         filename, _ = QFileDialog.getSaveFileName(
             None,
-            "Save Image",
-            str(config.last_used_directory) + "/Logo Texture.png",
+            "Save " + texture,
+            str(config.last_used_directory) + f"/{texture}.png",
             "PNG Files (*.png)"
         )
         if filename == "":
             print("Directory wasn't chosen")
         else:
             config.last_used_directory = Path(filename).parent
-            logo_texture = self.create_logo_texture(main_window.main_box.sprite_group_combobox.currentEnum())
-            logo_texture.save(filename, "png")
+            texture_image.save(filename, "png")
 
 
 if __name__ == "__main__":
