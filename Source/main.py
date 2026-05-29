@@ -678,6 +678,9 @@ class MainWindow(QMainWindow):
         self.main_box.setupUi(self)
         self.SC = SceneComposer.SceneComposerObjects()
 
+        for sprite_group in self.SC.sprite_groups:
+            self.SC.enum_to_obj(sprite_group).logo.SpriteUpdated.connect(self.disable_shared_controls)
+
         self.setWindowTitle("Megamix Sprite Helper" + " " + str(config.version))
 
         # Prepare new window
@@ -717,8 +720,6 @@ class MainWindow(QMainWindow):
         self.display_scenes()
 
         self.song_farc_creator.init_preview(self.SC.P_Scenes.PV_Back_Creator_Window)
-        self.song_farc_creator.main_box.logo_checkbox.toggled.connect(self.song_farc_creator.scene_view.scene().toggle_logo_visibility)
-
 
         #Make sure that tab matches options shown on start
         self.current_sprite_tab_switcher(self.main_box.current_sprite_combobox.currentIndex())
@@ -733,7 +734,6 @@ class MainWindow(QMainWindow):
         non_active_sprite_object_list.remove(current_sprite_object)
 
         self.SC.P_Scenes.switch_sprite_group(current_sprite_object)
-        self.has_logo_toggle.setChecked(current_sprite_object.logo.is_visible)
 
         for sprite in current_sprite_object.list:
             for slave in sprite.sprite_slaves_list:
@@ -848,11 +848,6 @@ class MainWindow(QMainWindow):
         self.new_classics_toggle.setCheckable(True)
         self.new_classics_toggle.setChecked(True)
 
-        self.has_logo_toggle = QAction("Show Logo")
-        self.has_logo_toggle.setCheckable(True)
-        self.has_logo_toggle.setChecked(True)
-        self.has_logo_toggle.toggled.connect(self.has_logo_toggle_callback)
-
         for toggle in self.scene_toggle_list:
             toggle[0].setCheckable(True)
             toggle[0].setChecked(True)
@@ -899,9 +894,6 @@ class MainWindow(QMainWindow):
         self.config_scenes_menu.clear()
         self.config_scenes_menu.addSection("Apply to all scenes")
         new_classic_toggleable_scene_present = any(item in self.SC.P_Scenes.new_classics_scenes for item in self.selected_scenes)
-
-        if len(self.selected_scenes) > 0:
-            self.config_scenes_menu.addAction(self.has_logo_toggle)
 
         if new_classic_toggleable_scene_present:
             self.config_scenes_menu.addAction(self.new_classics_toggle)
@@ -985,17 +977,9 @@ class MainWindow(QMainWindow):
                     QDesktopServices.openUrl(url)
 
 
-    def has_logo_toggle_callback(self):
-        state = self.has_logo_toggle.isChecked()
+    def disable_shared_controls(self):
+        state = self.SC.enum_to_obj(self.main_box.sprite_group_combobox.currentEnum()).logo.is_visible
 
-        for sprite_slave in self.SC.enum_to_obj(self.main_box.sprite_group_combobox.currentEnum()).logo.sprite_slaves_list:
-            sprite_slave: QSpriteSlave
-            if sprite_slave.tracked.type == SpriteType.LOGO and sprite_slave.zoomed_in == True:
-                sprite_slave.toggle_zoom_in(True)
-
-        self.SC.enum_to_obj(self.main_box.sprite_group_combobox.currentEnum()).logo.toggle_visibility(state)
-        self.song_farc_creator.main_box.logo_checkbox.setEnabled(state)
-        self.song_farc_creator.main_box.logo_checkbox.setChecked(state)
         if self.main_box.current_sprite_combobox.currentText() == SpriteType.LOGO:
             self.main_box.load_image_button.setEnabled(state)
             self.main_box.flip_vertical_button.setEnabled(state)
@@ -1138,10 +1122,10 @@ class SongFarcCreatorWindow(QWidget):
             if self.main_box.ex_sprites_checkbox.isChecked():
                 ex_bg_jk = Image.fromqimage(main_window.SC.create_background_jacket_texture(self.main_box.ex_sprite_group_combobox.currentEnum())).transpose(Image.Transpose.FLIP_TOP_BOTTOM)
 
-            if self.main_box.logo_checkbox.isChecked():
-                if self.main_box.ex_sprites_checkbox.isChecked():
+            if main_window.SC.enum_to_obj(self.main_box.default_sprite_group_combobox.currentEnum()).logo.is_visible:
+                if main_window.SC.enum_to_obj(self.main_box.ex_sprite_group_combobox.currentEnum()).logo.is_visible:
                     logo = Image.fromqimage(main_window.SC.create_logo_texture(self.main_box.default_sprite_group_combobox.currentEnum(),
-                                                                     self.main_box.ex_sprite_group_combobox.currentEnum())).transpose(Image.Transpose.FLIP_TOP_BOTTOM)
+                                                                               self.main_box.ex_sprite_group_combobox.currentEnum())).transpose(Image.Transpose.FLIP_TOP_BOTTOM)
                     ex_logo_included = True
                 else:
                     logo = Image.fromqimage(main_window.SC.create_logo_texture(self.main_box.default_sprite_group_combobox.currentEnum())).transpose(Image.Transpose.FLIP_TOP_BOTTOM)

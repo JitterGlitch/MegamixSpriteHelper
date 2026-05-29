@@ -78,11 +78,6 @@ class Ui_SongFarcCreatorWindow(object):
 
         self.settings_layout.addWidget(self.settings_label)
 
-        self.logo_checkbox = QCheckBox(Form)
-        self.logo_checkbox.setText(u"Include Logo")
-        self.logo_checkbox.setChecked(True)
-        self.settings_layout.addWidget(self.logo_checkbox)
-
         self.ex_sprites_checkbox = QCheckBox(Form)
         self.ex_sprites_checkbox.setText(u"Include EX Sprites")
 

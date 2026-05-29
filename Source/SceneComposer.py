@@ -933,16 +933,40 @@ class QLogo(QSpriteBase):
     def __init__(self,sprite,size):
         super().__init__(sprite,SpriteType.LOGO,size)
 
+        self.show_logo_checkbox = QCheckBox()
+        self.show_logo_checkbox.setChecked(True)
+        self.show_logo_checkbox.setText("Show Logo")
+        self.show_logo_checkbox.toggled.connect(lambda: self.toggle_visibility(self.show_logo_checkbox.isChecked()))
+
+    def toggle_visibility(self,state):
+        self.is_visible = state
+        self.drop_shadow.is_visible = state
+        self.update_sprite()
+
+        for setting in self.edit_controls:
+            self.edit_controls[setting].setEnabled(state)
+
+        for sprite_slave in self.sprite_slaves_list:
+            sprite_slave: QSpriteSlave
+            if sprite_slave.tracked.type == SpriteType.LOGO and sprite_slave.zoomed_in == True:
+                sprite_slave.toggle_zoom_in(True)
+
+        self.drop_shadow.add_drop_shadow_checkbox.setEnabled(state)
+        self.controls_enabled = state
+        self.SpriteUpdated.emit()
+
     def add_sprite_specific_settings(self):
         self.drop_shadow = QDropShadow(self)
         self.NewImageLoaded.connect(self.drop_shadow.load_new_image)
 
     def add_edit_controls_to(self,layout:QLayout):
+        layout.addWidget(self.show_logo_checkbox)
         for control in self.edit_controls:
             layout.addWidget(self.edit_controls[control])
         self.drop_shadow.add_edit_controls_to(layout)
 
     def hide_edit_controls(self,state):
+        self.show_logo_checkbox.setVisible(not state)
         for control in self.edit_controls:
             self.edit_controls[control].setVisible(not state)
 
