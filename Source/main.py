@@ -1112,26 +1112,34 @@ class SongFarcCreatorWindow(QWidget):
         ex_bg_jk = None
         ex_logo_included = False
 
+        default_sprite_group = self.main_box.default_sprite_group_combobox.currentEnum()
+        ex_sprite_group = self.main_box.ex_sprite_group_combobox.currentEnum()
+        pv_back_sprite_group = self.main_box.pv_back_sprite_group_combobox.currentEnum()
+
+        ex_sprites_checked = self.main_box.ex_sprites_checkbox.isChecked()
+        base_logo_visible = main_window.SC.enum_to_obj(self.main_box.default_sprite_group_combobox.currentEnum()).logo.is_visible
+        ex_logo_visible = main_window.SC.enum_to_obj(self.main_box.ex_sprite_group_combobox.currentEnum()).logo.is_visible
+        pv_back_checked = self.main_box.pv_back_sprite_checkbox.isChecked()
+
         if output_location == "":
             print("Directory wasn't chosen")
         else:
             config.last_used_directory = Path(output_location)
 
-            bg_jk = Image.fromqimage(main_window.SC.create_background_jacket_texture(self.main_box.default_sprite_group_combobox.currentEnum())).transpose(Image.Transpose.FLIP_TOP_BOTTOM)
+            bg_jk = Image.fromqimage(main_window.SC.create_background_jacket_texture(default_sprite_group)).transpose(Image.Transpose.FLIP_TOP_BOTTOM)
 
-            if self.main_box.ex_sprites_checkbox.isChecked():
-                ex_bg_jk = Image.fromqimage(main_window.SC.create_background_jacket_texture(self.main_box.ex_sprite_group_combobox.currentEnum())).transpose(Image.Transpose.FLIP_TOP_BOTTOM)
+            if ex_sprites_checked:
+                ex_bg_jk = Image.fromqimage(main_window.SC.create_background_jacket_texture(ex_sprite_group)).transpose(Image.Transpose.FLIP_TOP_BOTTOM)
 
-            if main_window.SC.enum_to_obj(self.main_box.default_sprite_group_combobox.currentEnum()).logo.is_visible:
-                if main_window.SC.enum_to_obj(self.main_box.ex_sprite_group_combobox.currentEnum()).logo.is_visible:
-                    logo = Image.fromqimage(main_window.SC.create_logo_texture(self.main_box.default_sprite_group_combobox.currentEnum(),
-                                                                               self.main_box.ex_sprite_group_combobox.currentEnum())).transpose(Image.Transpose.FLIP_TOP_BOTTOM)
+            if base_logo_visible:
+                if ex_logo_visible:
+                    logo = Image.fromqimage(main_window.SC.create_logo_texture(default_sprite_group,ex_sprite_group)).transpose(Image.Transpose.FLIP_TOP_BOTTOM)
                     ex_logo_included = True
                 else:
-                    logo = Image.fromqimage(main_window.SC.create_logo_texture(self.main_box.default_sprite_group_combobox.currentEnum())).transpose(Image.Transpose.FLIP_TOP_BOTTOM)
+                    logo = Image.fromqimage(main_window.SC.create_logo_texture(default_sprite_group)).transpose(Image.Transpose.FLIP_TOP_BOTTOM)
 
-            if self.main_box.pv_back_sprite_checkbox.isChecked():
-                pv_back_texture = Image.fromqimage(main_window.SC.create_pv_back_texture(self.main_box.pv_back_sprite_group_combobox.currentEnum())).transpose(Image.Transpose.FLIP_TOP_BOTTOM)
+            if pv_back_checked:
+                pv_back_texture = Image.fromqimage(main_window.SC.create_pv_back_texture(pv_back_sprite_group)).transpose(Image.Transpose.FLIP_TOP_BOTTOM)
 
             song_id = pad_number(int(self.main_box.farc_song_id_spinbox.value()))
             compression = self.main_box.compression_comboBox.currentEnum()
