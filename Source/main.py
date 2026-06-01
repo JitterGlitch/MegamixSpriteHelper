@@ -1110,7 +1110,9 @@ class SongFarcCreatorWindow(QWidget):
         logo = None
         pv_back_texture = None
         ex_bg_jk = None
-        ex_logo_included = False
+
+        song_id = pad_number(int(self.main_box.farc_song_id_spinbox.value()))
+        compression = self.main_box.compression_comboBox.currentEnum()
 
         default_sprite_group = self.main_box.default_sprite_group_combobox.currentEnum()
         ex_sprite_group = self.main_box.ex_sprite_group_combobox.currentEnum()
@@ -1127,24 +1129,28 @@ class SongFarcCreatorWindow(QWidget):
             config.last_used_directory = Path(output_location)
 
             bg_jk = Image.fromqimage(main_window.SC.create_background_jacket_texture(default_sprite_group)).transpose(Image.Transpose.FLIP_TOP_BOTTOM)
+            logo_list = []
+
+            if base_logo_visible:
+                logo_list.append((default_sprite_group,""))
 
             if ex_sprites_checked:
                 ex_bg_jk = Image.fromqimage(main_window.SC.create_background_jacket_texture(ex_sprite_group)).transpose(Image.Transpose.FLIP_TOP_BOTTOM)
-
-            if base_logo_visible:
                 if ex_logo_visible:
-                    logo = Image.fromqimage(main_window.SC.create_logo_texture(default_sprite_group,ex_sprite_group)).transpose(Image.Transpose.FLIP_TOP_BOTTOM)
-                    ex_logo_included = True
-                else:
-                    logo = Image.fromqimage(main_window.SC.create_logo_texture(default_sprite_group)).transpose(Image.Transpose.FLIP_TOP_BOTTOM)
+                    logo_list.append((ex_sprite_group, "_EX"))
+
+            logo_texture, logo_info = main_window.SC.create_logo_texture(logo_list)
+            if logo_texture is not None:
+                logo_texture = Image.fromqimage(logo_texture).transpose(Image.Transpose.FLIP_TOP_BOTTOM)
+                logos = (logo_texture,logo_info)
+            else:
+                logos = []
 
             if pv_back_checked:
                 pv_back_texture = Image.fromqimage(main_window.SC.create_pv_back_texture(pv_back_sprite_group)).transpose(Image.Transpose.FLIP_TOP_BOTTOM)
 
-            song_id = pad_number(int(self.main_box.farc_song_id_spinbox.value()))
-            compression = self.main_box.compression_comboBox.currentEnum()
-
-            FarcCreator.create_jk_bg_logo_farc(song_id, bg_jk, logo, output_location,compression,pv_back_texture=pv_back_texture,ex_bg_jk_texture=ex_bg_jk,ex_logo_included=ex_logo_included)
+            print(f"Logos = {logos}")
+            FarcCreator.create_jk_bg_logo_farc(song_id, bg_jk, logos, output_location,compression,pv_back_texture=pv_back_texture,ex_bg_jk_texture=ex_bg_jk)
 
             if self.main_box.generate_spr_db_after_export_checkbox.isChecked():
                 main_window.generate_spr_db_button_callback(path=output_location)

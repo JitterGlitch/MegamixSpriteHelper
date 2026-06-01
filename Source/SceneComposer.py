@@ -2133,17 +2133,20 @@ class SceneComposerObjects:
 
         return background_jacket_texture
 
-    def create_logo_texture(self, sprite_group: SpriteGroup, ex_sprite_group: SpriteGroup = None):
-        self.enum_to_obj(sprite_group).logo.update_sprite(hq_output=True)
-        logo = self.enum_to_obj(sprite_group).logo.pixmap()
+    def create_logo_texture(self, sprite_group_list:list[tuple[SpriteGroup, str]]):
+        for sprite_group in sprite_group_list:
+            self.enum_to_obj(sprite_group[0]).logo.update_sprite(hq_output=True)
 
-        if ex_sprite_group is not None:
-            self.enum_to_obj(ex_sprite_group).logo.update_sprite(hq_output=True)
-            ex_logo = self.enum_to_obj(ex_sprite_group).logo.pixmap()
-            logo_texture = QImage(QSize(1024, 1024), QImage.Format.Format_ARGB32)
-        else:
-            logo_texture = QImage(QSize(1024, 512), QImage.Format.Format_ARGB32)
-            ex_logo = None
+        #Hardcoded because there's no point of doing it other way right now
+        logo_texture = None
+        match len(sprite_group_list):
+            case 1:
+                logo_texture = QImage(QSize(1024, 512), QImage.Format.Format_ARGB32)
+            case 2:
+                logo_texture = QImage(QSize(1024, 1024), QImage.Format.Format_ARGB32)
+            case _:
+                return None,None
+
 
         logo_texture.fill(Qt.GlobalColor.transparent)
 
@@ -2152,13 +2155,18 @@ class SceneComposerObjects:
         painter.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform)
         painter.setRenderHint(QPainter.RenderHint.VerticalSubpixelPositioning)
 
-        painter.drawPixmap(2, 2, logo)
+        x,y = 2,2
+        logo_info_list = []
+        for sprite_group in sprite_group_list:
+            logo = self.enum_to_obj(sprite_group[0]).logo.pixmap()
+            prefix = sprite_group[1]
 
-        if ex_sprite_group is not None:
-            painter.drawPixmap(2, 514, ex_logo)
+            painter.drawPixmap(x, y, logo)
+            logo_info_list.append((prefix,(x,y)))
+            y = y + 330 + 4
 
         painter.end()
-        return logo_texture
+        return logo_texture,logo_info_list
 
     def create_thumbnail_texture(self, sprite_group: SpriteGroup) -> QImage:
         self.enum_to_obj(sprite_group).thumbnail.update_sprite(hq_output=True)

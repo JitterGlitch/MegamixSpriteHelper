@@ -27,6 +27,7 @@ class FarcCreator:
     def create_jk_bg_logo_farc(self,song_id,jk_bg_texture,logo_texture,output_location,compression:Compression,pv_back_texture=None,ex_bg_jk_texture=None,ex_logo_included=False):
         texture_count = 1
         txp = kkdlib.txp.Set()
+        logo_list = []
         names = [f"SH Texture #{texture_count}"]
         if compression is Compression.ATI2:
             txp.add_file(kkdlib.txp.Texture.py_ycbcr_from_rgba_gpu(jk_bg_texture.width,jk_bg_texture.height,jk_bg_texture.tobytes()))
@@ -73,37 +74,45 @@ class FarcCreator:
             ex_jacket.width = 502
             ex_jacket.height = 502
 
-        if logo_texture is not None:
+        if len(logo_texture) > 0:
+
 
             texture_count = texture_count + 1
             names.append(f"SH Texture #{texture_count}")
             if compression is Compression.ATI2:
-                txp.add_file(kkdlib.txp.Texture.py_ycbcr_from_rgba_gpu(logo_texture.width, logo_texture.height, logo_texture.tobytes()))
+                txp.add_file(kkdlib.txp.Texture.py_ycbcr_from_rgba_gpu(logo_texture[0].width, logo_texture[0].height, logo_texture[0].tobytes()))
             else:
-                txp.add_file(kkdlib.txp.Texture.py_from_rgba_gpu(logo_texture.width, logo_texture.height, logo_texture.tobytes(), compression.to_kkdlib_format()))
+                txp.add_file(kkdlib.txp.Texture.py_from_rgba_gpu(logo_texture[0].width, logo_texture[0].height, logo_texture[0].tobytes(), compression.to_kkdlib_format()))
 
-            logo = kkdlib.spr.Info()
-            logo.texid = texture_count - 1
-            logo.resolution_mode = kkdlib.spr.ResolutionMode.FHD
-            logo.px = 2
-            logo.py = 2
-            logo.width = 870
-            logo.height = 330
+            default_prefix_seen = False
+            for logo_info in logo_texture[1]:
 
-            if ex_logo_included:
+                logo = kkdlib.spr.Info()
+                logo.texid = texture_count - 1
+                logo.resolution_mode = kkdlib.spr.ResolutionMode.FHD
+                logo.px = logo_info[1][0]
+                logo.py = logo_info[1][1]
+                logo.width = 870
+                logo.height = 330
 
-                ex_logo = kkdlib.spr.Info()
-                ex_logo.texid = texture_count - 1
-                ex_logo.resolution_mode = kkdlib.spr.ResolutionMode.FHD
-                ex_logo.px = 2
-                ex_logo.py = 514
-                ex_logo.width = 870
-                ex_logo.height = 330
+                logo_list.append((logo,logo_info[0]))
+                if logo_info[0] == "":
+                    default_prefix_seen = True
+
+            if not default_prefix_seen:
+                logo = kkdlib.spr.Info()
+                logo.texid = 0
+                logo.resolution_mode = kkdlib.spr.ResolutionMode.FHD
+                logo.px = 2
+                logo.py = 2
+                logo.width = 0
+                logo.height = 0
+
+                logo_list.append((logo, ""))
 
 
         else:
-            #Adding empty sprite as a placeholder
-            #You can't just remove it from farc because sprite database will fail to generate.
+            #Adding empty sprite as logo so game doesn't display placeholder
             logo = kkdlib.spr.Info()
             logo.texid = 0
             logo.resolution_mode = kkdlib.spr.ResolutionMode.FHD
@@ -111,6 +120,8 @@ class FarcCreator:
             logo.py = 2
             logo.width = 0
             logo.height = 0
+
+            logo_list.append((logo,""))
 
         if pv_back_texture is not None:
 
@@ -140,10 +151,9 @@ class FarcCreator:
             spr.add_spr(ex_background, str("SONG_BG" + song_id + "_EX"))
             spr.add_spr(ex_jacket, str("SONG_JK" + song_id + "_EX"))
 
-        spr.add_spr(logo, str("SONG_LOGO" + song_id))
 
-        if ex_logo_included:
-            spr.add_spr(ex_logo, str("SONG_LOGO" + song_id +"_EX"))
+        for logo in logo_list:
+            spr.add_spr(logo[0], str("SONG_LOGO" + song_id + logo[1]))
 
         if pv_back_texture is not None:
             spr.add_spr(pv_back, str("IMAGE"))
