@@ -1,6 +1,7 @@
 from PySide6.QtCore import (QCoreApplication,
                             QMetaObject, QRect,
                             QSize, Qt)
+from PySide6.QtGui import QIcon
 
 from PySide6.QtWidgets import (QAbstractScrollArea, QCheckBox,
     QDoubleSpinBox, QHBoxLayout, QLabel,
@@ -17,6 +18,11 @@ class Ui_SongFarcCreatorWindow(object):
         if not Form.objectName():
             Form.setObjectName(u"SongFarcCreatorWindow")
         Form.resize(629, 731)
+
+        icon = QIcon()
+        icon.addFile(u":/icon/Icon-red.png", QSize(), QIcon.Mode.Normal, QIcon.State.Off)
+        Form.setWindowIcon(icon)
+
         self.MainVLayout = QVBoxLayout(Form)
         self.MainVLayout.setSizeConstraint(QLayout.SizeConstraint.SetDefaultConstraint)
 
