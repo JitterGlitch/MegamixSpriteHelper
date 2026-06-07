@@ -4,9 +4,9 @@ from PySide6.QtCore import (QCoreApplication,
 from PySide6.QtGui import QIcon
 
 from PySide6.QtWidgets import (QAbstractScrollArea, QCheckBox,
-    QDoubleSpinBox, QHBoxLayout, QLabel,
-    QLayout, QPushButton, QScrollArea,
-    QSizePolicy, QSpacerItem, QVBoxLayout, QWidget)
+                               QDoubleSpinBox, QHBoxLayout, QLabel,
+                               QLayout, QPushButton, QScrollArea,
+                               QSizePolicy, QSpacerItem, QVBoxLayout, QWidget, QTabWidget, QFrame)
 from superqt import QEnumComboBox
 
 import FarcCreator
@@ -17,7 +17,7 @@ class Ui_SongFarcCreatorWindow(object):
     def setupUi(self, Form):
         if not Form.objectName():
             Form.setObjectName(u"SongFarcCreatorWindow")
-        Form.resize(629, 731)
+        #Form.resize(629, 731)
 
         icon = QIcon()
         icon.addFile(u":/icon/Icon-red.png", QSize(), QIcon.Mode.Normal, QIcon.State.Off)
@@ -134,6 +134,8 @@ class Ui_SongFarcCreatorWindow(object):
         self.pv_back_sprite_group_combobox = QEnumComboBox()
         self.pv_back_sprite_group_combobox.setEnumClass(SpriteGroup)
 
+        #self.sprite_group_V_spacer = QSpacerItem(0,20, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Fixed)
+
         self.sprite_group_chooser_layout.addWidget(self.sprite_group_chooser_label)
         self.sprite_group_chooser_layout.addWidget(self.default_sprite_group_label)
         self.sprite_group_chooser_layout.addWidget(self.default_sprite_group_combobox)
@@ -141,9 +143,10 @@ class Ui_SongFarcCreatorWindow(object):
         self.sprite_group_chooser_layout.addWidget(self.ex_sprite_group_combobox)
         self.sprite_group_chooser_layout.addWidget(self.pv_back_sprite_group_label)
         self.sprite_group_chooser_layout.addWidget(self.pv_back_sprite_group_combobox)
+        #self.sprite_group_chooser_layout.addItem(self.sprite_group_V_spacer)
 
 
-        self.MainVLayout.addLayout(self.sprite_group_chooser_layout)
+        #self.MainVLayout.addLayout(self.sprite_group_chooser_layout)
 
 
         self.pv_back_options_layout = QHBoxLayout()
@@ -197,7 +200,7 @@ class Ui_SongFarcCreatorWindow(object):
         self.select_layout_scrollArea.setWidgetResizable(True)
 
         self.scrollAreaWidgetContents = QWidget()
-        self.scrollAreaWidgetContents.setGeometry(QRect(0, 0, 361, 210))
+        self.scrollAreaWidgetContents.setGeometry(QRect(0, 0, 362, 210))
 
         self.select_layout_scrollArea.setWidget(self.scrollAreaWidgetContents)
 
@@ -222,16 +225,31 @@ class Ui_SongFarcCreatorWindow(object):
 
 
 
-        self.MainVLayout.addLayout(self.pv_back_options_layout)
+        #self.MainVLayout.addLayout(self.pv_back_options_layout)
 
         self.pv_back_preview_layout = QHBoxLayout()
         self.pv_back_preview_layout.setSizeConstraint(QLayout.SizeConstraint.SetFixedSize)
         self.pv_back_preview_layout.setContentsMargins(-1, -1, -1, 0)
 
-        self.MainVLayout.addLayout(self.pv_back_preview_layout)
+        #self.MainVLayout.addLayout(self.pv_back_preview_layout)
+        self.sprite_group_tab = QFrame()
+        self.sprite_group_tab.setLayout(self.sprite_group_chooser_layout)
+        self.sprite_group_tab.setFixedHeight(250)
+
+        self.pv_back_combined_layout = QVBoxLayout()
+        self.pv_back_combined_layout.addLayout(self.pv_back_options_layout)
+        self.pv_back_combined_layout.addLayout(self.pv_back_preview_layout)
+
+        self.pv_back_tab = QFrame()
+        self.pv_back_tab.setLayout(self.pv_back_combined_layout)
+
+        self.tab_view = QTabWidget()
+        self.tab_view.addTab(self.sprite_group_tab,"Sprite Groups")
+        self.tab_view.addTab(self.pv_back_tab,"PV_BACK")
+
+        self.MainVLayout.addWidget(self.tab_view)
 
         self.export_farc_pushbutton = QPushButton(Form)
-
         self.MainVLayout.addWidget(self.export_farc_pushbutton)
 
 

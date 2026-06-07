@@ -1095,7 +1095,7 @@ class SongFarcCreatorWindow(QWidget):
         self.scene_view.setRenderHint(QPainter.Antialiasing, True)
         self.scene_view.setRenderHint(QPainter.SmoothPixmapTransform, True)
         self.scene_view.setBackgroundBrush(Qt.black)
-        self.scene_view.set_forced_size(QSize(640,360))
+        self.scene_view.set_forced_size(QSize(512,288))
 
         self.scene_view.setScene(scene)
         scene.layout_choose_layout = self.main_box.pv_back_layout_choose_layout
