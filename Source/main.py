@@ -685,7 +685,7 @@ class MainWindow(QMainWindow):
 
         # Prepare new window
         self.thumbnail_creator = ThumbnailWindow()
-        self.song_farc_creator = SongFarcCreatorWindow()
+        self.song_farc_creator = SongFarcCreatorWindow(self.SC)
 
         self.menu = self.main_box.menu
 
@@ -1073,14 +1073,14 @@ class MainWindow(QMainWindow):
 class SongFarcCreatorWindow(QWidget):
     def resizeEvent(self, event, /):
         self.scene_view.lock_in()
-    def __init__(self):
+    def __init__(self,SC_obj):
         super(SongFarcCreatorWindow, self).__init__()
         self.main_box = Ui_SongFarcCreatorWindow()
-        self.main_box.setupUi(self)
+        self.SC = SC_obj
+        self.main_box.setupUi(self,SC_obj=self.SC,sprite_group_enum=SceneComposer.SpriteGroup)
 
         self.main_box.export_farc_pushbutton.pressed.connect(self.export_background_jacket_logo_farc_button_callback)
-        self.main_box.pv_back_sprite_group_combobox.currentEnumChanged.connect(self.switch_pv_back_scene_sprite_group)
-
+        #self.main_box.pv_back_sprite_group_combobox.currentEnumChanged.connect(self.switch_pv_back_scene_sprite_group)
     def init_preview(self,scene):
         self.scene_view = QScalingGraphicsScene()
         self.scene_view.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
@@ -1114,13 +1114,13 @@ class SongFarcCreatorWindow(QWidget):
         song_id = pad_number(int(self.main_box.farc_song_id_spinbox.value()))
         compression = self.main_box.compression_comboBox.currentEnum()
 
-        default_sprite_group = self.main_box.default_sprite_group_combobox.currentEnum()
-        ex_sprite_group = self.main_box.ex_sprite_group_combobox.currentEnum()
-        pv_back_sprite_group = self.main_box.pv_back_sprite_group_combobox.currentEnum()
+        default_sprite_group = self.main_box.default_sprite_group_widget.get_selected_sprite_group()
+        ex_sprite_group = self.main_box.ex_sprite_group_widget.get_selected_sprite_group()
+        pv_back_sprite_group = self.main_box.pv_back_sprite_group_widget.get_selected_sprite_group()
 
         ex_sprites_checked = self.main_box.ex_sprites_checkbox.isChecked()
-        base_logo_visible = main_window.SC.enum_to_obj(self.main_box.default_sprite_group_combobox.currentEnum()).logo.is_visible
-        ex_logo_visible = main_window.SC.enum_to_obj(self.main_box.ex_sprite_group_combobox.currentEnum()).logo.is_visible
+        base_logo_visible = main_window.SC.enum_to_obj(self.main_box.default_sprite_group_widget.get_selected_sprite_group()).logo.is_visible
+        ex_logo_visible = main_window.SC.enum_to_obj(self.main_box.ex_sprite_group_widget.get_selected_sprite_group()).logo.is_visible
         pv_back_checked = self.main_box.pv_back_sprite_checkbox.isChecked()
 
         if output_location == "":
@@ -1156,8 +1156,8 @@ class SongFarcCreatorWindow(QWidget):
                 main_window.generate_spr_db_button_callback(path=output_location)
 
     def switch_pv_back_scene_sprite_group(self):
-        self.scene_view.scene().switch_sprite_group(main_window.SC.enum_to_obj(self.main_box.pv_back_sprite_group_combobox.currentEnum()))
-        main_window.SC.enum_to_obj(self.main_box.pv_back_sprite_group_combobox.currentEnum()).update_sprites()
+        self.scene_view.scene().switch_sprite_group(main_window.SC.enum_to_obj(self.main_box.pv_back_sprite_group_widget.get_selected_sprite_group()))
+        main_window.SC.enum_to_obj(self.main_box.pv_back_sprite_group_widget.get_selected_sprite_group()).update_sprites()
 
 
 if __name__ == "__main__":

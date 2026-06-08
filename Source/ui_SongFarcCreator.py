@@ -11,10 +11,11 @@ from superqt import QEnumComboBox
 
 import FarcCreator
 from SceneComposer import SpriteGroup
+from widgets import SpriteGroupPreview
 
 
 class Ui_SongFarcCreatorWindow(object):
-    def setupUi(self, Form):
+    def setupUi(self, Form, SC_obj,sprite_group_enum):
         if not Form.objectName():
             Form.setObjectName(u"SongFarcCreatorWindow")
         #Form.resize(629, 731)
@@ -112,41 +113,19 @@ class Ui_SongFarcCreatorWindow(object):
         self.sprite_group_chooser_layout = QVBoxLayout()
         self.sprite_group_chooser_layout.setContentsMargins(-1, -1, -1, 0)
 
-        self.sprite_group_chooser_label = QLabel()
-        self.sprite_group_chooser_label.setText("Select Sprite Group For:")
-        self.sprite_group_chooser_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-        self.default_sprite_group_label = QLabel()
-        self.default_sprite_group_label.setText("Default Sprites")
-
-        self.ex_sprite_group_label = QLabel()
-        self.ex_sprite_group_label.setText("_EX Sprites")
-
-        self.pv_back_sprite_group_label = QLabel()
-        self.pv_back_sprite_group_label.setText("PV_BACK Sprites")
-
-        self.default_sprite_group_combobox = QEnumComboBox()
-        self.default_sprite_group_combobox.setEnumClass(SpriteGroup)
-
-        self.ex_sprite_group_combobox = QEnumComboBox()
-        self.ex_sprite_group_combobox.setEnumClass(SpriteGroup)
-
-        self.pv_back_sprite_group_combobox = QEnumComboBox()
-        self.pv_back_sprite_group_combobox.setEnumClass(SpriteGroup)
 
         #self.sprite_group_V_spacer = QSpacerItem(0,20, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Fixed)
 
-        self.sprite_group_chooser_layout.addWidget(self.sprite_group_chooser_label)
-        self.sprite_group_chooser_layout.addWidget(self.default_sprite_group_label)
-        self.sprite_group_chooser_layout.addWidget(self.default_sprite_group_combobox)
-        self.sprite_group_chooser_layout.addWidget(self.ex_sprite_group_label)
-        self.sprite_group_chooser_layout.addWidget(self.ex_sprite_group_combobox)
-        self.sprite_group_chooser_layout.addWidget(self.pv_back_sprite_group_label)
-        self.sprite_group_chooser_layout.addWidget(self.pv_back_sprite_group_combobox)
-        #self.sprite_group_chooser_layout.addItem(self.sprite_group_V_spacer)
+
+        self.default_sprite_group_widget = SpriteGroupPreview("Default Sprite Group",SC_obj=SC_obj,sprite_group=sprite_group_enum)
+        self.ex_sprite_group_widget = SpriteGroupPreview("_EX Sprite Group",SC_obj=SC_obj,sprite_group=sprite_group_enum)
+        self.pv_back_sprite_group_widget = SpriteGroupPreview("PV_BACK Sprite Group",SC_obj=SC_obj,sprite_group=sprite_group_enum)
 
 
-        #self.MainVLayout.addLayout(self.sprite_group_chooser_layout)
+        self.sprite_group_chooser_layout.addWidget(self.default_sprite_group_widget)
+        self.sprite_group_chooser_layout.addWidget(self.ex_sprite_group_widget)
+        self.sprite_group_chooser_layout.addWidget(self.pv_back_sprite_group_widget)
 
 
         self.pv_back_options_layout = QHBoxLayout()
@@ -234,7 +213,6 @@ class Ui_SongFarcCreatorWindow(object):
         #self.MainVLayout.addLayout(self.pv_back_preview_layout)
         self.sprite_group_tab = QFrame()
         self.sprite_group_tab.setLayout(self.sprite_group_chooser_layout)
-        self.sprite_group_tab.setFixedHeight(250)
 
         self.pv_back_combined_layout = QVBoxLayout()
         self.pv_back_combined_layout.addLayout(self.pv_back_options_layout)
@@ -257,7 +235,6 @@ class Ui_SongFarcCreatorWindow(object):
         self.select_layout_label.setFont(header_font)
         self.scene_options_label.setFont(header_font)
         self.settings_label.setFont(header_font)
-        self.sprite_group_chooser_label.setFont(header_font)
 
         self.retranslateUi(Form)
 
