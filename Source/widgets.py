@@ -207,6 +207,7 @@ class SpriteGroupPreview(QWidget):
         self.SC.enum_to_obj(self.group_combobox.currentEnum()).logo.SpriteUpdated.connect(self.change_preview)
 
         self._prev_enum = self.group_combobox.currentEnum()
+        self.change_preview()
 
     def get_selected_sprite_group(self):
         return self.group_combobox.currentEnum()
