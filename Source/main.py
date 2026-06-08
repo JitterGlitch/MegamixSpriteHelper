@@ -620,6 +620,8 @@ class ThumbnailWindow(QWidget):
             with io.open('remembered_names.yaml', 'r' , encoding='utf8') as infile:
                 remember_data = yaml.safe_load(infile)
                 self.main_box.mod_name_lineedit.combo_box.addItems(remember_data)
+        self.main_box.mod_name_lineedit.combo_box.setCurrentText("")
+
 
     def delete_selected_name(self):
         name = self.main_box.mod_name_lineedit.combo_box.currentText()
@@ -644,8 +646,6 @@ class ThumbnailWindow(QWidget):
 
         self.main_box.mod_name_lineedit.combo_box.removeItem(self.main_box.mod_name_lineedit.combo_box.currentIndex())
         self.main_box.mod_name_lineedit.combo_box.setCurrentText("")
-        self.main_box.mod_name_lineedit.label_set_placeholder_text()
-
 
 ###################################################################################################
 def export_texture_button_callback(texture:TextureType):

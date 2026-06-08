@@ -1,11 +1,11 @@
 import re
 from enum import Enum
 
-from PySide6.QtCore import (Qt, QTimer)
+from PySide6.QtCore import (Qt, QTimer, QEvent)
 from PySide6.QtGui import (QBrush, QColor, QPalette, QMouseEvent, QPixmap)
 from PySide6.QtWidgets import (QDoubleSpinBox, QHBoxLayout,
                                QLabel, QPushButton,
-                               QSpinBox, QWidget, QMenu, QScrollArea, QVBoxLayout)
+                               QSpinBox, QWidget, QMenu, QScrollArea, QVBoxLayout, QComboBox)
 from superqt import QSearchableComboBox, QEnumComboBox
 
 
@@ -17,6 +17,7 @@ class Stylesheet(Enum):
     ID_FIELD_PLACEHOLDER = ".PlaceholderDoubleSpinBox {color: rgb(155,155,155);}"
     SPRITE_VALUE_LABEL =":hover {background-color: rgba(155,155,155,50);}"
     LABEL_PLACEHOLDER = ".QLabel {color: rgb(155,155,155);}"
+    LINE_PLACEHOLDER = ".QLineEdit {color: rgb(155,155,155);}"
 
 class OuterFrame(QScrollArea):
     def __init__(self, *args, **kwargs):
@@ -77,15 +78,12 @@ class SongpackNameInput(QWidget):
     def __init__(self,parent=None):
         super().__init__(parent)
         self.label = QLabel()
-        self.label.mousePressEvent = self.on_label_clicked
-        self.label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.label.setText("Enter your mod name here")
-        self.label.setStyleSheet(Stylesheet.LABEL_PLACEHOLDER.value)
-
+        self.label.setText("Mod name:")
+        self.label.setMaximumWidth(80)
         self.combo_box = QSearchableComboBox()
         self.combo_box.setEditable(True)
         self.combo_box.lineEdit().setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.combo_box.setPlaceholderText("Enter your mod name here")
+        self.combo_box.lineEdit().editingFinished.connect(self.clean_up_text)
 
         palette = QPalette()
         brush = QBrush(QColor(235, 51, 101, 255))
@@ -97,8 +95,6 @@ class SongpackNameInput(QWidget):
         self.delete_button.setIcon(QPixmap(":icon/Images/Minus.png"))
         self.delete_button.setFixedSize(30,27)
 
-        self.combo_box.installEventFilter(self)
-
         self.layout = QHBoxLayout(self)
         self.layout.setContentsMargins(0,0,0,0)
 
@@ -106,46 +102,15 @@ class SongpackNameInput(QWidget):
         self.layout.addWidget(self.combo_box)
         self.layout.addWidget(self.delete_button)
 
-        self.label.setVisible(True)
-        self.combo_box.setVisible(False)
-
-    def on_label_clicked(self, event: QMouseEvent):
-        if event.button() == Qt.MouseButton.LeftButton:
-            self.start_editing()
-
-    def start_editing(self):
-        self.label.setVisible(False)
         self.combo_box.setVisible(True)
-        self.combo_box.setFocus()
-
-    def label_set_placeholder_text(self):
-        self.label.setText("Enter your mod name here")
-        self.label.setStyleSheet(Stylesheet.LABEL_PLACEHOLDER.value)
-
-    def finish_editing(self):
-        if self.get_filtered_text():
-            self.label.setText(self.get_filtered_text())
-            self.label.setStyleSheet("")
-        else:
-            self.label_set_placeholder_text()
-
-
-        self.combo_box.setVisible(False)
-        self.label.setVisible(True)
 
     def get_filtered_text(self):
         mod_string = self.combo_box.currentText()
         mod_string = re.sub(r'[^A-Za-z0-9_ ]+', '', mod_string)
 
         return "_".join(mod_string.split())
-
-    def eventFilter(self, watched, event, /):
-        if watched == self.combo_box and event.type() == event.Type.FocusOut:
-            if self.hasFocus():
-                event.ignore()
-            else:
-                QTimer.singleShot(100, self.finish_editing)
-        return super().eventFilter(watched, event)
+    def clean_up_text(self):
+        self.combo_box.setCurrentText(self.get_filtered_text())
 
 class SpriteGroupPreview(QWidget):
     def __init__(self,sprite_group_name:str,SC_obj,sprite_group):
