@@ -77,13 +77,11 @@ class QSmarterMenu(QMenu):
 class SongpackNameInput(QWidget):
     def __init__(self,parent=None):
         super().__init__(parent)
-        self.label = QLabel()
-        self.label.setText("Mod name:")
-        self.label.setMaximumWidth(80)
         self.combo_box = QSearchableComboBox()
         self.combo_box.setEditable(True)
         self.combo_box.lineEdit().setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.combo_box.lineEdit().editingFinished.connect(self.clean_up_text)
+        self.combo_box.lineEdit().setPlaceholderText("Enter your mod name here")
 
         palette = QPalette()
         brush = QBrush(QColor(235, 51, 101, 255))
@@ -98,7 +96,6 @@ class SongpackNameInput(QWidget):
         self.layout = QHBoxLayout(self)
         self.layout.setContentsMargins(0,0,0,0)
 
-        self.layout.addWidget(self.label)
         self.layout.addWidget(self.combo_box)
         self.layout.addWidget(self.delete_button)
 
