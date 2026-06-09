@@ -930,6 +930,7 @@ class QBackground(QSpriteBase):
     def required_size(self) -> QSize:
         return QSize(1280,720)
 class QLogo(QSpriteBase):
+    VisibilityToggled = Signal()
     def __init__(self,sprite,size):
         super().__init__(sprite,SpriteType.LOGO,size)
 
@@ -954,6 +955,7 @@ class QLogo(QSpriteBase):
         self.drop_shadow.add_drop_shadow_checkbox.setEnabled(state)
         self.controls_enabled = state
         self.SpriteUpdated.emit()
+        self.VisibilityToggled.emit()
 
     def add_sprite_specific_settings(self):
         self.drop_shadow = QDropShadow(self)

@@ -677,9 +677,7 @@ class MainWindow(QMainWindow):
         self.main_box = Ui_MainWindow()
         self.main_box.setupUi(self)
         self.SC = SceneComposer.SceneComposerObjects()
-
-        for sprite_group in self.SC.sprite_groups:
-            self.SC.enum_to_obj(sprite_group).logo.SpriteUpdated.connect(self.disable_shared_controls)
+        self._prev_enum = None
 
         self.setWindowTitle("Megamix Sprite Helper" + " " + str(config.version))
 
@@ -724,6 +722,10 @@ class MainWindow(QMainWindow):
         #Make sure that tab matches options shown on start
         self.current_sprite_tab_switcher(self.main_box.current_sprite_combobox.currentIndex())
 
+        self.SC.enum_to_obj(self.main_box.sprite_group_combobox.currentEnum()).logo.VisibilityToggled.connect(self.disable_shared_controls)
+        self._prev_enum = self.main_box.sprite_group_combobox.currentEnum()
+
+
 
 
     def sprite_group_changed(self):
@@ -734,6 +736,10 @@ class MainWindow(QMainWindow):
         non_active_sprite_object_list.remove(current_sprite_object)
 
         self.SC.P_Scenes.switch_sprite_group(current_sprite_object)
+
+        self.SC.enum_to_obj(self._prev_enum).logo.VisibilityToggled.disconnect(self.disable_shared_controls)
+        self.SC.enum_to_obj(current_enum).logo.VisibilityToggled.connect(self.disable_shared_controls)
+        self._prev_enum = current_enum
 
         for sprite in current_sprite_object.list:
             for slave in sprite.sprite_slaves_list:
@@ -747,6 +753,8 @@ class MainWindow(QMainWindow):
         for sprite_object in non_active_sprite_object_list:
             for sprite in sprite_object.list:
                 sprite.hide_edit_controls(True)
+
+        self.disable_shared_controls()
 
     def resizeEvent(self,event):
         self.space_out_scenes()
