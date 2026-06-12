@@ -1113,7 +1113,7 @@ class SongFarcCreatorWindow(QWidget):
 
         self.main_box.pv_back_preview_layout.addWidget(self.scene_view)
     def export_background_jacket_logo_farc_button_callback(self):
-        output_location = QFileDialog.getExistingDirectory(self, "Choose folder to save farc file to", str(config.last_used_directory))
+
 
         logo = None
         pv_back_texture = None
@@ -1130,6 +1130,43 @@ class SongFarcCreatorWindow(QWidget):
         base_logo_visible = main_window.SC.enum_to_obj(self.main_box.default_sprite_group_widget.get_selected_sprite_group()).logo.is_visible
         ex_logo_visible = main_window.SC.enum_to_obj(self.main_box.ex_sprite_group_widget.get_selected_sprite_group()).logo.is_visible
         pv_back_checked = self.main_box.pv_back_sprite_checkbox.isChecked()
+
+        placeholders_used = []
+        if main_window.SC.enum_to_obj(default_sprite_group).background.location.startswith(":"):
+            placeholders_used.append(f"{default_sprite_group.value}: {main_window.SC.enum_to_obj(default_sprite_group).background.sprite_type.name}\n")
+        if main_window.SC.enum_to_obj(default_sprite_group).jacket.location.startswith(":"):
+            placeholders_used.append(f"{default_sprite_group.value}: {main_window.SC.enum_to_obj(default_sprite_group).jacket.sprite_type.name}\n")
+
+        if base_logo_visible:
+            if main_window.SC.enum_to_obj(default_sprite_group).logo.location.startswith(":"):
+                placeholders_used.append(f"{default_sprite_group.value}: {main_window.SC.enum_to_obj(default_sprite_group).logo.sprite_type.name}\n")
+
+        if ex_sprites_checked:
+            if main_window.SC.enum_to_obj(ex_sprite_group).background.location.startswith(":"):
+                placeholders_used.append(f"{ex_sprite_group.value}: {main_window.SC.enum_to_obj(ex_sprite_group).background.sprite_type.name}\n")
+            if main_window.SC.enum_to_obj(ex_sprite_group).jacket.location.startswith(":"):
+                placeholders_used.append(f"{ex_sprite_group.value}: {main_window.SC.enum_to_obj(ex_sprite_group).jacket.sprite_type.name}\n")
+
+            if ex_logo_visible:
+                if main_window.SC.enum_to_obj(ex_sprite_group).logo.location.startswith(":"):
+                    placeholders_used.append(f"{ex_sprite_group.value}: {main_window.SC.enum_to_obj(ex_sprite_group).logo.sprite_type.name}\n")
+
+        if pv_back_checked:
+            for sprite in main_window.SC.enum_to_obj(pv_back_sprite_group).list:
+                if sprite.sprite_type in (SpriteType.LOGO, SpriteType.BACKGROUND, SpriteType.JACKET):
+                    if sprite.location.startswith(":"):
+                        placeholders_used.append(f"{pv_back_sprite_group.value}: {sprite.sprite_type.name}\n")
+
+        placeholders_used = list(set(placeholders_used))
+        placeholders_used.sort()
+
+        if placeholders_used:
+            placeholder_str = "".join(placeholders_used)
+            show_message_box("Placeholders used","Following sprites are using placeholder sprites:\n\n" + placeholder_str+"\nIf that's not intended then verify if you selected correct sprite groups.")
+
+
+
+        output_location = QFileDialog.getExistingDirectory(self, "Choose folder to save farc file to", str(config.last_used_directory))
 
         if output_location == "":
             print("Directory wasn't chosen")

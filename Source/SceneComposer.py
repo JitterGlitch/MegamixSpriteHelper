@@ -262,7 +262,7 @@ class SpriteSettingControl(QWidget):
             self.layout.setContentsMargins(0, 0, 0, 0)
 
             self.info_label = QLabel()
-            self.info_label.setText(f"{sprite.type.value} {setting.value}")
+            self.info_label.setText(f"{sprite.sprite_type.value} {setting.value}")
             self.info_label.setFont(self.font)
 
             self.label = QLabel()
@@ -310,7 +310,7 @@ class SpriteSettingControl(QWidget):
             self.layout.setContentsMargins(0, 0, 0, 0)
 
             self.info_label = QLabel()
-            self.info_label.setText(f"{sprite.type.value} {setting.value}")
+            self.info_label.setText(f"{sprite.sprite_type.value} {setting.value}")
             self.info_label.setFont(self.font)
 
             self.colorpicker = SpriteColorPicker()
@@ -465,7 +465,7 @@ class PathWatcher(QThread):
                 if new_image_hash is None:
                     continue
                 if not new_image_hash == sprite.hash:
-                    print("Manual Image check detected change in " + sprite.type)
+                    print("Manual Image check detected change in " + sprite.sprite_type)
                     sprite.hash = new_image_hash
                     sprite.load_new_image(sprite.location, fallback=True,reset_values=False)
             else:
@@ -513,7 +513,7 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
 
         self.rect.adjust(-self.rect.left(),-self.rect.top(),0,0)
 
-        self.type = sprite_type
+        self.sprite_type = sprite_type
 
         self.sprite_settings = [
             (SpriteSetting.HORIZONTAL_OFFSET, {
@@ -687,13 +687,13 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
 
         if (iw, ih ) < (rw, rh):
             if fallback:
-                print(f"Image for {self.type.value} is no longer meeting minimum required size. Falling back to dummy image.")
+                print(f"Image for {self.sprite_type.value} is no longer meeting minimum required size. Falling back to dummy image.")
                 print(f"Real Image size is {iw}x{ih}")
                 self.location = self.dummy_location
                 self.sprite_image = QImage(self.location)
                 return ["Fallback" , iw,ih,rw,rh]
             else:
-                print(f"Chosen image for {self.type.value} is too small. It's size is {iw,ih}")
+                print(f"Chosen image for {self.sprite_type.value} is too small. It's size is {iw,ih}")
                 print(f"Required size for the sprite is {rw,rh}")
                 return ["Image too small",iw,ih,rw,rh]
         else:
@@ -954,7 +954,7 @@ class QLogo(QSpriteBase):
 
         for sprite_slave in self.sprite_slaves_list:
             sprite_slave: QSpriteSlave
-            if sprite_slave.tracked.type == SpriteType.LOGO and sprite_slave.zoomed_in == True:
+            if sprite_slave.tracked.sprite_type == SpriteType.LOGO and sprite_slave.zoomed_in == True:
                 sprite_slave.toggle_zoom_in(True)
 
         self.drop_shadow.add_drop_shadow_checkbox.setEnabled(state)
@@ -1086,7 +1086,7 @@ class QDropShadow(QGraphicsPixmapItem):
         self.sprite_scene.setSceneRect(self.sprite_size)
         self.sprite_scene.addItem(self.sprite)
 
-        self.type = SpriteType.DROP_SHADOW
+        self.sprite_type = SpriteType.DROP_SHADOW
 
         self.add_drop_shadow_checkbox = QCheckBox()
         self.add_drop_shadow_checkbox.setChecked(False)
@@ -1340,7 +1340,7 @@ class QSpriteSlave(QGraphicsPixmapItem):
         self.setTransformationMode(Qt.TransformationMode.SmoothTransformation)
         self.zoomed_in = False
         self._hovered = False
-        if not self.tracked.type == SpriteType.BACKGROUND:
+        if not self.tracked.sprite_type == SpriteType.BACKGROUND:
             self.setCursor(Qt.CursorShape.PointingHandCursor)
             self.setAcceptHoverEvents(True)
 
@@ -1401,7 +1401,7 @@ class QSpriteSlave(QGraphicsPixmapItem):
         self.tracked.SpriteUpdated.connect(self.update_sprite)
         self.tracked.sprite_slaves_list.append(self)
     def toggle_zoom_in(self,state):
-        if not self.tracked.type == SpriteType.BACKGROUND:
+        if not self.tracked.sprite_type == SpriteType.BACKGROUND:
             if not state:
                 view: QScalingGraphicsScene
                 for view in self.scene().views():
