@@ -488,7 +488,7 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
         self.sprite_size = size
         self.hash = compute_file_hash(sprite)
         self.setTransformationMode(Qt.TransformationMode.SmoothTransformation)
-        self.offset=offset
+        self.offset=QPoint(0,0)
         if scale:
             self.setScale(scale)
 
@@ -506,12 +506,14 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
         self.sprite = QGraphicsPixmapItem()
         self.sprite.setTransformationMode(Qt.TransformationMode.SmoothTransformation)
         self.sprite.setPixmap(QPixmap(self.sprite_image))
+        self.sprite.setPos(-self.rect.topLeft())
         self.sprite_scene = QGraphicsScene()
         self.sprite_scene.setSceneRect(self.sprite_size)
         self.sprite_scene.addItem(self.sprite)
 
-        self.type = sprite_type
+        self.rect.adjust(-self.rect.left(),-self.rect.top(),0,0)
 
+        self.type = sprite_type
 
         self.sprite_settings = [
             (SpriteSetting.HORIZONTAL_OFFSET, {
@@ -605,19 +607,19 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
                 area_over_req_size = rect.width() - self.required_size().width()
 
                 if area_over_req_size > 0:
-                    return -area_over_req_size-self.x+self.offset.x(), -self.x-self.offset.x()
+                    return -area_over_req_size-self.x, -self.x
 
                 else:
-                    return -self.offset.x(),-self.offset.x()
+                    return 0,0
 
             case SpriteSetting.VERTICAL_OFFSET:
                 area_over_req_size = rect.height() - self.required_size().height()
 
                 if area_over_req_size > 0:
-                    return -area_over_req_size-self.y-self.offset.y(), -self.y-self.offset.y()
+                    return -area_over_req_size-self.y, -self.y
 
                 else:
-                    return -self.offset.y(),-self.offset.y()
+                    return 0,0
 
             case SpriteSetting.ZOOM:
                 if self.required_size() == QSize(0,0):
@@ -703,6 +705,9 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
         self.rect = get_real_image_area(self.sprite_image)
         self.x = 0
         self.y = 0
+        self.sprite.setPos(-self.rect.topLeft())
+        self.rect.adjust(-self.rect.left(),-self.rect.top(),0,0)
+
 
 
         self.initial_calc = True
@@ -873,7 +878,7 @@ class QThumbnail(QSpriteBase):
         painter.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform)
         painter.setRenderHint(QPainter.RenderHint.VerticalSubpixelPositioning)
 
-        painter.drawPixmap(0, 0, pixmap)
+        painter.drawPixmap(28, 1, pixmap)
 
         painter.setCompositionMode(QPainter.CompositionMode.CompositionMode_DestinationIn)
 
