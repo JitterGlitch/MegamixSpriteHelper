@@ -193,6 +193,7 @@ class ThumbnailWindow(QWidget):
         super(ThumbnailWindow, self).__init__()
         self.main_box = Ui_ThumbnailTextureCreator()
         self.main_box.setupUi(self)
+        self.setAttribute(Qt.WidgetAttribute.WA_QuitOnClose, False)
         self.main_box.load_folder_button.clicked.connect(self.scan_folder_for_thumbnails)
         self.main_box.export_farc_button.clicked.connect(self.create_thumbnail_farc)
         self.main_box.load_image_button.clicked.connect(self.select_file_for_thumbnails)
@@ -1084,6 +1085,7 @@ class SongFarcCreatorWindow(QWidget):
     def __init__(self,SC_obj):
         super(SongFarcCreatorWindow, self).__init__()
         self.main_box = Ui_SongFarcCreatorWindow()
+        self.setAttribute(Qt.WidgetAttribute.WA_QuitOnClose, False)
         self.SC = SC_obj
         self.main_box.setupUi(self,SC_obj=self.SC,sprite_group_enum=SceneComposer.SpriteGroup)
 
