@@ -127,6 +127,11 @@ class Ui_SongFarcCreatorWindow(object):
         self.sprite_group_chooser_layout.addWidget(self.ex_sprite_group_widget)
         self.sprite_group_chooser_layout.addWidget(self.pv_back_sprite_group_widget)
 
+        self.ex_sprite_group_widget.setEnabled(self.ex_sprites_checkbox.isChecked())
+        self.pv_back_sprite_group_widget.setEnabled(self.pv_back_sprite_checkbox.isChecked())
+
+
+
 
         self.pv_back_options_layout = QHBoxLayout()
         self.pv_back_options_layout.setSizeConstraint(QLayout.SizeConstraint.SetDefaultConstraint)
@@ -224,6 +229,9 @@ class Ui_SongFarcCreatorWindow(object):
         self.tab_view = QTabWidget()
         self.tab_view.addTab(self.sprite_group_tab,"Sprite Groups")
         self.tab_view.addTab(self.pv_back_tab,"PV_BACK")
+
+        self.tab_view.setTabVisible(1,self.pv_back_sprite_checkbox.isChecked())
+
 
         self.MainVLayout.addWidget(self.tab_view)
 
