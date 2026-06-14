@@ -14,7 +14,7 @@ import kkdlib
 
 import yaml
 from PIL import Image
-from PySide6.QtCore import Qt, QSize, Signal, QRectF, QStandardPaths, QUrl, QPoint
+from PySide6.QtCore import Qt, QSize, Signal, QRectF, QStandardPaths, QUrl, QPoint, QCoreApplication
 from PySide6.QtGui import QPixmap, QPalette, QColor, QImage, QPainter, QGuiApplication, QDesktopServices, QAction, QImageReader
 from PySide6.QtWidgets import QApplication, QMainWindow, QWidget, QFileDialog, QMessageBox, QSizePolicy, QSpacerItem, QMenu
 
@@ -43,6 +43,20 @@ class Configurable:
     def __init__(self):
         self.script_directory = Path.cwd()
         self.version = 1.2
+
+        QCoreApplication.setApplicationName("MMSH")
+        self.saved_files_location = QStandardPaths.writableLocation(QStandardPaths.StandardLocation.AppLocalDataLocation)
+        self.remembered_ids_file_location = os.path.join(self.saved_files_location, "remembered_ids.yaml")
+        self.remembered_song_pack_names_file_location = os.path.join(self.saved_files_location, "remembered_names.yaml")
+
+
+        if os.path.exists(self.saved_files_location):
+            pass
+        else:
+            os.makedirs(self.saved_files_location,exist_ok=True)
+
+        print(f"MMSH saved files are stored in: {self.saved_files_location}")
+
 
         formats = QImageReader.supportedImageFormats()
         Qimage_supported = sorted(fmt.data().decode() for fmt in formats)
@@ -346,9 +360,10 @@ class ThumbnailWindow(QWidget):
             else:
                 x = x + 1
     def read_saved_ids(self):
-        if Path('remembered_ids.yaml').exists():
-            with io.open('remembered_ids.yaml', 'r', encoding='utf8') as infile:
+        if os.path.exists(config.remembered_ids_file_location):
+            with io.open(config.remembered_ids_file_location, 'r', encoding='utf8') as infile:
                 saved_data = yaml.safe_load(infile)
+                print(f"Loaded saved ids from: {config.remembered_ids_file_location}")
                 return saved_data
         else:
             return []
@@ -534,8 +549,8 @@ class ThumbnailWindow(QWidget):
                         ids.append(str(int(id_field.ui.song_id_spinbox.value())) + str(id_field.ui.song_id_spinbox.suffix()))
                     remember_data.append([image,ids])
 
-                if Path('remembered_ids.yaml').exists():
-                    with io.open('remembered_ids.yaml', 'r' , encoding='utf8') as infile:
+                if os.path.exists(config.remembered_ids_file_location):
+                    with io.open(config.remembered_ids_file_location, 'r' , encoding='utf8') as infile:
                         saved_data = yaml.safe_load(infile)
 
                         saved_paths =  {entry[0] for entry in saved_data}
@@ -557,13 +572,13 @@ class ThumbnailWindow(QWidget):
                             if entry[0] in untouched_saved_paths:
                                 new_data.append(entry)
 
-                    with io.open('remembered_ids.yaml', 'w', encoding='utf8') as outfile:
+                    with io.open(config.remembered_ids_file_location, 'w', encoding='utf8') as outfile:
                         yaml.dump(new_data, outfile, default_flow_style=False, allow_unicode=True)
 
                     self.known_ids = self.read_saved_ids()
 
                 else:
-                   with io.open('remembered_ids.yaml', 'w', encoding='utf8') as outfile:
+                   with io.open(config.remembered_ids_file_location, 'w', encoding='utf8') as outfile:
                        yaml.dump(remember_data, outfile, default_flow_style=False, allow_unicode=True)
 
                 self.known_ids = self.read_saved_ids()
@@ -588,13 +603,13 @@ class ThumbnailWindow(QWidget):
 
     def save_pack_name(self):
 
-        if Path('remembered_names.yaml').exists():
-            with io.open('remembered_names.yaml', 'r' , encoding='utf8') as infile:
+        if os.path.exists(config.remembered_song_pack_names_file_location):
+            with io.open(config.remembered_song_pack_names_file_location, 'r' , encoding='utf8') as infile:
                 remember_data = yaml.safe_load(infile)
                 if self.main_box.mod_name_lineedit.combo_box.currentText() not in remember_data:
                     remember_data.append(self.main_box.mod_name_lineedit.combo_box.currentText())
 
-                    with io.open('remembered_names.yaml', 'w', encoding='utf8') as outfile:
+                    with io.open(config.remembered_song_pack_names_file_location, 'w', encoding='utf8') as outfile:
                         yaml.dump(remember_data, outfile, default_flow_style=False, allow_unicode=True)
 
 
@@ -606,21 +621,21 @@ class ThumbnailWindow(QWidget):
             if self.main_box.mod_name_lineedit.combo_box.currentText() != "":
                 remember_data.append(self.main_box.mod_name_lineedit.combo_box.currentText())
 
-            with io.open('remembered_names.yaml', 'w', encoding='utf8') as outfile:
+            with io.open(config.remembered_song_pack_names_file_location, 'w', encoding='utf8') as outfile:
                 yaml.dump(remember_data, outfile, default_flow_style=False, allow_unicode=True)
 
         for i in range(self.main_box.mod_name_lineedit.combo_box.count()):
             self.main_box.mod_name_lineedit.combo_box.removeItem(i)
         self.main_box.mod_name_lineedit.combo_box.addItems(remember_data)
         self.main_box.mod_name_lineedit.combo_box.setCurrentText("")
-        self.main_box.mod_name_lineedit.label_set_placeholder_text()
 
 
     def fill_combobox_suggestions(self):
-        if Path('remembered_names.yaml').exists():
-            with io.open('remembered_names.yaml', 'r' , encoding='utf8') as infile:
+        if os.path.exists(config.remembered_song_pack_names_file_location):
+            with io.open(config.remembered_song_pack_names_file_location, 'r' , encoding='utf8') as infile:
                 remember_data = yaml.safe_load(infile)
                 self.main_box.mod_name_lineedit.combo_box.addItems(remember_data)
+                print(f"Loaded Song Pack names from: {config.remembered_song_pack_names_file_location}")
         self.main_box.mod_name_lineedit.combo_box.setCurrentText("")
 
 
@@ -631,8 +646,8 @@ class ThumbnailWindow(QWidget):
 
         edited_file = False
 
-        if Path('remembered_names.yaml').exists():
-            with io.open('remembered_names.yaml', 'r', encoding='utf8') as infile:
+        if os.path.exists(config.remembered_song_pack_names_file_location):
+            with io.open(config.remembered_song_pack_names_file_location, 'r', encoding='utf8') as infile:
                 remember_data = yaml.safe_load(infile)
 
                 if name in remember_data:
@@ -640,7 +655,7 @@ class ThumbnailWindow(QWidget):
                     edited_file = True
 
             if edited_file:
-                with io.open('remembered_names.yaml', 'w', encoding='utf8') as outfile:
+                with io.open(config.remembered_song_pack_names_file_location, 'w', encoding='utf8') as outfile:
                     yaml.dump(remember_data, outfile, default_flow_style=False, allow_unicode=True)
 
 
