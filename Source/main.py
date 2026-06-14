@@ -521,7 +521,7 @@ class ThumbnailWindow(QWidget):
             else:
                 config.last_used_directory = Path(chosen_dir)
                 self.save_pack_name()
-                thumbnail_texture.save(str(config.script_directory) + "/Thumbnail Texture.png","png")
+                thumbnail_texture.save(str(config.saved_files_location) + "/Thumbnail Texture.png","png")
                 compression = self.main_box.farc_compression_combobox.currentEnum()
 
                 FarcCreator.create_thumbnail_farc(thumbnail_positions,thumbnail_texture.transpose(Image.Transpose.FLIP_TOP_BOTTOM),chosen_dir,mod_name,compression)
@@ -669,7 +669,7 @@ def export_texture_button_callback(texture:TextureType):
         case TextureType.JACKET_BACKGROUND:
             texture_image = main_window.SC.create_background_jacket_texture(main_window.main_box.sprite_group_combobox.currentEnum())
         case TextureType.LOGO:
-            texture_image = main_window.SC.create_logo_texture(main_window.main_box.sprite_group_combobox.currentEnum())
+            texture_image,_ = main_window.SC.create_logo_texture([(main_window.main_box.sprite_group_combobox.currentEnum(),"")])
         case TextureType.THUMBNAIL:
             texture_image = main_window.SC.create_thumbnail_texture(main_window.main_box.sprite_group_combobox.currentEnum())
         case TextureType.PV_BACK:
