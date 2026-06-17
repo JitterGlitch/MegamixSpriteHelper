@@ -1,7 +1,7 @@
 import re
 from enum import Enum
 
-from PySide6.QtCore import (Qt, QTimer, QEvent)
+from PySide6.QtCore import (Qt, QTimer, QEvent, Signal)
 from PySide6.QtGui import (QBrush, QColor, QPalette, QMouseEvent, QPixmap)
 from PySide6.QtWidgets import (QDoubleSpinBox, QHBoxLayout,
                                QLabel, QPushButton,
@@ -110,6 +110,7 @@ class SongpackNameInput(QWidget):
         self.combo_box.setCurrentText(self.get_filtered_text())
 
 class SpriteGroupPreview(QWidget):
+    SpriteGroupChanged = Signal()
     def __init__(self,sprite_group_name:str,SC_obj,sprite_group):
         super().__init__()
         self.SC = SC_obj
@@ -170,6 +171,7 @@ class SpriteGroupPreview(QWidget):
 
         self._prev_enum = self.group_combobox.currentEnum()
         self.change_preview()
+        self.SpriteGroupChanged.emit()
 
     def get_selected_sprite_group(self):
         return self.group_combobox.currentEnum()

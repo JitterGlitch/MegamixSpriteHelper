@@ -1105,10 +1105,10 @@ class SongFarcCreatorWindow(QWidget):
         self.main_box.setupUi(self,SC_obj=self.SC,sprite_group_enum=SceneComposer.SpriteGroup)
 
         self.main_box.export_farc_pushbutton.pressed.connect(self.export_background_jacket_logo_farc_button_callback)
-        #self.main_box.pv_back_sprite_group_combobox.currentEnumChanged.connect(self.switch_pv_back_scene_sprite_group)
 
         self.main_box.ex_sprites_checkbox.toggled.connect(self.ex_sprite_checkbox_callback)
         self.main_box.pv_back_sprite_checkbox.toggled.connect(self.pv_back_sprite_checkbox_callback)
+        self.main_box.pv_back_sprite_group_widget.SpriteGroupChanged.connect(self.switch_pv_back_scene_sprite_group)
 
     def ex_sprite_checkbox_callback(self):
         self.main_box.ex_sprite_group_widget.setEnabled(self.main_box.ex_sprites_checkbox.isChecked())
