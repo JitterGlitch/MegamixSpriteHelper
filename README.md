@@ -3,20 +3,15 @@
 Simple program that lets you make slight adjustments to the sprites while having preview of them in most important screens they are used in.
 
 # Features
-- Displays a 2x2 grid with both MM UI's and FT UI's Song Select and Results Screen
+- Displays a grid with various scenes Song sprites appear in
 - - Copy said grid to clipboard for easy sharing
-- Edit position, rotation and zoom of the sprites. Big images are cut to optimal shape / size
+- Edit position, rotation and zoom of the sprites. Big images are fit to optimal shape / size
 - - Jacket is processed to get rid of jagged edges from showing up in-game
 - - Logo is auto-scaled to fit in allowed area allowing you to work on full resolution images
 - Auto updates the preview if loaded images are modified
 - Export created sprites directly into Farc or PNG.
 - Generate sprite database just by choosing your 2d folder
 - Generate combined thumbnail farc
-
-
-# Requirements
-When running from binary release:
-- ImageMagick with Development headers and libraries for C and C++ needs to be installed.
 
 # Special Thanks
 - [Hiki8man](https://github.com/hiki8man/): [Auto create mod_spr_db script](https://gamebanana.com/tools/15812)
@@ -30,3 +25,5 @@ When running from binary release:
 
 ![Megamix Sprite Helper preview](/SpriteHelper-Preview.png)
 ![Thumbnail Creator preview](/ThumbnailCreator-Preview.png)
+![Song Farc Creator preview](/SongFarcCreator-Preview1.png)
+![Song Farc Creator preview](/SongFarcCreator-Preview2.png)
