@@ -460,16 +460,17 @@ class PathWatcher(QThread):
 
     def manual_file_update_check(self):
         for sprite in self.C_Sprites.list:
-            if not str(sprite.location).startswith(":"):
-                new_image_hash = compute_file_hash(sprite.location)
-                if new_image_hash is None:
+            if type(sprite.location) == str:
+                if not str(sprite.location).startswith(":"):
+                    new_image_hash = compute_file_hash(sprite.location)
+                    if new_image_hash is None:
+                        continue
+                    if not new_image_hash == sprite.hash:
+                        print("Manual Image check detected change in " + sprite.sprite_type)
+                        sprite.hash = new_image_hash
+                        sprite.load_new_image(sprite.location, fallback=True,reset_values=False)
+                else:
                     continue
-                if not new_image_hash == sprite.hash:
-                    print("Manual Image check detected change in " + sprite.sprite_type)
-                    sprite.hash = new_image_hash
-                    sprite.load_new_image(sprite.location, fallback=True,reset_values=False)
-            else:
-                continue
 
 class QSpriteBase(QGraphicsPixmapItem, QObject):
     SpriteUpdated = Signal()
