@@ -460,7 +460,7 @@ class PathWatcher(QThread):
 
     def manual_file_update_check(self):
         for sprite in self.C_Sprites.list:
-            if sprite.location is str:
+            if not str(sprite.location).startswith(":"):
                 new_image_hash = compute_file_hash(sprite.location)
                 if new_image_hash is None:
                     continue
