@@ -42,7 +42,7 @@ class OutputTarget(Enum):
 class Configurable:
     def __init__(self):
         self.script_directory = Path.cwd()
-        self.version = 1.2
+        self.version = "1.2.1"
 
         QCoreApplication.setApplicationName("MMSH")
         self.saved_files_location = QStandardPaths.writableLocation(QStandardPaths.StandardLocation.AppLocalDataLocation)
