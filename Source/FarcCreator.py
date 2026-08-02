@@ -30,9 +30,9 @@ class FarcCreator:
         logo_list = []
         names = [f"SH Texture #{texture_count}"]
         if compression is Compression.ATI2:
-            txp.add_file(kkdlib.txp.Texture.py_ycbcr_from_rgba_gpu(jk_bg_texture.width,jk_bg_texture.height,jk_bg_texture.tobytes()))
+            txp.add_file(kkdlib.txp.Texture.encode_ycbcr(jk_bg_texture.width,jk_bg_texture.height,jk_bg_texture.tobytes()))
         else:
-            txp.add_file(kkdlib.txp.Texture.py_from_rgba_gpu(jk_bg_texture.width,jk_bg_texture.height,jk_bg_texture.tobytes(),compression.to_kkdlib_format()))
+            txp.add_file(kkdlib.txp.Texture.py_from_rgba(jk_bg_texture.width,jk_bg_texture.height,jk_bg_texture.tobytes(),compression.to_kkdlib_format()))
 
         background = kkdlib.spr.Info()
         background.texid = texture_count - 1
@@ -54,9 +54,9 @@ class FarcCreator:
             texture_count = texture_count + 1
             names.append(f"SH Texture #{texture_count}")
             if compression is Compression.ATI2:
-                txp.add_file(kkdlib.txp.Texture.py_ycbcr_from_rgba_gpu(ex_bg_jk_texture.width, ex_bg_jk_texture.height, ex_bg_jk_texture.tobytes()))
+                txp.add_file(kkdlib.txp.Texture.encode_ycbcr(ex_bg_jk_texture.width, ex_bg_jk_texture.height, ex_bg_jk_texture.tobytes()))
             else:
-                txp.add_file(kkdlib.txp.Texture.py_from_rgba_gpu(ex_bg_jk_texture.width, ex_bg_jk_texture.height, ex_bg_jk_texture.tobytes(), compression.to_kkdlib_format()))
+                txp.add_file(kkdlib.txp.Texture.py_from_rgba(ex_bg_jk_texture.width, ex_bg_jk_texture.height, ex_bg_jk_texture.tobytes(), compression.to_kkdlib_format()))
 
             ex_background = kkdlib.spr.Info()
             ex_background.texid = texture_count - 1
@@ -80,9 +80,9 @@ class FarcCreator:
             texture_count = texture_count + 1
             names.append(f"SH Texture #{texture_count}")
             if compression is Compression.ATI2:
-                txp.add_file(kkdlib.txp.Texture.py_ycbcr_from_rgba_gpu(logo_texture[0].width, logo_texture[0].height, logo_texture[0].tobytes()))
+                txp.add_file(kkdlib.txp.Texture.encode_ycbcr(logo_texture[0].width, logo_texture[0].height, logo_texture[0].tobytes()))
             else:
-                txp.add_file(kkdlib.txp.Texture.py_from_rgba_gpu(logo_texture[0].width, logo_texture[0].height, logo_texture[0].tobytes(), compression.to_kkdlib_format()))
+                txp.add_file(kkdlib.txp.Texture.py_from_rgba(logo_texture[0].width, logo_texture[0].height, logo_texture[0].tobytes(), compression.to_kkdlib_format()))
 
             default_prefix_seen = False
             for logo_info in logo_texture[1]:
@@ -128,9 +128,9 @@ class FarcCreator:
             texture_count = texture_count + 1
             names.append(f"SH Texture #{texture_count}")
             if compression is Compression.ATI2:
-                txp.add_file(kkdlib.txp.Texture.py_ycbcr_from_rgba_gpu(pv_back_texture.width, pv_back_texture.height, pv_back_texture.tobytes()))
+                txp.add_file(kkdlib.txp.Texture.encode_ycbcr(pv_back_texture.width, pv_back_texture.height, pv_back_texture.tobytes()))
             else:
-                txp.add_file(kkdlib.txp.Texture.py_from_rgba_gpu(pv_back_texture.width, pv_back_texture.height, pv_back_texture.tobytes(), compression.to_kkdlib_format()))
+                txp.add_file(kkdlib.txp.Texture.py_from_rgba(pv_back_texture.width, pv_back_texture.height, pv_back_texture.tobytes(), compression.to_kkdlib_format()))
 
             pv_back = kkdlib.spr.Info()
             pv_back.texid = texture_count - 1
@@ -165,9 +165,9 @@ class FarcCreator:
     def create_thumbnail_farc(self,thumb_data,thumbnail_texture,output_location,mod_name,compression:Compression):
         txp = kkdlib.txp.Set()
         if compression is Compression.ATI2:
-            txp.add_file(kkdlib.txp.Texture.py_ycbcr_from_rgba_gpu(thumbnail_texture.width,thumbnail_texture.height,thumbnail_texture.tobytes()))
+            txp.add_file(kkdlib.txp.Texture.encode_ycbcr(thumbnail_texture.width,thumbnail_texture.height,thumbnail_texture.tobytes()))
         else:
-            txp.add_file(kkdlib.txp.Texture.py_from_rgba_gpu(thumbnail_texture.width,thumbnail_texture.height,thumbnail_texture.tobytes(),compression.to_kkdlib_format()))
+            txp.add_file(kkdlib.txp.Texture.py_from_rgba(thumbnail_texture.width,thumbnail_texture.height,thumbnail_texture.tobytes(),compression.to_kkdlib_format()))
 
         spr = kkdlib.spr.Set()
         spr.set_txp(txp, ["SH Texture #1"])

@@ -20,7 +20,7 @@ jobs:
           - os: ubuntu-latest
             artifact_name: MegamixSpriteHelper-Linux
             path: dist/MegamixSpriteHelper
-            kkdlib_wheel: kkdlib-0.1.0-cp39-abi3-manylinux_2_35_x86_64.whl
+            kkdlib_wheel: kkdlib-0.1.0-cp39-abi3-manylinux_2_38_x86_64.whl
             icon: /Source/Images/Icon.ico
 
     steps:

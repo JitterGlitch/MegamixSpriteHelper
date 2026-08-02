@@ -42,7 +42,7 @@ class OutputTarget(Enum):
 class Configurable:
     def __init__(self):
         self.script_directory = Path.cwd()
-        self.version = "1.2.1"
+        self.version = "1.2.1 (preview)"
 
         QCoreApplication.setApplicationName("MMSH")
         self.saved_files_location = QStandardPaths.writableLocation(QStandardPaths.StandardLocation.AppLocalDataLocation)
@@ -1239,5 +1239,4 @@ if __name__ == "__main__":
     app.setStyle("Fusion")
     main_window = MainWindow()
     main_window.show()
-    kkdlib.txp.init_wgpu()
     app.exec()
