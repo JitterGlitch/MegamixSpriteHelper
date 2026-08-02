@@ -4,7 +4,7 @@ import kkdlib
 
 class Compression(Enum):
     BC7 = "BC7"
-    ATI2 = "YCbCr"
+    #ATI2 = "YCbCr" # Bugged in current version of KKdLib-sys
     DXT5 = "DXT5"
     RGBA = "Uncompressed"
 
