@@ -1948,6 +1948,7 @@ class QPVBackScene(QGraphicsScene):
         self.grid.update_sprite()
 
     def build_menu_options(self):
+        #TODO Clean up this mess. Shit needs custom method to build both with same code.
         self.scene_config_menu.clear()
         if self.options_layout:
             self.clear_layout(self.options_layout)
@@ -1956,6 +1957,8 @@ class QPVBackScene(QGraphicsScene):
             case PvBackLayout.MMSongSelect:
                 self.scene_config_menu.addAction("Change to MM Result Layout").triggered.connect(lambda: self.toggle_layout(PvBackLayout.MMResult))
                 self.scene_config_menu.addAction("Change to FT Result Layout").triggered.connect(lambda: self.toggle_layout(PvBackLayout.FTResult))
+                self.scene_config_menu.addAction("Change to Background Only Layout").triggered.connect(lambda: self.toggle_layout(PvBackLayout.BackgroundOnly))
+
                 self.centered_layout_toggle = self.scene_config_menu.addAction("Use centered layout")
                 self.centered_layout_toggle.setCheckable(True)
                 self.centered_layout_toggle.toggled.connect(lambda: self.toggle_centered_layout(self.centered_layout_toggle.isChecked()))
@@ -1970,9 +1973,13 @@ class QPVBackScene(QGraphicsScene):
             case PvBackLayout.MMResult:
                 self.scene_config_menu.addAction("Change to MM Song Select Layout").triggered.connect(lambda: self.toggle_layout(PvBackLayout.MMSongSelect))
                 self.scene_config_menu.addAction("Change to FT Result Layout").triggered.connect(lambda: self.toggle_layout(PvBackLayout.FTResult))
+                self.scene_config_menu.addAction("Change to Background Only Layout").triggered.connect(lambda: self.toggle_layout(PvBackLayout.BackgroundOnly))
+
             case PvBackLayout.FTResult:
                 self.scene_config_menu.addAction("Change to MM Song Select Layout").triggered.connect(lambda: self.toggle_layout(PvBackLayout.MMSongSelect))
                 self.scene_config_menu.addAction("Change to MM Result Layout").triggered.connect(lambda: self.toggle_layout(PvBackLayout.MMResult))
+                self.scene_config_menu.addAction("Change to Background Only Layout").triggered.connect(lambda: self.toggle_layout(PvBackLayout.BackgroundOnly))
+
 
                 self.ft_result_backdrop_visible_toggle = self.scene_config_menu.addAction("Show Background")
                 self.ft_result_backdrop_visible_toggle.setCheckable(True)
@@ -1985,10 +1992,14 @@ class QPVBackScene(QGraphicsScene):
                     self.ft_result_backdrop_visible_checkbox.toggled.connect(lambda: self.toggle_ft_result_background(self.ft_result_backdrop_visible_checkbox.isChecked()))
                     self.options_layout.addWidget(self.ft_result_backdrop_visible_checkbox)
             case PvBackLayout.BackgroundOnly:
+                self.scene_config_menu.addAction("Change to MM Song Select Layout").triggered.connect(lambda: self.toggle_layout(PvBackLayout.MMSongSelect))
+                self.scene_config_menu.addAction("Change to MM Result Layout").triggered.connect(lambda: self.toggle_layout(PvBackLayout.MMResult))
+                self.scene_config_menu.addAction("Change to FT Result Layout").triggered.connect(lambda: self.toggle_layout(PvBackLayout.FTResult))
+
                 self.background_dim_toggle = self.scene_config_menu.addAction("Toggle Background Dim")
                 self.background_dim_toggle.setCheckable(True)
                 self.background_dim_toggle.setChecked(not self.background_dim_state)
-                self.background_dim_toggle.toggled.connect(lambda: self.toggle_background_dim(self.background_dim_checkbox.isChecked()))
+                self.background_dim_toggle.toggled.connect(lambda: self.toggle_background_dim(self.background_dim_toggle.isChecked()))
 
                 if self.options_layout:
                     self.background_dim_checkbox = QCheckBox("Dim Background")
