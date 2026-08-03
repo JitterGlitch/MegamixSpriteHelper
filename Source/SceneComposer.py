@@ -59,6 +59,7 @@ class PvBackLayout(Enum):
     MMSongSelect = "Megamix Song Select"
     MMResult = "Megamix Result"
     FTResult = "Future Tone Result"
+    BackgroundOnly = "Background Only"
 
 class SpriteGroup(StrEnum):
     A = "Group A"
@@ -1851,6 +1852,8 @@ class QPVBackScene(QGraphicsScene):
                 self.background.setVisible(self.ft_result_show_background_state)
                 if self.logo_visibility_state:
                     self.ft_result_logo.setVisible(True)
+            case PvBackLayout.BackgroundOnly:
+                self.background.setVisible(True)
 
         self.build_menu_options()
     def toggle_grid(self,state):
@@ -1996,16 +1999,18 @@ class QPVBackScene(QGraphicsScene):
             self.grid_opacity_checkbox.toggled.connect(lambda: self.change_grid_opacity(self.grid_opacity_checkbox.isChecked()))
             self.options_layout.addWidget(self.grid_opacity_checkbox)
 
-        self.logo_size_toggle = self.scene_config_menu.addAction("Use bigger logo")
-        self.logo_size_toggle.setCheckable(True)
-        self.logo_size_toggle.setChecked(self.logo_size_state)
-        self.logo_size_toggle.toggled.connect(lambda: self.toggle_logo_size(self.logo_size_toggle.isChecked()))
+        if self.current_layout != PvBackLayout.BackgroundOnly:
 
-        if self.options_layout:
-            self.logo_size_checkbox = QCheckBox("Use bigger logo")
-            self.logo_size_checkbox.setChecked(self.logo_size_state)
-            self.logo_size_checkbox.toggled.connect(lambda: self.toggle_logo_size(self.logo_size_checkbox.isChecked()))
-            self.options_layout.addWidget(self.logo_size_checkbox)
+            self.logo_size_toggle = self.scene_config_menu.addAction("Use bigger logo")
+            self.logo_size_toggle.setCheckable(True)
+            self.logo_size_toggle.setChecked(self.logo_size_state)
+            self.logo_size_toggle.toggled.connect(lambda: self.toggle_logo_size(self.logo_size_toggle.isChecked()))
+
+            if self.options_layout:
+                self.logo_size_checkbox = QCheckBox("Use bigger logo")
+                self.logo_size_checkbox.setChecked(self.logo_size_state)
+                self.logo_size_checkbox.toggled.connect(lambda: self.toggle_logo_size(self.logo_size_checkbox.isChecked()))
+                self.options_layout.addWidget(self.logo_size_checkbox)
 
     def add_layouts_to_window(self):
         self.mm_song_select_radio = QRadioButton()
@@ -2020,9 +2025,14 @@ class QPVBackScene(QGraphicsScene):
         self.ft_result_radio.setText(PvBackLayout.FTResult.value)
         self.layout_choose_layout.addWidget(self.ft_result_radio)
 
-        self.mm_song_select_radio.toggled.connect(lambda :self.toggle_layout(PvBackLayout.MMSongSelect))
-        self.mm_result_radio.toggled.connect(lambda :self.toggle_layout(PvBackLayout.MMResult))
-        self.ft_result_radio.toggled.connect(lambda :self.toggle_layout(PvBackLayout.FTResult))
+        self.background_only_radio = QRadioButton()
+        self.background_only_radio.setText(PvBackLayout.BackgroundOnly.value)
+        self.layout_choose_layout.addWidget(self.background_only_radio)
+
+        self.mm_song_select_radio.toggled.connect(lambda: self.toggle_layout(PvBackLayout.MMSongSelect))
+        self.mm_result_radio.toggled.connect(lambda: self.toggle_layout(PvBackLayout.MMResult))
+        self.ft_result_radio.toggled.connect(lambda: self.toggle_layout(PvBackLayout.FTResult))
+        self.background_only_radio.toggled.connect(lambda: self.toggle_layout(PvBackLayout.BackgroundOnly))
 
         self.mm_song_select_radio.setChecked(True)
 

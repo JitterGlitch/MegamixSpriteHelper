@@ -61,17 +61,11 @@ class PlaceholderDoubleSpinBox(QDoubleSpinBox):
         return getattr(self, '_placeholder_text', "")
 class QSmarterMenu(QMenu):
     def mouseReleaseEvent(self, event):
-        # Get the action at the click position
         action = self.actionAt(event.pos())
-        # If the action exists and is checkable, handle it manually
         if action and action.isCheckable():
-            # Trigger the action (toggles its checked state)
             action.trigger()
-            # Accept the event to prevent further processing
             event.accept()
-            # Do NOT call super(), so the menu stays open
         else:
-            # For non-checkable actions or clicks on empty area, let the menu close normally
             super().mouseReleaseEvent(event)
 
 class SongpackNameInput(QWidget):
