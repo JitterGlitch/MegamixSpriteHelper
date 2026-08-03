@@ -8,7 +8,7 @@ import hashlib
 from PIL import Image
 from PySide6.QtCore import Qt, QRectF, QPoint, Signal, QObject, QSize, QRect, QIODevice, QFile, QThread, QTimer
 from PySide6.QtGui import QImage, QPixmap, QPainter, QTransform, QColor, QPen, QMouseEvent, QFont
-from PySide6.QtWidgets import QGraphicsPixmapItem, QFileDialog, QGraphicsScene, QLayout, QGraphicsView, QWidget, QScrollArea, QCheckBox, QRadioButton, QLabel, QVBoxLayout, QDoubleSpinBox, QSlider, QColorDialog, QPushButton, QHBoxLayout, QGraphicsBlurEffect
+from PySide6.QtWidgets import QGraphicsPixmapItem, QFileDialog, QGraphicsScene, QLayout, QGraphicsView, QWidget, QScrollArea, QCheckBox, QRadioButton, QLabel, QVBoxLayout, QDoubleSpinBox, QSlider, QColorDialog, QPushButton, QHBoxLayout, QGraphicsBlurEffect, QFrame
 from superqt import QDoubleSlider
 from superqt.utils import qthrottled
 
@@ -200,8 +200,16 @@ class QScalingGraphicsScene(QGraphicsView):
         self.center_on = None
         self.size = 2
         self.forced_size = None
+
         self.setAlignment(Qt.AlignLeft | Qt.AlignTop)
-    def resizeEvent(self,event):
+        self.setFrameShape(QFrame.NoFrame)
+        self.setContentsMargins(0, 0, 0, 0)
+        self.setViewportMargins(0, 0, 0, 0)
+        self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
         self.lock_in()
 
     def wheelEvent(self, event, /):
@@ -215,25 +223,45 @@ class QScalingGraphicsScene(QGraphicsView):
                 return p.viewport().contentsRect()
             p = p.parentWidget()
         return first.contentsRect()
-    def set_forced_size(self,size:QSize):
+
+    def set_forced_size(self, size: QSize):
         self.forced_size = size
 
     def lock_in(self):
         if self.forced_size:
-            self.setMinimumSize(self.forced_size)
-            self.setMaximumSize(self.forced_size)
+            target = self.forced_size
         else:
             min_width = self.get_available_geometry().width() // 16
+            target = QSize(int(min_width * 16 // self.size), int(min_width * 9 // self.size))
 
-            size = QSize(int(min_width * 16 // self.size),int(min_width * 9 // self.size))
-            self.setMaximumSize(size)
-            self.setMinimumSize(size)
+        self.setMinimumSize(target)
+        self.setMaximumSize(target)
+
+        self._apply_fit(target)
+
+    def _apply_fit(self, target_size: QSize):
+        if not self.scene():
+            return
 
         if not self.zoomed_in:
-            self.fitInView(self.scene().sceneRect(), Qt.AspectRatioMode.KeepAspectRatioByExpanding)
+            rect = self.scene().sceneRect()
         else:
-            self.fitInView(0, 0, self.scene().width() / 2, self.scene().height() / 2, Qt.AspectRatioMode.KeepAspectRatioByExpanding)
+            rect = QRectF(0, 0, self.scene().width() / 2, self.scene().height() / 2)
+
+        if rect.width() <= 0 or rect.height() <= 0:
+            return
+
+        scale = max(target_size.width() / rect.width(),
+                     target_size.height() / rect.height())
+
+        transform = QTransform()
+        transform.scale(scale, scale)
+        self.setTransform(transform)
+
+        if self.zoomed_in and self.center_on is not None:
             self.centerOn(self.center_on)
+        else:
+            self.centerOn(rect.center())
 class SpriteSettingControl(QWidget):
     editingFinished = Signal()
 
