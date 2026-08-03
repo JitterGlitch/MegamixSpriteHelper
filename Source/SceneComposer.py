@@ -1501,6 +1501,9 @@ class QMMSongSelectScene(QGraphicsScene):
         self.top_layer_nc = QLayer(u":icon/Images/MM UI - Song Select/Top Layer - New Classics.png")
         self.top_layer = QLayer(u":icon/Images/MM UI - Song Select/Top Layer.png")
         ######
+        self.nc_state = True
+        self.ui_state = True
+
         self.setSceneRect(0, 0, 1920, 1080)
         self.setBackgroundBrush(Qt.GlobalColor.black)
 
@@ -1521,7 +1524,7 @@ class QMMSongSelectScene(QGraphicsScene):
         self.addItem(self.top_layer_nc)
         self.addItem(self.top_layer)
 
-        self.top_layer.setVisible(False)
+        self.top_layer.setVisible(not self.nc_state)
 
         self.scene_config_menu = QSmarterMenu(self.name)
         self.show_ui_toggle = self.scene_config_menu.addAction("Show UI")
@@ -1529,21 +1532,33 @@ class QMMSongSelectScene(QGraphicsScene):
         self.show_ui_toggle.setChecked(True)
         self.show_ui_toggle.toggled.connect(self.toggle_ui)
 
-    def toggle_new_classics(self,state:bool):
-        self.top_layer.setVisible(not state)
-        self.top_layer_nc.setVisible(state)
+    def toggle_new_classics(self):
+        if self.ui_state:
+            self.top_layer.setVisible(self.nc_state)
+            self.top_layer_nc.setVisible(not self.nc_state)
 
-    def toggle_ui(self,state:bool):
-        self.top_layer.setVisible(state)
-        self.song_selector.setVisible(state)
-        self.thumbnail_1.setVisible(state)
-        self.thumbnail_2.setVisible(state)
-        self.thumbnail_3.setVisible(state)
-        self.thumbnail_4.setVisible(state)
-        self.thumbnail_5.setVisible(state)
-        self.thumbnail_6.setVisible(state)
-        self.thumbnail_7.setVisible(state)
-        self.thumbnail_selected.setVisible(state)
+        self.nc_state = not self.nc_state
+    def toggle_ui(self):
+        self.top_layer.setVisible(not self.ui_state)
+        self.top_layer_nc.setVisible(not self.ui_state)
+
+        self.song_selector.setVisible(not self.ui_state)
+        self.thumbnail_1.setVisible(not self.ui_state)
+        self.thumbnail_2.setVisible(not self.ui_state)
+        self.thumbnail_3.setVisible(not self.ui_state)
+        self.thumbnail_4.setVisible(not self.ui_state)
+        self.thumbnail_5.setVisible(not self.ui_state)
+        self.thumbnail_6.setVisible(not self.ui_state)
+        self.thumbnail_7.setVisible(not self.ui_state)
+        self.thumbnail_selected.setVisible(not self.ui_state)
+
+        if not self.ui_state:
+            if self.nc_state:
+                self.top_layer.setVisible(False)
+            else:
+                self.top_layer_nc.setVisible(False)
+
+        self.ui_state = not self.ui_state
 
     def switch_sprite_group(self,sprite_object:QControllableSprites):
         self.jacket.change_tracked_sprite(sprite_object.jacket)
@@ -1574,6 +1589,9 @@ class QMMResultScene(QGraphicsScene):
         self.top_layer_nc = QLayer(u":icon/Images/MM UI - Results Screen/Top Layer - New Classics.png")
         self.top_layer = QLayer(u":icon/Images/MM UI - Results Screen/Top Layer.png")
         ######
+        self.nc_state = True
+        self.ui_state = True
+
         self.setSceneRect(0, 0, 1920, 1080)
         self.setBackgroundBrush(Qt.GlobalColor.black)
 
@@ -1594,13 +1612,26 @@ class QMMResultScene(QGraphicsScene):
         self.show_ui_toggle.setChecked(True)
         self.show_ui_toggle.toggled.connect(self.toggle_ui)
 
-    def toggle_new_classics(self, state):
-        self.top_layer.setVisible(not state)
-        self.top_layer_nc.setVisible(state)
+    def toggle_new_classics(self):
+        if self.ui_state:
+            self.top_layer.setVisible(self.nc_state)
+            self.top_layer_nc.setVisible(not self.nc_state)
 
-    def toggle_ui(self,state:bool):
-        self.middle_layer_song_credit.setVisible(state)
-        self.top_layer.setVisible(state)
+        self.nc_state = not self.nc_state
+
+    def toggle_ui(self):
+        self.top_layer.setVisible(not self.ui_state)
+        self.top_layer_nc.setVisible(not self.ui_state)
+        self.middle_layer_song_credit.setVisible(not self.ui_state)
+
+        if not self.ui_state:
+            if self.nc_state:
+                self.top_layer.setVisible(False)
+            else:
+                self.top_layer_nc.setVisible(False)
+
+        self.ui_state = not self.ui_state
+
     def switch_sprite_group(self,sprite_object:QControllableSprites):
         self.jacket.change_tracked_sprite(sprite_object.jacket)
         self.logo.change_tracked_sprite(sprite_object.logo)
@@ -1669,6 +1700,9 @@ class QFTSongSelectScene(QGraphicsScene):
         self.top_layer_nc = QLayer(u":icon/Images/FT UI - Song Select/Top Layer - New Classics.png")
         self.top_layer = QLayer(u":icon/Images/FT UI - Song Select/Top Layer.png")
         ######
+        self.nc_state = True
+        self.ui_state = True
+
         self.setSceneRect(0, 0, 1920, 1080)
         self.setBackgroundBrush(Qt.GlobalColor.black)
 
@@ -1680,7 +1714,7 @@ class QFTSongSelectScene(QGraphicsScene):
         self.addItem(self.top_layer_nc)
         self.addItem(self.top_layer)
 
-        self.top_layer.setVisible(False)
+        self.top_layer.setVisible(not self.nc_state)
 
         self.scene_config_menu = QSmarterMenu(self.name)
         self.show_ui_toggle = self.scene_config_menu.addAction("Show UI")
@@ -1688,11 +1722,24 @@ class QFTSongSelectScene(QGraphicsScene):
         self.show_ui_toggle.setChecked(True)
         self.show_ui_toggle.toggled.connect(self.toggle_ui)
 
-    def toggle_new_classics(self, state):
-        self.top_layer.setVisible(not state)
-        self.top_layer_nc.setVisible(state)
-    def toggle_ui(self,state:bool):
-        self.top_layer.setVisible(state)
+    def toggle_new_classics(self):
+        if self.ui_state:
+            self.top_layer.setVisible(self.nc_state)
+            self.top_layer_nc.setVisible(not self.nc_state)
+
+        self.nc_state = not self.nc_state
+    def toggle_ui(self):
+        self.top_layer.setVisible(not self.ui_state)
+        self.top_layer_nc.setVisible(not self.ui_state)
+
+        if not self.ui_state:
+            if self.nc_state:
+                self.top_layer.setVisible(False)
+            else:
+                self.top_layer_nc.setVisible(False)
+
+        self.ui_state = not self.ui_state
+
     def switch_sprite_group(self,sprite_object:QControllableSprites):
         self.jacket.change_tracked_sprite(sprite_object.jacket)
         self.logo.change_tracked_sprite(sprite_object.logo)
@@ -1713,6 +1760,9 @@ class QFTResultScene(QGraphicsScene):
         self.top_layer = QLayer(u":icon/Images/FT UI - Results Screen/Top Layer.png")
 
         ######
+        self.nc_state = True
+        self.ui_state = True
+
         self.setSceneRect(0, 0, 1920, 1080)
         self.setBackgroundBrush(Qt.GlobalColor.black)
 
@@ -1724,7 +1774,7 @@ class QFTResultScene(QGraphicsScene):
         self.addItem(self.top_layer_nc)
         self.addItem(self.top_layer)
 
-        self.top_layer.setVisible(False)
+        self.top_layer.setVisible(not self.nc_state)
 
         self.scene_config_menu = QSmarterMenu(self.name)
         self.show_ui_toggle = self.scene_config_menu.addAction("Show UI")
@@ -1732,12 +1782,25 @@ class QFTResultScene(QGraphicsScene):
         self.show_ui_toggle.setChecked(True)
         self.show_ui_toggle.toggled.connect(self.toggle_ui)
 
-    def toggle_new_classics(self, state):
-        self.top_layer.setVisible(not state)
-        self.top_layer_nc.setVisible(state)
-    def toggle_ui(self,state:bool):
-        self.top_layer.setVisible(state)
-        self.middle_layer_song_credit.setVisible(state)
+    def toggle_new_classics(self):
+        if self.ui_state:
+            self.top_layer.setVisible(self.nc_state)
+            self.top_layer_nc.setVisible(not self.nc_state)
+
+        self.nc_state = not self.nc_state
+    def toggle_ui(self):
+        self.top_layer.setVisible(not self.ui_state)
+        self.top_layer_nc.setVisible(not self.ui_state)
+        self.middle_layer_song_credit.setVisible(not self.ui_state)
+
+        if not self.ui_state:
+            if self.nc_state:
+                self.top_layer.setVisible(False)
+            else:
+                self.top_layer_nc.setVisible(False)
+
+        self.ui_state = not self.ui_state
+
     def switch_sprite_group(self,sprite_object:QControllableSprites):
         self.jacket.change_tracked_sprite(sprite_object.jacket)
         self.logo.change_tracked_sprite(sprite_object.logo)
