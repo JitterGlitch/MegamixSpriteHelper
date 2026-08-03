@@ -1351,11 +1351,14 @@ class QSpriteSlave(QGraphicsPixmapItem):
         self._hovered = True
         self.update_sprite()
         super().hoverEnterEvent(event)
-
     def hoverLeaveEvent(self, event):
         self._hovered = False
         self.update_sprite()
         super().hoverLeaveEvent(event)
+
+    def change_brightness(self,brightness):
+        self.brightness = brightness
+        self.update_sprite()
 
     def update_sprite(self):
         self.setPixmap(self.tracked.pixmap())
@@ -1778,6 +1781,7 @@ class QPVBackScene(QGraphicsScene):
         self.logo_visibility_state = True
         self.logo_size_state = False
         self.ft_result_show_background_state = False
+        self.background_dim_state = True
 
         self.setSceneRect(0, 0, 1920, 1080)
         self.setBackgroundBrush(Qt.GlobalColor.black)
@@ -1823,9 +1827,9 @@ class QPVBackScene(QGraphicsScene):
     def toggle_logo_visibility(self):
         self.logo_visibility_state = not self.logo_visibility_state
         self.toggle_layout(self.current_layout)
-
     def toggle_layout(self,layout):
         self.hide_all()
+        self.toggle_background_dim(True)
         self.current_layout = layout
         match layout:
             case PvBackLayout.MMSongSelect:
@@ -1922,11 +1926,18 @@ class QPVBackScene(QGraphicsScene):
 
         self.logo_size_state = not self.logo_size_state
         print(self.mm_song_select_logo.pos())
-
     def toggle_ft_result_background(self,state):
         self.ft_result_backdrop.setVisible(not state)
         self.background.setVisible(state)
         self.ft_result_show_background_state = not self.ft_result_show_background_state
+    def toggle_background_dim(self,state):
+        if state:
+            self.background.change_brightness(40)
+        else:
+            self.background.change_brightness(self.background.tracked.edit_controls[SpriteSetting.BRIGHTNESS.value].value)
+
+        self.background_dim_state = not state
+
     def change_grid_opacity(self,state:bool):
         if state:
             self.grid.opacity = 5
@@ -1973,6 +1984,17 @@ class QPVBackScene(QGraphicsScene):
                     self.ft_result_backdrop_visible_checkbox.setChecked(self.ft_result_show_background_state)
                     self.ft_result_backdrop_visible_checkbox.toggled.connect(lambda: self.toggle_ft_result_background(self.ft_result_backdrop_visible_checkbox.isChecked()))
                     self.options_layout.addWidget(self.ft_result_backdrop_visible_checkbox)
+            case PvBackLayout.BackgroundOnly:
+                self.background_dim_toggle = self.scene_config_menu.addAction("Toggle Background Dim")
+                self.background_dim_toggle.setCheckable(True)
+                self.background_dim_toggle.setChecked(not self.background_dim_state)
+                self.background_dim_toggle.toggled.connect(lambda: self.toggle_background_dim(self.background_dim_checkbox.isChecked()))
+
+                if self.options_layout:
+                    self.background_dim_checkbox = QCheckBox("Dim Background")
+                    self.background_dim_checkbox.setChecked(not self.background_dim_state)
+                    self.background_dim_checkbox.toggled.connect(lambda: self.toggle_background_dim(self.background_dim_checkbox.isChecked()))
+                    self.options_layout.addWidget(self.background_dim_checkbox)
 
         self.grid_toggle = self.scene_config_menu.addAction("Show Grid")
         self.grid_toggle.setCheckable(True)
