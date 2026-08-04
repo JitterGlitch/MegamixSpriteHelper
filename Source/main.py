@@ -1,7 +1,11 @@
 import io
+import json
+import webbrowser
 import math
 import os
 import sys
+import urllib.request
+from urllib.error import URLError
 
 from concurrent.futures import ThreadPoolExecutor
 from enum import Enum, auto
@@ -14,9 +18,9 @@ import kkdlib
 
 import yaml
 from PIL import Image
-from PySide6.QtCore import Qt, QSize, Signal, QRectF, QStandardPaths, QUrl, QPoint, QCoreApplication
+from PySide6.QtCore import Qt, QSize, Signal, QRectF, QStandardPaths, QUrl, QPoint, QCoreApplication, QSettings
 from PySide6.QtGui import QPixmap, QPalette, QColor, QImage, QPainter, QGuiApplication, QDesktopServices, QAction, QImageReader
-from PySide6.QtWidgets import QApplication, QMainWindow, QWidget, QFileDialog, QMessageBox, QSizePolicy, QSpacerItem, QMenu
+from PySide6.QtWidgets import QApplication, QMainWindow, QWidget, QFileDialog, QMessageBox, QSizePolicy, QSpacerItem, QMenu, QDialog, QVBoxLayout, QLabel, QTextEdit, QHBoxLayout, QPushButton
 
 import SceneComposer
 from SceneComposer import SpriteGroup, TextureType
@@ -39,15 +43,24 @@ class OutputTarget(Enum):
     IMAGE_VIEWER = auto()
     IMAGE = auto()
 
+
+
 class Configurable:
     def __init__(self):
         self.script_directory = Path.cwd()
-        self.version = "1.2.1 (preview)"
+        self.is_pre_release = True
+        self.repo = "JitterGlitch/MegamixSpriteHelper"
+        self.version = "1.2.1"
+        self.api_url = f"https://api.github.com/repos/{self.repo}/releases/latest"
+
 
         QCoreApplication.setApplicationName("MMSH")
         self.saved_files_location = QStandardPaths.writableLocation(QStandardPaths.StandardLocation.AppLocalDataLocation)
         self.remembered_ids_file_location = os.path.join(self.saved_files_location, "remembered_ids.yaml")
         self.remembered_song_pack_names_file_location = os.path.join(self.saved_files_location, "remembered_names.yaml")
+
+        self.settings_file = Path(self.saved_files_location) / "settings.ini"
+
 
 
         if os.path.exists(self.saved_files_location):
@@ -64,6 +77,52 @@ class Configurable:
 
         self.allowed_file_types = f"Image Files ({self.readable_extensions})"
         self.last_used_directory = self.script_directory
+
+    def get_settings(self) -> QSettings:
+        return QSettings(str(self.settings_file), QSettings.IniFormat)
+
+class UpdateDialog(QDialog):
+    def __init__(self, tag_name, changelog, html_url, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle("Update Available")
+        self.resize(580, 560)
+        self.tag_name = tag_name
+        self.html_url = html_url
+
+        layout = QVBoxLayout(self)
+
+        layout.addWidget(QLabel(f"<b>A new version is available: {tag_name}</b>"))
+        layout.addWidget(QLabel(f"You are currently using version {config.version}"))
+
+        changelog_box = QTextEdit()
+        changelog_box.setReadOnly(True)
+        changelog_box.setMarkdown(changelog or "No changelog provided.")
+        layout.addWidget(changelog_box)
+
+        btn_row = QHBoxLayout()
+        self.skip_btn = QPushButton("Skip this version")
+        self.later_btn = QPushButton("Remind me later")
+        self.view_btn = QPushButton("View Release")
+        self.view_btn.setDefault(True)
+
+        btn_row.addWidget(self.skip_btn)
+        btn_row.addWidget(self.later_btn)
+        btn_row.addStretch()
+        btn_row.addWidget(self.view_btn)
+        layout.addLayout(btn_row)
+
+        self.skip_btn.clicked.connect(self._skip)
+        self.later_btn.clicked.connect(self.reject)
+        self.view_btn.clicked.connect(self._open_release)
+
+    def _skip(self):
+        settings = config.get_settings()
+        settings.setValue("update/skipped_version", self.tag_name)
+        self.reject()
+
+    def _open_release(self):
+        webbrowser.open(self.html_url)
+        self.accept()
 
 def show_message_box(title,contents):
     message_box = QMessageBox()
@@ -687,6 +746,13 @@ def export_texture_button_callback(texture:TextureType):
         config.last_used_directory = Path(filename).parent
         texture_image.save(filename, "png")
 
+def parse_version(v: str):
+    parts = []
+    for p in v.split("."):
+        digits = "".join(ch for ch in p if ch.isdigit())
+        parts.append(int(digits) if digits else 0)
+    return tuple(parts)
+
 class MainWindow(QMainWindow):
     def __init__(self):
         super(MainWindow, self).__init__()
@@ -695,7 +761,13 @@ class MainWindow(QMainWindow):
         self.SC = SceneComposer.SceneComposerObjects()
         self._prev_enum = None
 
-        self.setWindowTitle("Megamix Sprite Helper" + " " + str(config.version))
+        preview_string = ""
+        if config.is_pre_release:
+            preview_string = " (Preview)"
+        else:
+            self.update_check()
+
+        self.setWindowTitle("Megamix Sprite Helper" + " " + str(config.version)+preview_string)
 
         # Prepare new window
         self.thumbnail_creator = ThumbnailWindow()
@@ -742,6 +814,43 @@ class MainWindow(QMainWindow):
         self._prev_enum = self.main_box.sprite_group_combobox.currentEnum()
 
 
+
+    def update_check(self):
+        try:
+            req = urllib.request.Request(
+                config.api_url,
+                headers={"Accept": "application/vnd.github+json",
+                         "User-Agent": "MMSH-UpdateCheck"}
+            )
+            with urllib.request.urlopen(req, timeout=6) as resp:
+                data = json.loads(resp.read().decode("utf-8"))
+            self._on_check_ok(data)
+        except (URLError, TimeoutError) as e:
+            self._on_check_err(str(e))
+        except Exception as e:
+            self._on_check_err(str(e))
+
+    def _on_check_ok(self, data: dict):
+        tag_name = data.get("tag_name", "")
+        html_url = data.get("html_url", "")
+        changelog = data.get("body", "")
+
+        if not tag_name:
+            return
+
+        if parse_version(tag_name) <= parse_version(config.version):
+            return
+
+        settings = config.get_settings()
+        skipped = settings.value("update/skipped_version", "")
+        if skipped == tag_name:
+            return
+
+        dlg = UpdateDialog(tag_name, changelog, html_url, self)
+        dlg.exec()
+
+    def _on_check_err(self, msg: str):
+        print("Update check failed:", msg)
 
 
     def sprite_group_changed(self):
