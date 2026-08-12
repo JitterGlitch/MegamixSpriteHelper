@@ -10,7 +10,7 @@ from PySide6.QtCore import Qt, QRectF, QPoint, Signal, QObject, QSize, QRect, QI
 from PySide6.QtGui import QImage, QPixmap, QPainter, QTransform, QColor, QPen, QMouseEvent, QFont
 from PySide6.QtWidgets import QGraphicsPixmapItem, QFileDialog, QGraphicsScene, QLayout, QGraphicsView, QWidget, QScrollArea, QCheckBox, QRadioButton, QLabel, QVBoxLayout, QDoubleSpinBox, QSlider, QColorDialog, QPushButton, QHBoxLayout, QGraphicsBlurEffect, QFrame
 from superqt import QDoubleSlider
-from superqt.utils import qthrottled
+from superqt.utils import qthrottled, qdebounced
 
 from widgets import QSmarterMenu
 
@@ -577,6 +577,7 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
         self.flipped_h = False
         self.flipped_v = False
         self.is_visible = True
+        self.preview_is_hq = False
         self.initial_calc = True
         self.last_value = {}
         self.edit_controls = self.create_edit_controls()
@@ -586,6 +587,15 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
 
         self.edit_controls[SpriteSetting.ZOOM.value].setValue(self.edit_controls[SpriteSetting.ZOOM.value].spinbox.maximum())
         self.edit_controls[SpriteSetting.BRIGHTNESS.value].setValue(self.edit_controls[SpriteSetting.BRIGHTNESS.value].spinbox.maximum())
+
+        self.hd_sprite_redraw_timer = QTimer(self)
+        self.hd_sprite_redraw_timer.timeout.connect(self.redraw_timer_callback)
+        self.hd_sprite_redraw_timer.start(1000)
+
+    def redraw_timer_callback(self):
+        if not self.edit_controls[SpriteSetting.ZOOM.value].getValue() == 1.0:
+            if not self.preview_is_hq:
+                self.update_sprite(hq_output=True)
     def add_sprite_specific_settings(self):
         pass
     def create_edit_controls(self):
@@ -793,11 +803,15 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
             painter.setTransform(t_ns,combine=False)
             if self.is_visible:
                 painter.drawPixmap(0 + self.offset.x(), 0 + self.offset.y(), QPixmap(drawn_image))
+
+            self.preview_is_hq = True
         else:
             painter.setTransform(t_s, combine=False)
             drawn_image = QPixmap(self.sprite_image)
             if self.is_visible:
                 painter.drawPixmap(0 + self.offset.x()*zoom_inverse, 0 + self.offset.y()*zoom_inverse, QPixmap(drawn_image))
+
+            self.preview_is_hq = False
 
 
         transformed_rect = t_s.mapRect(self.rect)
