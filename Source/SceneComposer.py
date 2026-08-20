@@ -669,29 +669,7 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
                 width_factor = self.required_size().width() / (self.sprite_image.width()-self.t_edges["Left"]-self.t_edges["Right"])
                 height_factor = self.required_size().height() / (self.sprite_image.height()-self.t_edges["Left"]-self.t_edges["Right"])
 
-                image_w = (self.sprite_image.size() * width_factor)
-                image_h = (self.sprite_image.size() * height_factor)
-
-                image_w_pass = False
-                image_h_pass = False
-
-                if image_w.width() >= self.required_size().width() and image_w.height() >= self.required_size().height():
-                    image_w_pass = True
-                if image_h.width() >= self.required_size().width() and image_h.height() >= self.required_size().height():
-                    image_h_pass = True
-
-                if image_w_pass and image_h_pass:
-                    image_w_area = image_w.width() * image_w.height()
-                    image_h_area = image_h.width() * image_h.height()
-
-                    if image_w_area >= image_h_area:
-                        return round_up(width_factor,3), 1.00
-                    else:
-                        return round_up(height_factor,3), 1.00
-                elif image_w_pass:
-                    return round_up(width_factor,3), 1.00
-                else:
-                    return round_up(height_factor,3),1.00
+                return round_up(min(width_factor,height_factor,1),3),1.00
 
             case SpriteSetting.ROTATION:
                 return -360,0
