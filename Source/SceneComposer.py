@@ -779,15 +779,15 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
 
         t_ns = QTransform()
         t_ns.translate(horizontal_offset, vertical_offset)
-        t_ns.translate((image_size.width() / 2), (image_size.height() / 2))
+        t_ns.translate(((zoom * image_size.width()) / 2), ((zoom * image_size.height()) / 2))
         t_ns.rotate(rotation)
-        t_ns.translate(-(image_size.width() / 2), -(image_size.height() / 2))
+        t_ns.translate(-((zoom * image_size.width()) / 2), -((zoom * image_size.height()) / 2))
 
         t_s = QTransform()
         t_s.translate(horizontal_offset, vertical_offset)
-        t_s.translate((image_size.width() / 2), (image_size.height() / 2))
+        t_s.translate(((zoom * image_size.width()) / 2), ((zoom * image_size.height()) / 2))
         t_s.rotate(rotation)
-        t_s.translate(-(image_size.width() / 2), -(image_size.height() / 2))
+        t_s.translate(-((zoom * image_size.width()) / 2), -((zoom * image_size.height()) / 2))
         t_s.scale(zoom, zoom)
 
 
@@ -1026,27 +1026,16 @@ class QLogo(QSpriteBase):
 
         match sprite_setting:
             case SpriteSetting.HORIZONTAL_OFFSET:
-                space = self.sprite_size.size().width() - rect.width()
-                #need to split this value based on area available on different sides
+                space = 870
 
-                if space > 0:
-                    return (-self.x-self.offset.x(),
-                            -self.x-self.offset.x()+space)
-
-                else:
-                    return (-self.offset.x()+(space/2),
-                            -self.offset.x()-(space/2))
+                return (-self.offset.x()-(space/2),
+                        -self.offset.x()+(space/2))
 
             case SpriteSetting.VERTICAL_OFFSET:
-                space =  self.sprite_size.size().height() - rect.height()
+                space =  330
 
-                if space > 0:
-                    return (-self.y-self.offset.y(),
-                            -self.y-self.offset.y()+space)
-
-                else:
-                    return (-self.offset.y()+(space/2),
-                            -self.offset.y()-(space/2))
+                return (-self.offset.y()-(space/2),
+                        -self.offset.y()+(space/2))
 
             case SpriteSetting.ZOOM:
 
