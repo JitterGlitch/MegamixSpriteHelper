@@ -1039,20 +1039,10 @@ class QLogo(QSpriteBase):
 
             case SpriteSetting.ZOOM:
 
-                width_factor = self.sprite_size.size().width() / self.sprite_image.width()
-                height_factor = self.sprite_size.size().height() / self.sprite_image.height()
+                width_factor = self.sprite_size.size().width() / (self.sprite_image.width()-self.t_edges["Left"]-self.t_edges["Right"])
+                height_factor = self.sprite_size.size().height() / (self.sprite_image.height()-self.t_edges["Top"]-self.t_edges["Bottom"])
 
-                if width_factor > 1:
-                    width_factor = 1
-                if height_factor > 1:
-                    height_factor = 1
-
-                if width_factor > height_factor:
-                    return 0.01,round_up(width_factor,3)
-                elif width_factor < height_factor:
-                    return 0.01,round_up(height_factor,3)
-                else:
-                    return 0.01,round_up(height_factor,3)
+                return 0.01, min(width_factor,height_factor,1)
             case SpriteSetting.ROTATION:
                 return -360,0
             case SpriteSetting.BRIGHTNESS:
