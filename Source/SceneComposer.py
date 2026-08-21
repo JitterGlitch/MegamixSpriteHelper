@@ -6,7 +6,7 @@ from pathlib import Path
 import PySide6
 import hashlib
 from PIL import Image
-from PySide6.QtCore import Qt, QRectF, QPoint, Signal, QObject, QSize, QRect, QIODevice, QFile, QThread, QTimer
+from PySide6.QtCore import Qt, QRectF, QPoint, Signal, QObject, QSize, QRect, QIODevice, QFile, QThread, QTimer, QLine
 from PySide6.QtGui import QImage, QPixmap, QPainter, QTransform, QColor, QPen, QMouseEvent, QFont
 from PySide6.QtWidgets import QGraphicsPixmapItem, QFileDialog, QGraphicsScene, QLayout, QGraphicsView, QWidget, QScrollArea, QCheckBox, QRadioButton, QLabel, QVBoxLayout, QDoubleSpinBox, QSlider, QColorDialog, QPushButton, QHBoxLayout, QGraphicsBlurEffect, QFrame
 from superqt import QDoubleSlider
@@ -526,6 +526,7 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
         self.sprite_image = QImage(self.location)
         self.t_edges = get_transparent_edge_pixels(self.sprite_image)
         self.rect = get_real_image_area(self.sprite_image)
+        self.t_rect = self.rect
         self.x = 0
         self.y = 0
 
@@ -793,6 +794,7 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
 
 
         transformed_rect = t_s.mapRect(self.rect)
+        self.t_rect = transformed_rect
 
         painter.setCompositionMode(QPainter.CompositionMode.CompositionMode_SourceAtop)
         painter.setOpacity((100-brightness)/100)
@@ -961,6 +963,8 @@ class QLogo(QSpriteBase):
         self.show_logo_checkbox.setText("Show Logo")
         self.show_logo_checkbox.toggled.connect(lambda: self.toggle_visibility(self.show_logo_checkbox.isChecked()))
 
+        self.edge_cutoff_results = {}
+
     def toggle_visibility(self,state):
         self.is_visible = state
         self.drop_shadow.is_visible = state
@@ -1039,6 +1043,24 @@ class QLogo(QSpriteBase):
         self.edit_controls[SpriteSetting.ROTATION.value].setValue(0)
         self.edit_controls[SpriteSetting.BRIGHTNESS.value].setValue(100)
 
+    def scan_edges(self):
+        scene_rect = self.sprite_scene.sceneRect()
+
+        rect = self.t_rect
+        flags = {
+            'left': rect.left() < scene_rect.left(),
+            'right': rect.right() > scene_rect.right(),
+            'top': rect.top() < scene_rect.top(),
+            'bottom': rect.bottom() > scene_rect.bottom()
+        }
+        self.edge_cutoff_results = flags
+        return self.edge_cutoff_results
+
+    def has_cutoff_edges(self):
+        for side in self.edge_cutoff_results:
+            if side:
+                return True
+        return False
     def update_pixmap(self):
         logo = self.grab_scene_portion(self.sprite_scene, self.sprite_size)
         if hasattr(self, 'drop_shadow'):
@@ -1059,6 +1081,8 @@ class QLogo(QSpriteBase):
                 self.setPixmap(logo)
         else:
             self.setPixmap(logo)
+
+        self.scan_edges()
 class QDropShadow(QGraphicsPixmapItem):
     def __init__(self,logo_object:QLogo):
         QGraphicsPixmapItem.__init__(self)
@@ -1341,8 +1365,6 @@ class QSpriteSlave(QGraphicsPixmapItem):
             self.setAcceptHoverEvents(True)
 
 
-
-
         self.update_sprite()
 
 
@@ -1374,6 +1396,40 @@ class QSpriteSlave(QGraphicsPixmapItem):
             painter.fillRect(0 , 0, self.tracked.sprite_image.width()+300, self.tracked.sprite_image.height()+300,
                              QColor(0, 0, 0))
             painter.restore()
+
+        if self.tracked.sprite_type == SpriteType.LOGO:
+            if self.tracked.edge_cutoff_results:
+                if self.tracked.edge_cutoff_results["top"]:
+                    painter.save()
+                    pen = QPen(QColor("red"), 10, Qt.SolidLine)
+                    painter.setPen(pen)
+                    rect = self.boundingRect()
+                    painter.drawLine(QLine(rect.topLeft().toPoint(),rect.topRight().toPoint()))
+                    painter.restore()
+
+                if self.tracked.edge_cutoff_results["bottom"]:
+                    painter.save()
+                    pen = QPen(QColor("red"), 10, Qt.SolidLine)
+                    painter.setPen(pen)
+                    rect = self.boundingRect()
+                    painter.drawLine(QLine(rect.bottomLeft().toPoint(),rect.bottomRight().toPoint()))
+                    painter.restore()
+
+                if self.tracked.edge_cutoff_results["left"]:
+                    painter.save()
+                    pen = QPen(QColor("red"), 10, Qt.SolidLine)
+                    painter.setPen(pen)
+                    rect = self.boundingRect()
+                    painter.drawLine(QLine(rect.topLeft().toPoint(),rect.bottomLeft().toPoint()))
+                    painter.restore()
+
+                if self.tracked.edge_cutoff_results["right"]:
+                    painter.save()
+                    pen = QPen(QColor("red"), 10, Qt.SolidLine)
+                    painter.setPen(pen)
+                    rect = self.boundingRect()
+                    painter.drawLine(QLine(rect.topRight().toPoint(),rect.bottomRight().toPoint()))
+                    painter.restore()
 
         if self._hovered:
             painter.save()
@@ -1808,6 +1864,7 @@ class QPVBackScene(QGraphicsScene):
     def __init__(self,mm_song_select:QMMSongSelectScene,mm_result:QMMResultScene,ft_result:QFTResultScene,logo=None,jacket=None,background=None):
         super().__init__()
         self.name = "Pv Back Scene"
+        self.current_layout = PvBackLayout.MMSongSelect
 
         self.mm_song_select_scene = mm_song_select
         self.ft_result_scene = ft_result
@@ -1870,7 +1927,7 @@ class QPVBackScene(QGraphicsScene):
 
         self.hide_all()
         self.scene_config_menu = QSmarterMenu(self.name)
-        self.toggle_layout(PvBackLayout.MMSongSelect)
+        self.toggle_layout(self.current_layout)
     def hide_all(self):
         self.mm_song_select_backdrop.setVisible(False)
         self.mm_song_select_jacket.setVisible(False)
