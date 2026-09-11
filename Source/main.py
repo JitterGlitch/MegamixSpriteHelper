@@ -874,6 +874,7 @@ class MainWindow(QMainWindow):
             for sprite in sprite_object.list:
                 sprite.hide_edit_controls(True)
 
+        self.update_tracked_sprite_status()
         self.disable_shared_controls()
 
     def resizeEvent(self,event):
@@ -888,13 +889,7 @@ class MainWindow(QMainWindow):
         self.main_box.load_image_button.clicked.connect(lambda:self.load_new_sprite_image(sprite))
         self.main_box.load_image_button.setText(f"Load {sprite} Image")
 
-        if self.main_box.sprite_status_display.tracked is not None:
-            self.main_box.sprite_status_display.tracked.SpriteStatusWait.disconnect()
-            self.main_box.sprite_status_display.tracked.SpriteRedraw.disconnect()
-
-        self.main_box.sprite_status_display.set_tracked_sprite(self.SC.type_to_sprite(self.main_box.sprite_group_combobox.currentEnum(),sprite))
-        self.main_box.sprite_status_display.tracked.SpriteStatusWait.connect(lambda: self.main_box.sprite_status_display.set_status(SpriteStatusString.PLEASE_WAIT.value))
-        self.main_box.sprite_status_display.tracked.SpriteRedraw.connect(lambda: self.main_box.sprite_status_display.update_status())
+        self.update_tracked_sprite_status()
         match sprite:
             case SpriteType.BACKGROUND:
                 self.main_box.load_image_button.setEnabled(self.SC.enum_to_obj(self.main_box.sprite_group_combobox.currentEnum()).background.controls_enabled)
@@ -912,7 +907,16 @@ class MainWindow(QMainWindow):
                 self.main_box.load_image_button.setEnabled(self.SC.enum_to_obj(self.main_box.sprite_group_combobox.currentEnum()).thumbnail.controls_enabled)
                 self.main_box.flip_vertical_button.setEnabled(self.SC.enum_to_obj(self.main_box.sprite_group_combobox.currentEnum()).thumbnail.controls_enabled)
                 self.main_box.flip_horizontal_button.setEnabled(self.SC.enum_to_obj(self.main_box.sprite_group_combobox.currentEnum()).thumbnail.controls_enabled)
+    def update_tracked_sprite_status(self):
+        sprite = self.main_box.current_sprite_combobox.currentText()
 
+        if self.main_box.sprite_status_display.tracked is not None:
+            self.main_box.sprite_status_display.tracked.SpriteStatusWait.disconnect()
+            self.main_box.sprite_status_display.tracked.SpriteRedraw.disconnect()
+
+        self.main_box.sprite_status_display.set_tracked_sprite(self.SC.type_to_sprite(self.main_box.sprite_group_combobox.currentEnum(),sprite))
+        self.main_box.sprite_status_display.tracked.SpriteStatusWait.connect(lambda: self.main_box.sprite_status_display.set_status(SpriteStatusString.PLEASE_WAIT.value))
+        self.main_box.sprite_status_display.tracked.SpriteRedraw.connect(lambda: self.main_box.sprite_status_display.update_status())
     def flip_current_sprite(self,flip_type):
         current_sprite = self.main_box.current_sprite_combobox.currentText()
         match current_sprite:
