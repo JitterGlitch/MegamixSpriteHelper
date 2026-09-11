@@ -9,8 +9,8 @@ from PIL import Image
 from PySide6.QtCore import Qt, QRectF, QPoint, Signal, QObject, QSize, QRect, QIODevice, QFile, QThread, QTimer, QLine
 from PySide6.QtGui import QImage, QPixmap, QPainter, QTransform, QColor, QPen, QMouseEvent, QFont
 from PySide6.QtWidgets import QGraphicsPixmapItem, QFileDialog, QGraphicsScene, QLayout, QGraphicsView, QWidget, QScrollArea, QCheckBox, QRadioButton, QLabel, QVBoxLayout, QDoubleSpinBox, QSlider, QColorDialog, QPushButton, QHBoxLayout, QGraphicsBlurEffect, QFrame
-from superqt import QDoubleSlider
-from superqt.utils import qthrottled, qdebounced
+from superqt import QDoubleSlider, QIconifyIcon
+from superqt.utils import qthrottled
 
 from widgets import QSmarterMenu
 
@@ -54,6 +54,11 @@ class SpriteSetting(StrEnum):
             cls.BLUR_STRENGTH,
             cls.OPACITY
         )
+
+class SpriteStatus(Enum):
+    OK = auto()
+    NOT_HQ = auto()
+    ERROR = auto()
 
 class PvBackLayout(Enum):
     MMSongSelect = "Megamix Song Select"
@@ -462,6 +467,74 @@ class SpriteSettingControl(QWidget):
 
     def reset_value(self):
         self.setValue(self.initial_value)
+class SpriteStatusString(Enum):
+    OK = ("material-symbols:check-circle-rounded","green","No issues")
+    PLEASE_WAIT = ("material-symbols:hourglass-rounded","orange","Please wait...")
+    ERROR = ("material-symbols:warning-rounded","red","Error")
+
+    def __getitem__(self, item):
+        return item
+
+class SpriteStatusDisplay(QWidget):
+    def __init__(self, /):
+        super().__init__()
+
+        self.tracked = None
+
+        self.frame = QFrame()
+        self.frame.setObjectName(u"frame")
+
+        self.icon = QIconifyIcon("material-symbols:warning-rounded",color="red").pixmap(20,20)
+        self.icon_label = QLabel()
+        self.icon_label.setMaximumSize(20, 20)
+
+        self.label = QLabel()
+        font = self.label.font()
+        font.setPointSize(9)
+        self.label.setFont(font)
+
+        self.layout = QHBoxLayout()
+        self.layout.setContentsMargins(4,0,4,0)
+
+        self.layout.addWidget(self.icon_label)
+        self.layout.addWidget(self.label)
+
+        self.frame.setLayout(self.layout)
+
+        self.widget_layout = QHBoxLayout()
+        self.widget_layout.setContentsMargins(0,0,0,0)
+        self.widget_layout.addWidget(self.frame)
+
+        self.setLayout(self.widget_layout)
+
+        self.set_status(SpriteStatusString.PLEASE_WAIT.value)
+
+    def set_status(self,status:SpriteStatusString,error:str = None):
+        self.icon = QIconifyIcon(status[0],color=status[1]).pixmap(20,20)
+        self.icon_label.setPixmap(self.icon)
+
+        if status != SpriteStatusString.ERROR.value:
+            self.label.setText(status[2])
+        else:
+            self.label.setText(error)
+
+        c = QColor(status[1])
+        darker = c.darker(180)
+        self.frame.setStyleSheet(f" #frame {{"
+                                 f"border: 1px solid rgb({c.red()}, {c.green()}, {c.blue()});"
+                                 f"border-radius: 1px;"
+                                 f"background-color: rgba({darker.red()}, {darker.green()}, {darker.blue()}, 50)"
+                                 f"}}")
+    def update_status(self):
+        status, error = self.tracked.get_sprite_status()
+        match status:
+            case SpriteStatus.OK:
+                self.set_status(SpriteStatusString.OK.value)
+            case SpriteStatus.ERROR:
+                self.set_status(SpriteStatusString.ERROR.value, error)
+    def set_tracked_sprite(self,sprite):
+        self.tracked = sprite
+        self.update_status()
 
 def qresource_to_bytes(location):
     file = QFile(location)
@@ -501,8 +574,18 @@ class PathWatcher(QThread):
                 else:
                     continue
 
+def is_fully_opaque(pixmap: QPixmap) -> bool:
+    image = pixmap.toImage().convertToFormat(QImage.Format_RGBA8888)
+    if image.isNull():
+        return False
+    data = bytes(image.bits())
+    alpha_bytes = data[3::4]
+    return bool(alpha_bytes.count(255) == len(alpha_bytes))
+
 class QSpriteBase(QGraphicsPixmapItem, QObject):
     SpriteUpdated = Signal()
+    SpriteStatusWait = Signal()
+    SpriteRedraw = Signal()
     NewImageLoaded = Signal()
     def __init__(self,
                  sprite:str,
@@ -579,6 +662,7 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
         self.flipped_v = False
         self.is_visible = True
         self.preview_is_hq = False
+        self.sprite_area_fully_filled = False
         self.initial_calc = True
         self.last_value = {}
         self.edit_controls = self.create_edit_controls()
@@ -594,9 +678,20 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
         self.hd_sprite_redraw_timer.start(1000)
 
     def redraw_timer_callback(self):
-        if not self.edit_controls[SpriteSetting.ZOOM.value].getValue() == 1.0:
-            if not self.preview_is_hq:
-                self.update_sprite(hq_output=True)
+        if not self.preview_is_hq:
+            self.update_sprite(hq_output=True)
+            self.check_sprite_area()
+            self.SpriteRedraw.emit()
+    def check_sprite_area(self):
+        self.sprite_area_fully_filled = is_fully_opaque(self.pixmap())
+
+    def get_sprite_status(self):
+        if not self.preview_is_hq:
+            return SpriteStatus.NOT_HQ,""
+        if self.sprite_area_fully_filled:
+            return SpriteStatus.OK, ""
+        else:
+            return SpriteStatus.ERROR, "Area isn't fully covered"
     def add_sprite_specific_settings(self):
         pass
     def create_edit_controls(self):
@@ -832,6 +927,7 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
                 self.last_value[setting] = self.edit_controls[setting].value
 
         self.SpriteUpdated.emit()
+        self.SpriteStatusWait.emit()
     def set_initial_values(self):
         for setting in self.edit_controls:
             self.edit_controls[setting].setValue(self.edit_controls[setting].range[1])
@@ -860,7 +956,6 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
 
     def update_pixmap(self):
         self.setPixmap(self.grab_scene_portion(self.sprite_scene, self.sprite_size))
-
     def mousePressEvent(self, event, /):
         self.save_image()
 
@@ -914,6 +1009,8 @@ class QJacket(QSpriteBase):
                  size: PySide6.QtCore.QRectF):
         super().__init__(sprite,SpriteType.JACKET,size)
 
+    def check_sprite_area(self):
+        self.sprite_area_fully_filled = is_fully_opaque(QPixmap(self.image_without_fix))
     def apply_fix(self,image:QImage) -> QImage:
         w = image.width()
         h = image.height()
@@ -964,6 +1061,8 @@ class QLogo(QSpriteBase):
         self.show_logo_checkbox.toggled.connect(lambda: self.toggle_visibility(self.show_logo_checkbox.isChecked()))
 
         self.edge_cutoff_results = {}
+    def check_sprite_area(self):
+        pass
 
     def toggle_visibility(self,state):
         self.is_visible = state
@@ -1058,9 +1157,19 @@ class QLogo(QSpriteBase):
 
     def has_cutoff_edges(self):
         for side in self.edge_cutoff_results:
-            if side:
+            if self.edge_cutoff_results[side]:
                 return True
         return False
+
+    def get_sprite_status(self):
+        self.scan_edges()
+        if self.has_cutoff_edges():
+            for side in self.edge_cutoff_results:
+                if self.edge_cutoff_results[side]:
+                    return SpriteStatus.ERROR, "Logo gets cut off at " + side
+        else:
+            return SpriteStatus.OK,""
+
     def update_pixmap(self):
         logo = self.grab_scene_portion(self.sprite_scene, self.sprite_size)
         if hasattr(self, 'drop_shadow'):
@@ -2272,6 +2381,16 @@ class SceneComposerObjects:
         }
     def enum_to_obj(self,sprite_group:SpriteGroup):
         return self.sprite_groups[sprite_group]
+    def type_to_sprite(self,sprite_group:SpriteGroup,type:SpriteType):
+        match type:
+            case SpriteType.BACKGROUND:
+                return self.sprite_groups[sprite_group].background
+            case SpriteType.JACKET:
+                return self.sprite_groups[sprite_group].jacket
+            case SpriteType.LOGO:
+                return self.sprite_groups[sprite_group].logo
+            case SpriteType.THUMBNAIL:
+                return self.sprite_groups[sprite_group].thumbnail
 
     def create_background_jacket_texture(self, sprite_group: SpriteGroup):
         self.enum_to_obj(sprite_group).background.update_sprite(hq_output=True)

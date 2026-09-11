@@ -23,10 +23,9 @@ from PySide6.QtGui import QPixmap, QPalette, QColor, QImage, QPainter, QGuiAppli
 from PySide6.QtWidgets import QApplication, QMainWindow, QWidget, QFileDialog, QMessageBox, QSizePolicy, QSpacerItem, QMenu, QDialog, QVBoxLayout, QLabel, QTextEdit, QHBoxLayout, QPushButton
 
 import SceneComposer
-from SceneComposer import SpriteGroup, TextureType
+from SceneComposer import SpriteGroup, TextureType, SpriteStatusString
 from ui_SongFarcCreator import Ui_SongFarcCreatorWindow
 from widgets import QSmarterMenu
-
 
 from FarcCreator import FarcCreator
 from SceneComposer import SpriteSetting, QSpriteSlave, SpriteType, QScalingGraphicsScene, PvBackLayout
@@ -813,8 +812,6 @@ class MainWindow(QMainWindow):
         self.SC.enum_to_obj(self.main_box.sprite_group_combobox.currentEnum()).logo.VisibilityToggled.connect(self.disable_shared_controls)
         self._prev_enum = self.main_box.sprite_group_combobox.currentEnum()
 
-
-
     def update_check(self):
         try:
             req = urllib.request.Request(
@@ -829,7 +826,6 @@ class MainWindow(QMainWindow):
             self._on_check_err(str(e))
         except Exception as e:
             self._on_check_err(str(e))
-
     def _on_check_ok(self, data: dict):
         tag_name = data.get("tag_name", "")
         html_url = data.get("html_url", "")
@@ -848,7 +844,6 @@ class MainWindow(QMainWindow):
 
         dlg = UpdateDialog(tag_name, changelog, html_url, self)
         dlg.exec()
-
     def _on_check_err(self, msg: str):
         print("Update check failed:", msg)
 
@@ -893,6 +888,13 @@ class MainWindow(QMainWindow):
         self.main_box.load_image_button.clicked.connect(lambda:self.load_new_sprite_image(sprite))
         self.main_box.load_image_button.setText(f"Load {sprite} Image")
 
+        if self.main_box.sprite_status_display.tracked is not None:
+            self.main_box.sprite_status_display.tracked.SpriteStatusWait.disconnect()
+            self.main_box.sprite_status_display.tracked.SpriteRedraw.disconnect()
+
+        self.main_box.sprite_status_display.set_tracked_sprite(self.SC.type_to_sprite(self.main_box.sprite_group_combobox.currentEnum(),sprite))
+        self.main_box.sprite_status_display.tracked.SpriteStatusWait.connect(lambda: self.main_box.sprite_status_display.set_status(SpriteStatusString.PLEASE_WAIT.value))
+        self.main_box.sprite_status_display.tracked.SpriteRedraw.connect(lambda: self.main_box.sprite_status_display.update_status())
         match sprite:
             case SpriteType.BACKGROUND:
                 self.main_box.load_image_button.setEnabled(self.SC.enum_to_obj(self.main_box.sprite_group_combobox.currentEnum()).background.controls_enabled)
@@ -1269,6 +1271,8 @@ class SongFarcCreatorWindow(QWidget):
         placeholders_used = []
         logos_with_cutoff_edges = []
 
+        #TODO . Placeholder sprites do not use string as their location so this errors out
+        #TODO , Do this smarter, this is not maintainable
         if main_window.SC.enum_to_obj(default_sprite_group).background.location.startswith(":"):
             placeholders_used.append(f"{default_sprite_group.value}: {main_window.SC.enum_to_obj(default_sprite_group).background.sprite_type.name}\n")
         if main_window.SC.enum_to_obj(default_sprite_group).jacket.location.startswith(":"):

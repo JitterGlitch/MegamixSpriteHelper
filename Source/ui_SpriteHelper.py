@@ -9,7 +9,7 @@ from PySide6.QtWidgets import (QAbstractScrollArea, QComboBox,
                                QTabWidget, QVBoxLayout, QWidget, QMenuBar)
 from superqt import QEnumComboBox
 from FarcCreator import Compression
-from SceneComposer import SpriteGroup
+from SceneComposer import SpriteGroup,SpriteStatusDisplay
 
 import resources_rc
 
@@ -135,6 +135,10 @@ class Ui_MainWindow(object):
 
 
         self.load_buttons_box.addLayout(self.horizontalLayout_2)
+
+        self.sprite_status_display = SpriteStatusDisplay()
+        self.sprite_status_display.setMaximumSize(QSize(200, 30))
+        self.load_buttons_box.addWidget(self.sprite_status_display)
 
         self.image_edit_scroll_area = QScrollArea(self.grid)
         self.image_edit_scroll_area.setObjectName(u"image_edit_scroll_area")
