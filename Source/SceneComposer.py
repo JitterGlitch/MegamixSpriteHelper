@@ -980,6 +980,32 @@ class QThumbnail(QSpriteBase):
         self.sprite_mask = QImage(mask)
         super().__init__(sprite,SpriteType.THUMBNAIL,size,offset=QPoint(28,1))
 
+    def _has_any_alpha(self,img: QImage) -> bool:
+        mask = img.createAlphaMask()
+        return any(bytes(mask.constBits()))
+
+    def check_sprite_area(self):
+        image = self.pixmap().toImage()
+        mw, mh = self.sprite_mask.width(), self.sprite_mask.height()
+
+        binary = QImage(mw, mh, QImage.Format.Format_ARGB32_Premultiplied)
+        binary.fill(Qt.transparent)
+        p = QPainter(binary)
+        p.setCompositionMode(QPainter.CompositionMode.CompositionMode_Source)
+        p.drawImage(0, 0, self.sprite_mask)
+
+        p.setCompositionMode(QPainter.CompositionMode.CompositionMode_SourceIn)
+        p.fillRect(binary.rect(), Qt.white)
+        p.end()
+
+        p = QPainter(binary)
+        p.setCompositionMode(QPainter.CompositionMode.CompositionMode_DestinationOut)
+        p.drawImage(0, 0, image)
+        p.end()
+
+        self.sprite_area_fully_filled = not self._has_any_alpha(binary)
+
+
     def required_size(self) -> QSize:
         return QSize(100,61)
 
