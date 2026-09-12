@@ -1,13 +1,15 @@
 import io
 import math
+import os
+import tempfile
 from enum import Enum, auto, StrEnum
 from pathlib import Path
 
 import PySide6
 import hashlib
 from PIL import Image
-from PySide6.QtCore import Qt, QRectF, QPoint, Signal, QObject, QSize, QRect, QIODevice, QFile, QThread, QTimer, QLine
-from PySide6.QtGui import QImage, QPixmap, QPainter, QTransform, QColor, QPen, QMouseEvent, QFont
+from PySide6.QtCore import Qt, QRectF, QPoint, Signal, QObject, QSize, QRect, QIODevice, QFile, QThread, QTimer, QLine, QStandardPaths, QUrl
+from PySide6.QtGui import QImage, QPixmap, QPainter, QTransform, QColor, QPen, QMouseEvent, QFont, QDesktopServices
 from PySide6.QtWidgets import QGraphicsPixmapItem, QFileDialog, QGraphicsScene, QLayout, QGraphicsView, QWidget, QScrollArea, QCheckBox, QRadioButton, QLabel, QVBoxLayout, QDoubleSpinBox, QSlider, QColorDialog, QPushButton, QHBoxLayout, QGraphicsBlurEffect, QFrame
 from superqt import QDoubleSlider, QIconifyIcon
 from superqt.utils import qthrottled
@@ -581,6 +583,36 @@ def is_fully_opaque(pixmap: QPixmap) -> bool:
     data = bytes(image.bits())
     alpha_bytes = data[3::4]
     return bool(alpha_bytes.count(255) == len(alpha_bytes))
+def has_any_alpha(img: QImage) -> bool:
+    mask = img.createAlphaMask()
+    return any(bytes(mask.constBits()))
+
+def preview_image(image: QImage, fmt: str = "PNG") -> str | None:
+    """
+    Save `image` to a temporary file and open it in the OS default viewer.
+
+    Returns the path of the temp file (so the caller can delete it later),
+    or None if the image couldn't be saved / launched.
+
+    `fmt` is a Qt image format name: "PNG", "JPG", "BMP", "TIFF", ...
+    """
+    if image is None or image.isNull():
+        return None
+
+    # Build a stable temp filename. Using a fixed prefix + PID means
+    # repeated calls overwrite the same file, which most viewers handle
+    # gracefully (no window spam).
+    tmp_dir = QStandardPaths.writableLocation(
+        QStandardPaths.StandardLocation.TempLocation
+    ) or tempfile.gettempdir()
+
+    ext = fmt.lower()
+    path = os.path.join(tmp_dir, f"qt_preview_{os.getpid()}.{ext}")
+
+    if not image.save(path, fmt):
+        return None
+
+    QDesktopServices.openUrl(QUrl.fromLocalFile(path))
 
 class QSpriteBase(QGraphicsPixmapItem, QObject):
     SpriteUpdated = Signal()
@@ -980,30 +1012,24 @@ class QThumbnail(QSpriteBase):
         self.sprite_mask = QImage(mask)
         super().__init__(sprite,SpriteType.THUMBNAIL,size,offset=QPoint(28,1))
 
-    def _has_any_alpha(self,img: QImage) -> bool:
-        mask = img.createAlphaMask()
-        return any(bytes(mask.constBits()))
-
     def check_sprite_area(self):
         image = self.pixmap().toImage()
         mw, mh = self.sprite_mask.width(), self.sprite_mask.height()
 
         binary = QImage(mw, mh, QImage.Format.Format_ARGB32_Premultiplied)
         binary.fill(Qt.transparent)
-        p = QPainter(binary)
-        p.setCompositionMode(QPainter.CompositionMode.CompositionMode_Source)
-        p.drawImage(0, 0, self.sprite_mask)
+        painter = QPainter(binary)
+        painter.setCompositionMode(QPainter.CompositionMode.CompositionMode_Source)
+        painter.drawImage(0, 0, self.sprite_mask)
 
-        p.setCompositionMode(QPainter.CompositionMode.CompositionMode_SourceIn)
-        p.fillRect(binary.rect(), Qt.white)
-        p.end()
+        painter.setCompositionMode(QPainter.CompositionMode.CompositionMode_SourceIn)
+        painter.fillRect(binary.rect(), Qt.white)
 
-        p = QPainter(binary)
-        p.setCompositionMode(QPainter.CompositionMode.CompositionMode_DestinationOut)
-        p.drawImage(0, 0, image)
-        p.end()
+        painter.setCompositionMode(QPainter.CompositionMode.CompositionMode_DestinationOut)
+        painter.drawImage(0, 0, image)
+        painter.end()
 
-        self.sprite_area_fully_filled = not self._has_any_alpha(binary)
+        self.sprite_area_fully_filled = not has_any_alpha(binary)
 
 
     def required_size(self) -> QSize:
@@ -1087,8 +1113,47 @@ class QLogo(QSpriteBase):
         self.show_logo_checkbox.toggled.connect(lambda: self.toggle_visibility(self.show_logo_checkbox.isChecked()))
 
         self.edge_cutoff_results = {}
+        self.ui_cover_mask = QImage(u":icon/Images/Dummy/Logo UI Mask.png")
+        self.sprite_covered_by_ui = False
+
+    def _threshold_alpha(self,image: QImage, tolerance: int) -> QImage:
+        img = image.convertToFormat(QImage.Format.Format_RGBA8888)
+        w, h = img.width(), img.height()
+        bpl = img.bytesPerLine()
+        buf = bytearray(img.constBits())
+
+        table = bytes(0 if i < tolerance else 255 for i in range(256))
+
+        for y in range(h):
+            row = y * bpl
+            a_start = row + 3
+            a_end = row + w * 4
+            alpha = bytes(buf[a_start:a_end:4])
+            buf[a_start:a_end:4] = alpha.translate(table)
+
+        return QImage(bytes(buf), w, h, bpl,QImage.Format.Format_RGBA8888).copy()
+
     def check_sprite_area(self):
-        pass
+        image = self.pixmap().toImage()
+        image_w_tolerance = self._threshold_alpha(image, 204)
+
+        mw, mh = self.ui_cover_mask.width(), self.ui_cover_mask.height()
+
+        binary = QImage(mw, mh, QImage.Format.Format_ARGB32_Premultiplied)
+        binary.fill(Qt.transparent)
+
+        painter = QPainter(binary)
+        painter.setCompositionMode(QPainter.CompositionMode.CompositionMode_Source)
+        painter.drawImage(0, 0, self.ui_cover_mask)
+
+        painter.setCompositionMode(QPainter.CompositionMode.CompositionMode_SourceIn)
+        painter.fillRect(binary.rect(), Qt.white)
+
+        painter.setCompositionMode(QPainter.CompositionMode.CompositionMode_DestinationIn)
+        painter.drawImage(0, 0, image_w_tolerance)
+        painter.end()
+
+        self.sprite_covered_by_ui = has_any_alpha(binary)
 
     def toggle_visibility(self,state):
         self.is_visible = state
@@ -1193,8 +1258,12 @@ class QLogo(QSpriteBase):
             for side in self.edge_cutoff_results:
                 if self.edge_cutoff_results[side]:
                     return SpriteStatus.ERROR, "Logo gets cut off at " + side
-        else:
-            return SpriteStatus.OK,""
+
+        if self.sprite_covered_by_ui:
+            return SpriteStatus.ERROR,"Logo is covered up by UI"
+
+        return SpriteStatus.OK,""
+
 
     def update_pixmap(self):
         logo = self.grab_scene_portion(self.sprite_scene, self.sprite_size)
