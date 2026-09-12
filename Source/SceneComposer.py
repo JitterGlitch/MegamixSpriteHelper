@@ -587,33 +587,6 @@ def has_any_alpha(img: QImage) -> bool:
     mask = img.createAlphaMask()
     return any(bytes(mask.constBits()))
 
-def preview_image(image: QImage, fmt: str = "PNG") -> str | None:
-    """
-    Save `image` to a temporary file and open it in the OS default viewer.
-
-    Returns the path of the temp file (so the caller can delete it later),
-    or None if the image couldn't be saved / launched.
-
-    `fmt` is a Qt image format name: "PNG", "JPG", "BMP", "TIFF", ...
-    """
-    if image is None or image.isNull():
-        return None
-
-    # Build a stable temp filename. Using a fixed prefix + PID means
-    # repeated calls overwrite the same file, which most viewers handle
-    # gracefully (no window spam).
-    tmp_dir = QStandardPaths.writableLocation(
-        QStandardPaths.StandardLocation.TempLocation
-    ) or tempfile.gettempdir()
-
-    ext = fmt.lower()
-    path = os.path.join(tmp_dir, f"qt_preview_{os.getpid()}.{ext}")
-
-    if not image.save(path, fmt):
-        return None
-
-    QDesktopServices.openUrl(QUrl.fromLocalFile(path))
-
 class QSpriteBase(QGraphicsPixmapItem, QObject):
     SpriteUpdated = Signal()
     SpriteStatusWait = Signal()
@@ -1262,6 +1235,11 @@ class QLogo(QSpriteBase):
         if self.sprite_covered_by_ui:
             return SpriteStatus.ERROR,"Logo is covered up by UI"
 
+        if self.drop_shadow.is_visible:
+            drop_shadow_status , drop_shadow_error = self.drop_shadow.get_sprite_status()
+            if drop_shadow_status != SpriteStatus.OK:
+                return drop_shadow_status, drop_shadow_error
+
         return SpriteStatus.OK,""
 
 
@@ -1299,8 +1277,11 @@ class QDropShadow(QGraphicsPixmapItem):
 
         self.t_edges = get_transparent_edge_pixels(self.sprite_image)
         self.rect = get_real_image_area(self.sprite_image)
+        self.t_rect = self.rect
         self.x = 0
         self.y = 0
+
+        self.edge_cutoff_results = None
 
         # Create a scene that will crop image to max size
         self.sprite = QGraphicsPixmapItem()
@@ -1454,6 +1435,8 @@ class QDropShadow(QGraphicsPixmapItem):
 
 
         transformed_rect = t_s.mapRect(self.rect)
+        self.t_rect = transformed_rect
+
 
         painter.save()
         painter.setCompositionMode(QPainter.CompositionMode.CompositionMode_SourceAtop)
@@ -1493,6 +1476,36 @@ class QDropShadow(QGraphicsPixmapItem):
             self.update_all_ranges(transformed_rect)
             for setting in self.edit_controls:
                 self.last_value[setting] = self.edit_controls[setting].value
+
+    def scan_edges(self):
+        scene_rect = self.sprite_scene.sceneRect()
+
+        rect = self.t_rect
+        flags = {
+            'left': rect.left() < scene_rect.left(),
+            'right': rect.right() > scene_rect.right(),
+            'top': rect.top() < scene_rect.top(),
+            'bottom': rect.bottom() > scene_rect.bottom()
+        }
+        self.edge_cutoff_results = flags
+        return self.edge_cutoff_results
+
+    def has_cutoff_edges(self):
+        for side in self.edge_cutoff_results:
+            if self.edge_cutoff_results[side]:
+                return True
+        return False
+
+    def get_sprite_status(self):
+        self.scan_edges()
+        if self.has_cutoff_edges():
+            for side in self.edge_cutoff_results:
+                if self.edge_cutoff_results[side]:
+                    return SpriteStatus.ERROR, "Shadow gets cut off at " + side
+
+
+        return SpriteStatus.OK,""
+
 
     def toggle_visibility(self,state):
         self.is_visible = state
