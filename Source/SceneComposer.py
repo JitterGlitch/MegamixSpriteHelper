@@ -1210,13 +1210,13 @@ class QLogo(QSpriteBase):
         scene_rect = self.sprite_scene.sceneRect()
 
         rect = self.t_rect
-        flags = {
+        self.edge_cutoff_results = {
             'left': rect.left() < scene_rect.left(),
             'right': rect.right() > scene_rect.right(),
             'top': rect.top() < scene_rect.top(),
             'bottom': rect.bottom() > scene_rect.bottom()
         }
-        self.edge_cutoff_results = flags
+
         return self.edge_cutoff_results
 
     def has_cutoff_edges(self):
@@ -1301,19 +1301,19 @@ class QDropShadow(QGraphicsPixmapItem):
 
         self.sprite_settings = [
             (SpriteSetting.HORIZONTAL_OFFSET, {
-                'initial_value': 100,
+                'initial_value': 0,
                 'decimals': 0,
                 'rough_step': 1,
                 'precise_step': 1
             }),
             (SpriteSetting.VERTICAL_OFFSET, {
-                'initial_value': 100,
+                'initial_value': 0,
                 'decimals': 0,
                 'rough_step': 1,
                 'precise_step': 1
             }),
             (SpriteSetting.BLUR_STRENGTH, {
-                'initial_value': 100,
+                'initial_value': 10,
                 'decimals': 0,
                 'rough_step': 1,
                 'precise_step': 1
@@ -1333,7 +1333,7 @@ class QDropShadow(QGraphicsPixmapItem):
         ]
         self.flipped_h = False
         self.flipped_v = False
-        self.is_visible = True
+        self.is_visible = False
         self.initial_calc = True
         self.last_value = {}
         self.edit_controls = self.create_edit_controls()
@@ -1347,6 +1347,14 @@ class QDropShadow(QGraphicsPixmapItem):
     def load_new_image(self):
         self.sprite_image = self.logo_object.sprite_image
         self.t_edges = get_transparent_edge_pixels(self.sprite_image)
+        self.rect = get_real_image_area(self.sprite_image)
+        self.x = 0
+        self.y = 0
+
+        self.initial_calc = True
+        self.last_value = {}
+        self.update_all_ranges(self.rect)
+
         self.update_sprite()
 
     def grab_scene_portion(self,scene:QGraphicsScene, source_rect:QRectF) -> QPixmap:
@@ -1404,8 +1412,8 @@ class QDropShadow(QGraphicsPixmapItem):
     def update_sprite(self,hq_output=False):
         zoom = self.logo_object.edit_controls[SpriteSetting.ZOOM.value].value
         zoom_inverse = 1/zoom
-        horizontal_offset = self.logo_object.edit_controls[SpriteSetting.HORIZONTAL_OFFSET.value].value + self.edit_controls[SpriteSetting.HORIZONTAL_OFFSET].value
-        vertical_offset = self.logo_object.edit_controls[SpriteSetting.VERTICAL_OFFSET.value].value + self.edit_controls[SpriteSetting.VERTICAL_OFFSET].value
+        horizontal_offset = self.logo_object.edit_controls[SpriteSetting.HORIZONTAL_OFFSET.value].value + self.edit_controls[SpriteSetting.HORIZONTAL_OFFSET.value].value
+        vertical_offset = self.logo_object.edit_controls[SpriteSetting.VERTICAL_OFFSET.value].value + self.edit_controls[SpriteSetting.VERTICAL_OFFSET.value].value
         rotation = self.logo_object.edit_controls[SpriteSetting.ROTATION.value].value
         brightness = self.logo_object.edit_controls[SpriteSetting.BRIGHTNESS.value].value
         color = self.edit_controls[SpriteSetting.COLOR.value].colorpicker.get_color()
@@ -1436,7 +1444,6 @@ class QDropShadow(QGraphicsPixmapItem):
 
         transformed_rect = t_s.mapRect(self.rect)
         self.t_rect = transformed_rect
-
 
         painter.save()
         painter.setCompositionMode(QPainter.CompositionMode.CompositionMode_SourceAtop)
@@ -1477,17 +1484,19 @@ class QDropShadow(QGraphicsPixmapItem):
             for setting in self.edit_controls:
                 self.last_value[setting] = self.edit_controls[setting].value
 
+
     def scan_edges(self):
         scene_rect = self.sprite_scene.sceneRect()
 
         rect = self.t_rect
-        flags = {
+        self.edge_cutoff_results = {
             'left': rect.left() < scene_rect.left(),
             'right': rect.right() > scene_rect.right(),
             'top': rect.top() < scene_rect.top(),
             'bottom': rect.bottom() > scene_rect.bottom()
         }
-        self.edge_cutoff_results = flags
+        print(self.edge_cutoff_results)
+
         return self.edge_cutoff_results
 
     def has_cutoff_edges(self):
