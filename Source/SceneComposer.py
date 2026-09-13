@@ -488,7 +488,7 @@ class SpriteStatusDisplay(QWidget):
 
         self.icon = QIconifyIcon("material-symbols:warning-rounded",color="red").pixmap(20,20)
         self.icon_label = QLabel()
-        self.icon_label.setMaximumSize(20, 20)
+        self.icon_label.setMaximumSize(20, 35)
 
         self.label = QLabel()
         font = self.label.font()
@@ -696,7 +696,8 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
         if self.sprite_area_fully_filled:
             return SpriteStatus.OK, ""
         else:
-            return SpriteStatus.ERROR, "Area isn't fully covered"
+            return SpriteStatus.ERROR, (f"{self.sprite_type.value}:\n"
+                                        f"Area isn't fully covered")
     def add_sprite_specific_settings(self):
         pass
     def create_edit_controls(self):
@@ -1230,10 +1231,12 @@ class QLogo(QSpriteBase):
         if self.has_cutoff_edges():
             for side in self.edge_cutoff_results:
                 if self.edge_cutoff_results[side]:
-                    return SpriteStatus.ERROR, "Logo gets cut off at " + side
+                    return SpriteStatus.ERROR, (f"{self.sprite_type.value}:\n"
+                                                "Gets cut off at ") + side
 
         if self.sprite_covered_by_ui:
-            return SpriteStatus.ERROR,"Logo is covered up by UI"
+            return SpriteStatus.ERROR,(f"{self.sprite_type.value}:\n"
+                                       "Covered up by UI")
 
         if self.drop_shadow.is_visible:
             drop_shadow_status , drop_shadow_error = self.drop_shadow.get_sprite_status()
@@ -1340,6 +1343,7 @@ class QDropShadow(QGraphicsPixmapItem):
 
         self.update_sprite()
     def add_drop_shadow_checkbox_callback(self):
+        self.is_visible = self.add_drop_shadow_checkbox.isChecked()
         for control in self.edit_controls:
             self.edit_controls[control].setVisible(self.add_drop_shadow_checkbox.isChecked())
         self.logo_object.update_sprite()
@@ -1495,7 +1499,6 @@ class QDropShadow(QGraphicsPixmapItem):
             'top': rect.top() < scene_rect.top(),
             'bottom': rect.bottom() > scene_rect.bottom()
         }
-        print(self.edge_cutoff_results)
 
         return self.edge_cutoff_results
 
@@ -1510,7 +1513,8 @@ class QDropShadow(QGraphicsPixmapItem):
         if self.has_cutoff_edges():
             for side in self.edge_cutoff_results:
                 if self.edge_cutoff_results[side]:
-                    return SpriteStatus.ERROR, "Shadow gets cut off at " + side
+                    return SpriteStatus.ERROR, (f"{self.sprite_type.value}:\n"
+                                                "Gets cut off at ") + side
 
 
         return SpriteStatus.OK,""
