@@ -2515,7 +2515,11 @@ class SceneComposerObjects:
 
     def create_background_jacket_texture(self, sprite_group: SpriteGroup):
         self.enum_to_obj(sprite_group).background.update_sprite(hq_output=True)
+        self.enum_to_obj(sprite_group).background.SpriteRedraw.emit()
+
         self.enum_to_obj(sprite_group).jacket.update_sprite(hq_output=True)
+        self.enum_to_obj(sprite_group).jacket.SpriteRedraw.emit()
+
 
         background_jacket_texture = QImage(QSize(2048, 1024), QImage.Format.Format_ARGB32)
         background_jacket_texture.fill(Qt.GlobalColor.transparent)
@@ -2541,6 +2545,7 @@ class SceneComposerObjects:
     def create_logo_texture(self, sprite_group_list:list[tuple[SpriteGroup, str]]):
         for sprite_group in sprite_group_list:
             self.enum_to_obj(sprite_group[0]).logo.update_sprite(hq_output=True)
+            self.enum_to_obj(sprite_group[0]).logo.SpriteRedraw.emit()
 
         #Hardcoded because there's no point of doing it other way right now
         logo_texture = None
@@ -2575,6 +2580,8 @@ class SceneComposerObjects:
 
     def create_thumbnail_texture(self, sprite_group: SpriteGroup) -> QImage:
         self.enum_to_obj(sprite_group).thumbnail.update_sprite(hq_output=True)
+        self.enum_to_obj(sprite_group).thumbnail.SpriteRedraw.emit()
+
 
         thumbnail = QPixmap(self.enum_to_obj(sprite_group).thumbnail.pixmap_no_mask)
         thumbnail_dummy = QPixmap(u":icon/Images/Dummy/SONG_JK_THUMBNAIL_DUMMY.png")
@@ -2604,8 +2611,14 @@ class SceneComposerObjects:
 
     def create_pv_back_texture(self, sprite_group: SpriteGroup):
         self.enum_to_obj(sprite_group).background.update_sprite(hq_output=True)
+        self.enum_to_obj(sprite_group).background.SpriteRedraw.emit()
+
         self.enum_to_obj(sprite_group).jacket.update_sprite(hq_output=True)
+        self.enum_to_obj(sprite_group).jacket.SpriteRedraw.emit()
+
         self.enum_to_obj(sprite_group).logo.update_sprite(hq_output=True)
+        self.enum_to_obj(sprite_group).logo.SpriteRedraw.emit()
+
 
         pv_back_texture = QImage(QSize(2048, 2048), QImage.Format.Format_ARGB32)
         pv_back_texture.fill(Qt.GlobalColor.transparent)
