@@ -1688,6 +1688,9 @@ class QControllableSprites:
     def update_sprites(self):
         for sprite in self.list:
             sprite.update_sprite()
+    def bind_group_to_group_status(self,status_display):
+        for sprite in self.list:
+            sprite.SpriteRedraw.connect(status_display.update_status)
 
 class SpriteStatus(IntEnum):
     OK = auto()
@@ -1824,6 +1827,7 @@ class GroupStatusDisplay(QWidget):
 
     def set_tracked_sprite_group(self, group: QControllableSprites):
         self.tracked_sprite_group = group
+        self.tracked_sprite_group.bind_group_to_group_status(self)
         self.update_status()
 
     def update_status(self):
@@ -1904,12 +1908,14 @@ class SpriteGroupPreview(QWidget):
 
     def get_selected_sprite_group(self):
         return self.group_combobox.currentEnum()
+    def update_status(self):
+        print("Called")
+        self.sprite_group_status_display.update_status()
 
     def change_preview(self):
         self.background_label.setPixmap(self.SC.enum_to_obj(self.group_combobox.currentEnum()).background.pixmap().scaledToHeight(self.max_H))
         self.jacket_label.setPixmap(self.SC.enum_to_obj(self.group_combobox.currentEnum()).jacket.pixmap().scaledToHeight(self.max_H))
         self.logo_label.setPixmap(self.SC.enum_to_obj(self.group_combobox.currentEnum()).logo.pixmap().scaledToHeight(self.max_H))
-
 class QMMSongSelectScene(QGraphicsScene):
     def __init__(self,jacket:QJacket, logo:QLogo, background:QSpriteBase, thumbnail:QThumbnail):
         super().__init__()
