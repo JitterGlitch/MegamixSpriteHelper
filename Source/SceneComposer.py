@@ -1162,7 +1162,7 @@ class QLogo(QSpriteBase):
                                                 "Gets cut off at ") + side
 
         if self.sprite_covered_by_ui:
-            return SpriteStatus.ERROR,(f"{self.sprite_type.value}:\n"
+            return SpriteStatus.WARNING,(f"{self.sprite_type.value}:\n"
                                        "Covered up by UI")
 
         if self.drop_shadow.is_visible:
@@ -1743,10 +1743,10 @@ class SpriteStatusDisplay(QWidget):
         self.icon = QIconifyIcon(status[0], color=status[1]).pixmap(20, 20)
         self.icon_label.setPixmap(self.icon)
 
-        if status != SpriteStatusString.ERROR.value:
-            self.label.setText(status[2])
-        else:
+        if error:
             self.label.setText(error)
+        else:
+            self.label.setText(status[2])
 
         c = QColor(status[1])
         darker = c.darker(180)
@@ -1761,6 +1761,8 @@ class SpriteStatusDisplay(QWidget):
         match status:
             case SpriteStatus.OK:
                 self.set_status(SpriteStatusString.OK.value)
+            case SpriteStatus.WARNING:
+                self.set_status(SpriteStatusString.WARNING.value, error)
             case SpriteStatus.ERROR:
                 self.set_status(SpriteStatusString.ERROR.value, error)
 
@@ -1803,7 +1805,6 @@ class GroupStatusDisplay(QWidget):
                 status = SpriteStatusString.ERROR.value
                 self.icon = QIconifyIcon(status[0], color=status[1]).pixmap(20, 20)
             case _:
-                print("Somehow all of the statuses were not ready")
                 status = SpriteStatusString.PLEASE_WAIT.value
                 self.icon = QIconifyIcon(status[0], color=status[1]).pixmap(20, 20)
 
