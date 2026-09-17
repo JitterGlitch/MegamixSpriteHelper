@@ -10,7 +10,7 @@ import hashlib
 from PIL import Image
 from PySide6.QtCore import Qt, QRectF, QPoint, Signal, QObject, QSize, QRect, QIODevice, QFile, QThread, QTimer, QLine, QStandardPaths, QUrl
 from PySide6.QtGui import QImage, QPixmap, QPainter, QTransform, QColor, QPen, QMouseEvent, QFont, QDesktopServices
-from PySide6.QtWidgets import QGraphicsPixmapItem, QFileDialog, QGraphicsScene, QLayout, QGraphicsView, QWidget, QScrollArea, QCheckBox, QRadioButton, QLabel, QVBoxLayout, QDoubleSpinBox, QSlider, QColorDialog, QPushButton, QHBoxLayout, QGraphicsBlurEffect, QFrame
+from PySide6.QtWidgets import QGraphicsPixmapItem, QFileDialog, QGraphicsScene, QLayout, QGraphicsView, QWidget, QScrollArea, QCheckBox, QRadioButton, QLabel, QVBoxLayout, QDoubleSpinBox, QSlider, QColorDialog, QPushButton, QHBoxLayout, QGraphicsBlurEffect, QFrame, QStyleOptionSlider, QStyle
 from superqt import QDoubleSlider, QIconifyIcon, QEnumComboBox
 from superqt.utils import qthrottled
 
@@ -266,14 +266,17 @@ class QScalingGraphicsScene(QGraphicsView):
             self.centerOn(rect.center())
 class SpriteSettingControl(QWidget):
     editingFinished = Signal()
+    valueChanged = Signal()
 
-    def __init__(self, initial_value=0,sprite=None,setting=None,decimals=0, rough_step=1,precise_step=1, range=(0,1), parent=None):
+    def __init__(self, initial_value=0, sprite=None, setting=None, decimals=0,
+                 rough_step=1, precise_step=1, range=(0, 1), parent=None):
         super().__init__(parent)
         self.initial_value = initial_value
         self.value = initial_value
         self.decimals = decimals
         self.block_drawing = False
         self.block_editing = False
+        self._slider_manual_drag = False
 
         self.font = QFont()
         self.font.setFamilies([u"Nimbus Sans Narrow [UKWN]"])
@@ -281,9 +284,10 @@ class SpriteSettingControl(QWidget):
         self.font.setBold(False)
         self.font.setKerning(True)
 
-        self.create_control_ui(sprite,setting,decimals, rough_step,precise_step, range)
+        self.create_control_ui(sprite, setting, decimals, rough_step, precise_step, range)
 
-    def create_control_ui(self,sprite=None,setting=None,decimals=0, rough_step=1,precise_step=1, range=(0,1)):
+    def create_control_ui(self, sprite=None, setting=None, decimals=0,
+                           rough_step=1, precise_step=1, range=(0, 1)):
         if setting in (SpriteSetting.get_simple_setting_list()):
             self.setFixedSize(160, 75)
 
@@ -307,21 +311,31 @@ class SpriteSettingControl(QWidget):
             self.spinbox.setDecimals(self.decimals)
             self.spinbox.setSingleStep(precise_step)
             self.spinbox.setMinimumSize(self.editable_label_size)
-            # self.spinbox.editingFinished.connect(self.finish_editing)
+
+            # live preview while typing/arrow-clicking
             self.spinbox.valueChanged.connect(self.sync_slider)
+            # fires once, on Enter or focus-out
+            self.spinbox.editingFinished.connect(self.finish_editing)
 
             if decimals == 0:
                 self.slider = QSlider(Qt.Horizontal)
-                self.slider.setPageStep(rough_step)
-                self.slider.setSingleStep(rough_step)
-                # self.slider.sliderReleased.connect(self.slider_editing_finish)
-                self.slider.valueChanged.connect(self.slider_value_changed)
+                self.slider.mousePressEvent = self.slider_mouse_press_event
+                self.slider.mouseMoveEvent = self.slider_mouse_move_event
+                self.slider.mouseReleaseEvent = self.slider_mouse_release_event
+
             else:
                 self.slider = QDoubleSlider(Qt.Horizontal)
-                self.slider.setPageStep(rough_step)
-                self.slider.setSingleStep(rough_step)
-                # self.slider.sliderReleased.connect(self.slider_editing_finish)
-                self.slider.valueChanged.connect(self.slider_value_changed)
+
+            self.slider.wheelEvent = self.slider_wheel_event
+
+            self.slider.setPageStep(rough_step)
+            self.slider.setSingleStep(rough_step)
+            self.slider.setMinimumSize(self.editable_label_size)
+
+            # live preview while dragging
+            self.slider.valueChanged.connect(self.slider_value_changed)
+            # fires once, when the handle is released
+            self.slider.sliderReleased.connect(self.slider_editing_finish)
 
             self.range = range
             self.set_range(self.range)
@@ -334,6 +348,7 @@ class SpriteSettingControl(QWidget):
             self.label.setVisible(True)
             self.spinbox.setVisible(False)
             return
+
         if setting == SpriteSetting.COLOR:
             self.setFixedSize(160, 75)
 
@@ -357,17 +372,90 @@ class SpriteSettingControl(QWidget):
             if event.button() == Qt.MouseButton.LeftButton:
                 self.start_editing()
 
-    def start_editing(self):
+    def slider_pos_to_value(self, point):
+        opt = QStyleOptionSlider()
+        self.slider.initStyleOption(opt)
 
+        handle_rect = self.slider.style().subControlRect(
+            QStyle.ComplexControl.CC_Slider, opt,
+            QStyle.SubControl.SC_SliderHandle, self.slider
+        )
+        groove_rect = self.slider.style().subControlRect(
+            QStyle.ComplexControl.CC_Slider, opt,
+            QStyle.SubControl.SC_SliderGroove, self.slider
+        )
+
+        if self.slider.orientation() == Qt.Horizontal:
+            click_pos = point.x()
+            slider_length = handle_rect.width()
+            slider_min = groove_rect.x()
+            slider_max = groove_rect.right() - slider_length + 1
+        else:
+            click_pos = point.y()
+            slider_length = handle_rect.height()
+            slider_min = groove_rect.y()
+            slider_max = groove_rect.bottom() - slider_length + 1
+
+        return QStyle.sliderValueFromPosition(
+            self.slider.minimum(), self.slider.maximum(),
+            int(click_pos - slider_min), slider_max - slider_min,
+            opt.upsideDown
+        )
+
+    def slider_mouse_press_event(self, event):
+        if event.button() != Qt.MouseButton.LeftButton:
+            QSlider.mousePressEvent(self.slider, event)
+            return
+
+        opt = QStyleOptionSlider()
+        self.slider.initStyleOption(opt)
+        handle_rect = self.slider.style().subControlRect(
+            QStyle.ComplexControl.CC_Slider, opt,
+            QStyle.SubControl.SC_SliderHandle, self.slider
+        )
+
+        pos = event.position() if hasattr(event, "position") else event.pos()
+        click_point = pos.toPoint() if hasattr(pos, "toPoint") else pos
+
+        if handle_rect.contains(click_point):
+            # real handle grab — let Qt track the drag natively
+            self._slider_manual_drag = False
+            QSlider.mousePressEvent(self.slider, event)
+            return
+
+        # groove click — jump there and start our own drag tracking
+        self._slider_manual_drag = True
+        self.slider.setValue(self.slider_pos_to_value(click_point))
+        event.accept()
+
+    def slider_mouse_move_event(self, event):
+        if self._slider_manual_drag:
+            pos = event.position() if hasattr(event, "position") else event.pos()
+            click_point = pos.toPoint() if hasattr(pos, "toPoint") else pos
+            self.slider.setValue(self.slider_pos_to_value(click_point))
+            event.accept()
+        else:
+            QSlider.mouseMoveEvent(self.slider, event)
+
+    def slider_mouse_release_event(self, event):
+        if self._slider_manual_drag:
+            self._slider_manual_drag = False
+            event.accept()
+            self.slider_editing_finish()
+        else:
+            QSlider.mouseReleaseEvent(self.slider, event)
+
+    def slider_wheel_event(self, event):
+        type(self.slider).wheelEvent(self.slider, event)
+        self.slider_editing_finish()
+
+    def start_editing(self):
         self.label.setVisible(False)
         self.spinbox.setVisible(True)
         self.spinbox.setFocus()
         self.spinbox.selectAll()
 
-        self.spinbox.installEventFilter(self)
-
     def finish_editing(self):
-
         if self.decimals == 0:
             self.value = int(self.spinbox.value())
         else:
@@ -377,7 +465,6 @@ class SpriteSettingControl(QWidget):
         self.slider.setValue(self.value)
         self.spinbox.setVisible(False)
         self.label.setVisible(True)
-        self.spinbox.removeEventFilter(self)
 
         if self.block_editing:
             self.spinbox.setDisabled(True)
@@ -385,6 +472,7 @@ class SpriteSettingControl(QWidget):
             self.spinbox.setDisabled(False)
 
         if not self.block_drawing:
+            self.valueChanged.emit()
             self.editingFinished.emit()
 
     def slider_editing_finish(self):
@@ -408,12 +496,12 @@ class SpriteSettingControl(QWidget):
 
             self.label.setText(f"{self.value:.{self.decimals}f}")
             self.spinbox.setValue(self.value)
-            qthrottled(self.slider_editing_finish(),timeout=20)
+            self.valueChanged.emit()
 
     def sync_slider(self):
         self.slider.setValue(self.spinbox.value())
 
-    def set_range(self,range):
+    def set_range(self, range):
         if self.decimals == 0:
             minimum = int(range[0])
             maximum = int(range[1])
@@ -421,13 +509,12 @@ class SpriteSettingControl(QWidget):
             minimum = range[0]
             maximum = range[1]
 
-        if minimum > maximum: #This catches issues where float error causes min > max at values ~1
-            minimum = 1       #prevents crashes
+        if minimum > maximum:  # catches float error causing min > max near ~1
+            minimum = 1
             maximum = 1
             range = 0
-
         else:
-            range = round(maximum - minimum,3)
+            range = round(maximum - minimum, 3)
 
         self.spinbox.setMinimum(minimum)
         self.spinbox.setMaximum(maximum)
@@ -435,7 +522,7 @@ class SpriteSettingControl(QWidget):
         self.slider.setMinimum(minimum)
         self.slider.setMaximum(maximum)
 
-        self.range = (minimum,maximum)
+        self.range = (minimum, maximum)
 
         if int(range == 0):
             self.block_editing = True
@@ -443,11 +530,6 @@ class SpriteSettingControl(QWidget):
         else:
             self.block_editing = False
             self.label.setCursor(Qt.CursorShape.IBeamCursor)
-
-    def eventFilter(self, obj, event):
-        if obj == self.spinbox and event.type() == event.Type.FocusOut:
-            QTimer.singleShot(100, self.finish_editing)
-        return super().eventFilter(obj, event)
 
     def setValue(self, value):
         if self.decimals == 0:
@@ -600,16 +682,14 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
         self.edit_controls = self.create_edit_controls()
         self.add_sprite_specific_settings()
 
-        self.update_sprite()
-
         self.edit_controls[SpriteSetting.ZOOM.value].setValue(self.edit_controls[SpriteSetting.ZOOM.value].spinbox.maximum())
         self.edit_controls[SpriteSetting.BRIGHTNESS.value].setValue(self.edit_controls[SpriteSetting.BRIGHTNESS.value].spinbox.maximum())
 
-        self.hd_sprite_redraw_timer = QTimer(self)
-        self.hd_sprite_redraw_timer.timeout.connect(self.redraw_timer_callback)
-        self.hd_sprite_redraw_timer.start(1000)
+        #self.hd_sprite_redraw_timer = QTimer(self)
+        #self.hd_sprite_redraw_timer.timeout.connect(self.redraw_timer_callback)
+        #self.hd_sprite_redraw_timer.start(1000)
 
-    def redraw_timer_callback(self):
+    def redraw_and_check_status(self):
         if not self.preview_is_hq:
             self.update_sprite(hq_output=True)
             self.check_sprite_area()
@@ -637,7 +717,8 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
                                             setting=setting[0],
                                             range=self.calculate_range(setting[0],self.rect),
                                             **parameters)
-                edit.editingFinished.connect(self.update_sprite)
+                edit.valueChanged.connect(self.update_sprite)
+                edit.editingFinished.connect(self.redraw_and_check_status)
                 editable_values[setting[0].value] = edit
 
             if setting[0] == SpriteSetting.COLOR:
@@ -645,7 +726,8 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
                                             setting=setting[0],
                                             range=None,
                                             **parameters)
-                edit.editingFinished.connect(self.update_sprite)
+                edit.valueChanged.connect(self.update_sprite)
+                edit.editingFinished.connect(self.redraw_and_check_status)
                 editable_values[setting[0].value] = edit
         return editable_values
 
@@ -1607,7 +1689,8 @@ class QSpriteSlave(QGraphicsPixmapItem):
             self.setPixmap(QPixmap(image))
     def change_tracked_sprite(self,new_sprite):
         self.tracked.sprite_slaves_list.remove(self)
-        self.tracked.SpriteUpdated.disconnect()
+        if self.tracked is not None:
+            self.tracked.SpriteUpdated.disconnect()
 
         self.tracked = new_sprite
         self.tracked.SpriteUpdated.connect(self.update_sprite)
@@ -1665,32 +1748,6 @@ class QLayer(QGraphicsPixmapItem):
         painter.end()
         self.setPixmap(QPixmap(result))
 
-class QControllableSprites:
-    def __init__(self):
-        self.thumbnail = QThumbnail(u":icon/Images/Dummy/SONG_JK_THUMBNAIL_DUMMY.png",
-                                      QRectF(0, 0, 128, 64),
-                                      u":icon/Images/Dummy/Thumbnail-Maskv3.png")
-
-        self.logo = QLogo(u":icon/Images/Dummy/SONG_LOGO_DUMMY.png",
-                            QRectF(0, 0, 870, 330))
-        self.jacket = QJacket(u":icon/Images/Dummy/SONG_JK_DUMMY.png",
-                                QRectF(0, 0, 502, 502))
-        self.background = QSpriteBase(u":icon/Images/Dummy/SONG_BG_DUMMY.png",
-                                        SpriteType.BACKGROUND,
-                                        QRectF(0, 0, 1280, 720))
-
-        self.list = [self.thumbnail,self.logo,self.jacket,self.background]
-        self.sprite_updater = PathWatcher(self)
-
-        for sprite in self.list:
-            sprite.bind_watcher(self.sprite_updater)
-
-    def update_sprites(self):
-        for sprite in self.list:
-            sprite.update_sprite()
-    def bind_group_to_group_status(self,status_display):
-        for sprite in self.list:
-            sprite.SpriteRedraw.connect(status_display.update_status)
 
 class SpriteStatus(IntEnum):
     OK = auto()
@@ -1760,6 +1817,7 @@ class SpriteStatusDisplay(QWidget):
                                  f"}}")
 
     def update_status(self):
+        print("Updating")
         status, error = self.tracked.get_sprite_status()
         match status:
             case SpriteStatus.OK:
@@ -1768,12 +1826,12 @@ class SpriteStatusDisplay(QWidget):
                 self.set_status(SpriteStatusString.WARNING.value, error)
             case SpriteStatus.ERROR:
                 self.set_status(SpriteStatusString.ERROR.value, error)
+            case SpriteStatus.NOT_HQ:
+                self.set_status(SpriteStatusString.PLEASE_WAIT.value)
 
     def set_tracked_sprite(self, sprite):
         self.tracked = sprite
         self.update_status()
-
-
 class GroupStatusDisplay(QWidget):
     def __init__(self, /):
         super().__init__()
@@ -1825,9 +1883,10 @@ class GroupStatusDisplay(QWidget):
     def get_highest_status(self,status_list: list[tuple[SpriteStatus, str]]):
         return max((status for status, _ in status_list))
 
-    def set_tracked_sprite_group(self, group: QControllableSprites):
+    def set_tracked_sprite_group(self, group):
         self.tracked_sprite_group = group
-        self.tracked_sprite_group.bind_group_to_group_status(self)
+        #self.tracked_sprite_group.bind_group_to_group_status(self)
+        self.tracked_sprite_group.GroupRedraw.connect(self.update_status)
         self.update_status()
 
     def update_status(self):
@@ -1836,7 +1895,6 @@ class GroupStatusDisplay(QWidget):
             status_list.append(sprite.get_sprite_status())
 
         self.set_status(status_list)
-
 
 class SpriteGroupPreview(QWidget):
     SpriteGroupChanged = Signal()
@@ -1903,7 +1961,6 @@ class SpriteGroupPreview(QWidget):
 
         self._prev_enum = self.group_combobox.currentEnum()
         self.change_preview()
-        self.sprite_group_status_display.set_tracked_sprite_group(self.SC.enum_to_obj(self.group_combobox.currentEnum()))
         self.SpriteGroupChanged.emit()
 
     def get_selected_sprite_group(self):
@@ -1916,6 +1973,38 @@ class SpriteGroupPreview(QWidget):
         self.background_label.setPixmap(self.SC.enum_to_obj(self.group_combobox.currentEnum()).background.pixmap().scaledToHeight(self.max_H))
         self.jacket_label.setPixmap(self.SC.enum_to_obj(self.group_combobox.currentEnum()).jacket.pixmap().scaledToHeight(self.max_H))
         self.logo_label.setPixmap(self.SC.enum_to_obj(self.group_combobox.currentEnum()).logo.pixmap().scaledToHeight(self.max_H))
+
+class QControllableSprites(QObject):
+    GroupRedraw = Signal()
+    def __init__(self, /):
+        super().__init__()
+        self.thumbnail = QThumbnail(u":icon/Images/Dummy/SONG_JK_THUMBNAIL_DUMMY.png",
+                                      QRectF(0, 0, 128, 64),
+                                      u":icon/Images/Dummy/Thumbnail-Maskv3.png")
+
+        self.logo = QLogo(u":icon/Images/Dummy/SONG_LOGO_DUMMY.png",
+                            QRectF(0, 0, 870, 330))
+        self.jacket = QJacket(u":icon/Images/Dummy/SONG_JK_DUMMY.png",
+                                QRectF(0, 0, 502, 502))
+        self.background = QSpriteBase(u":icon/Images/Dummy/SONG_BG_DUMMY.png",
+                                        SpriteType.BACKGROUND,
+                                        QRectF(0, 0, 1280, 720))
+
+        self.list = [self.thumbnail,self.logo,self.jacket,self.background]
+        self.sprite_updater = PathWatcher(self)
+
+        for sprite in self.list:
+            sprite.bind_watcher(self.sprite_updater)
+            sprite.SpriteRedraw.connect(self.sprite_updated_callback)
+    def sprite_updated_callback(self):
+        self.GroupRedraw.emit()
+    def update_sprites(self):
+        for sprite in self.list:
+            sprite.update_sprite()
+    def bind_group_to_group_status(self):
+        print("Connecting")
+
+
 class QMMSongSelectScene(QGraphicsScene):
     def __init__(self,jacket:QJacket, logo:QLogo, background:QSpriteBase, thumbnail:QThumbnail):
         super().__init__()
@@ -2649,6 +2738,11 @@ class SceneComposerObjects:
             SpriteGroup.B: self.Group_B_Sprites,
             SpriteGroup.C: self.Group_C_Sprites
         }
+
+        for group in self.sprite_groups.values():
+            for sprite in group.list:
+                sprite.redraw_and_check_status()
+
     def enum_to_obj(self,sprite_group:SpriteGroup):
         return self.sprite_groups[sprite_group]
     def type_to_sprite(self,sprite_group:SpriteGroup,type:SpriteType):

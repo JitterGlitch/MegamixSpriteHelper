@@ -789,8 +789,14 @@ class MainWindow(QMainWindow):
 
         self.config_scenes_menu = QSmarterMenu("Configure Scenes",self)
         self.display_scenes_menu = QSmarterMenu("Display Scenes", self)
+
+        self.debug_menu = QSmarterMenu("Debug Menu",self)
+        self.debug_menu.addAction(f"Refresh SpriteStatus display",self.main_box.sprite_status_display.update_status)
+        self.debug_menu.addAction(f"Redraw Current Sprite",self.debug_redraw_sprite)
+
         self.menu.addMenu(self.config_scenes_menu)
         self.menu.addMenu(self.display_scenes_menu)
+        self.menu.addMenu(self.debug_menu)
 
         self.share_menu = QSmarterMenu("Share",self)
         self.menu.addMenu(self.share_menu)
@@ -811,6 +817,15 @@ class MainWindow(QMainWindow):
 
         self.SC.enum_to_obj(self.main_box.sprite_group_combobox.currentEnum()).logo.VisibilityToggled.connect(self.disable_shared_controls)
         self._prev_enum = self.main_box.sprite_group_combobox.currentEnum()
+
+
+        self.song_farc_creator.update_group_status_displays()
+
+    def debug_redraw_sprite(self):
+        sprite = self.main_box.current_sprite_combobox.currentText()
+        group = self.main_box.sprite_group_combobox.currentEnum()
+
+        self.SC.type_to_sprite(group, sprite).redraw_and_check_status()
 
     def update_check(self):
         try:
@@ -909,14 +924,19 @@ class MainWindow(QMainWindow):
                 self.main_box.flip_horizontal_button.setEnabled(self.SC.enum_to_obj(self.main_box.sprite_group_combobox.currentEnum()).thumbnail.controls_enabled)
     def update_tracked_sprite_status(self):
         sprite = self.main_box.current_sprite_combobox.currentText()
+        group = self.main_box.sprite_group_combobox.currentEnum()
+        tracked = self.main_box.sprite_status_display.tracked
+        if tracked is not None:
+            tracked.SpriteStatusWait.disconnect()
+            tracked.SpriteRedraw.disconnect()
 
-        if self.main_box.sprite_status_display.tracked is not None:
-            self.main_box.sprite_status_display.tracked.SpriteStatusWait.disconnect()
-            self.main_box.sprite_status_display.tracked.SpriteRedraw.disconnect()
+        self.main_box.sprite_status_display.set_tracked_sprite(self.SC.type_to_sprite(group,sprite))
+        new_tracked = self.main_box.sprite_status_display.tracked
+        new_tracked.SpriteStatusWait.connect(lambda: self.main_box.sprite_status_display.set_status(SpriteStatusString.PLEASE_WAIT.value))
+        new_tracked.SpriteRedraw.connect(lambda: self.main_box.sprite_status_display.update_status())
+        new_tracked.redraw_and_check_status()
+        self.main_box.sprite_status_display.update_status()
 
-        self.main_box.sprite_status_display.set_tracked_sprite(self.SC.type_to_sprite(self.main_box.sprite_group_combobox.currentEnum(),sprite))
-        self.main_box.sprite_status_display.tracked.SpriteStatusWait.connect(lambda: self.main_box.sprite_status_display.set_status(SpriteStatusString.PLEASE_WAIT.value))
-        self.main_box.sprite_status_display.tracked.SpriteRedraw.connect(lambda: self.main_box.sprite_status_display.update_status())
     def flip_current_sprite(self,flip_type):
         current_sprite = self.main_box.current_sprite_combobox.currentText()
         match current_sprite:
@@ -1219,11 +1239,33 @@ class SongFarcCreatorWindow(QWidget):
         self.SC = SC_obj
         self.main_box.setupUi(self,SC_obj=self.SC,sprite_group_enum=SceneComposer.SpriteGroup)
 
+        self.sprite_group_widget_list = []
+        self.sprite_group_widget_list.append(self.main_box.default_sprite_group_widget)
+        self.sprite_group_widget_list.append(self.main_box.ex_sprite_group_widget)
+        self.sprite_group_widget_list.append(self.main_box.pv_back_sprite_group_widget)
+
+        for sprite_group_widget in self.sprite_group_widget_list:
+            sprite_group_widget.SpriteGroupChanged.connect(self.connect_group_status_displays)
+            self.connect_group_status_displays()
+
         self.main_box.export_farc_pushbutton.pressed.connect(self.export_background_jacket_logo_farc_button_callback)
 
         self.main_box.ex_sprites_checkbox.toggled.connect(self.ex_sprite_checkbox_callback)
         self.main_box.pv_back_sprite_checkbox.toggled.connect(self.pv_back_sprite_checkbox_callback)
         self.main_box.pv_back_sprite_group_widget.SpriteGroupChanged.connect(self.switch_pv_back_scene_sprite_group)
+    def connect_group_status_displays(self):
+        for group in self.SC.sprite_groups.values():
+            group.GroupRedraw.disconnect()
+
+        for widget in self.sprite_group_widget_list:
+            print(widget.get_selected_sprite_group())
+            group = self.SC.enum_to_obj(widget.get_selected_sprite_group())
+            widget.sprite_group_status_display.set_tracked_sprite_group(group)
+            #group.GroupRedraw.connect(widget.sprite_group_status_display.update_status)
+
+    def update_group_status_displays(self):
+        for widget in self.sprite_group_widget_list:
+            widget.sprite_group_status_display.update_status()
 
     def ex_sprite_checkbox_callback(self):
         self.main_box.ex_sprite_group_widget.setEnabled(self.main_box.ex_sprites_checkbox.isChecked())
