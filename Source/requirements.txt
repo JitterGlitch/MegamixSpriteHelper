@@ -5,3 +5,4 @@ PyYAML~=6.0.2
 superqt~=0.7.6
 pyqt-advanced-slider==1.1.1
 kkdlib~=0.1
+pyconify~=0.2.1
