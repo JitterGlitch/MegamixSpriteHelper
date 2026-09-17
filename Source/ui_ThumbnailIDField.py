@@ -1,6 +1,8 @@
 from PySide6.QtCore import (QCoreApplication, QMetaObject, QSize, Qt)
 from PySide6.QtGui import (QBrush, QColor,QPalette, QPixmap)
 from PySide6.QtWidgets import (QFormLayout, QPushButton, QSizePolicy, QHBoxLayout)
+from superqt import QIconifyIcon
+
 from widgets import PlaceholderDoubleSpinBox
 
 class Ui_ThumbnailIDField(object):
@@ -41,7 +43,7 @@ class Ui_ThumbnailIDField(object):
                                 self.id_line_button.setMinimumSize(QSize(30, 27))
                                 self.id_line_button.setMaximumSize(QSize(30, 27))
                                 self.id_line_button.setFocusPolicy(Qt.FocusPolicy.NoFocus)
-                                self.id_line_button.setIcon(QPixmap(":icon/Images/Minus.png"))
+                                self.id_line_button.setIcon(QIconifyIcon("fa-solid:minus", color="red").pixmap(27, 27))
                                 palette = QPalette()
                                 brush = QBrush(QColor(235,51,101, 255))
                                 brush.setStyle(Qt.BrushStyle.SolidPattern)
@@ -62,7 +64,7 @@ class Ui_ThumbnailIDField(object):
                                 self.id_line_button.setMinimumSize(QSize(30, 27))
                                 self.id_line_button.setMaximumSize(QSize(30, 27))
                                 self.id_line_button.setFocusPolicy(Qt.FocusPolicy.NoFocus)
-                                self.id_line_button.setIcon(QPixmap(":icon/Images/Plus.png"))
+                                self.id_line_button.setIcon(QIconifyIcon("at-icons:plus", color="lightgreen").pixmap(27, 27))
                                 palette = QPalette()
                                 brush = QBrush(QColor(51, 235, 101, 255))
                                 brush.setStyle(Qt.BrushStyle.SolidPattern)

@@ -1996,8 +1996,6 @@ class QControllableSprites(QObject):
     def update_sprites(self):
         for sprite in self.list:
             sprite.update_sprite()
-    def bind_group_to_group_status(self):
-        print("Connecting")
 
 
 class QMMSongSelectScene(QGraphicsScene):

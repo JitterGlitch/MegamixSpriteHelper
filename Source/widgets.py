@@ -6,7 +6,7 @@ from PySide6.QtGui import (QBrush, QColor, QPalette, QMouseEvent, QPixmap)
 from PySide6.QtWidgets import (QDoubleSpinBox, QHBoxLayout,
                                QLabel, QPushButton,
                                QSpinBox, QWidget, QMenu, QScrollArea, QVBoxLayout, QComboBox)
-from superqt import QSearchableComboBox, QEnumComboBox
+from superqt import QSearchableComboBox, QEnumComboBox, QIconifyIcon
 
 
 class Stylesheet(Enum):
@@ -84,7 +84,7 @@ class SongpackNameInput(QWidget):
 
         self.delete_button = QPushButton()
         self.delete_button.setPalette(palette)
-        self.delete_button.setIcon(QPixmap(":icon/Images/Minus.png"))
+        self.delete_button.setIcon(QIconifyIcon("fa-solid:minus", color="red").pixmap(27, 27))
         self.delete_button.setFixedSize(30,27)
 
         self.layout = QHBoxLayout(self)
