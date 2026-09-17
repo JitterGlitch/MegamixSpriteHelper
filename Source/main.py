@@ -888,7 +888,8 @@ class MainWindow(QMainWindow):
         for sprite_object in non_active_sprite_object_list:
             for sprite in sprite_object.list:
                 sprite.hide_edit_controls(True)
-
+        for sprite in current_sprite_object.list:
+            sprite.redraw_and_check_status()
         self.update_tracked_sprite_status()
         self.disable_shared_controls()
 
@@ -934,7 +935,6 @@ class MainWindow(QMainWindow):
         new_tracked = self.main_box.sprite_status_display.tracked
         new_tracked.SpriteStatusWait.connect(lambda: self.main_box.sprite_status_display.set_status(SpriteStatusString.PLEASE_WAIT.value))
         new_tracked.SpriteRedraw.connect(lambda: self.main_box.sprite_status_display.update_status())
-        new_tracked.redraw_and_check_status()
         self.main_box.sprite_status_display.update_status()
 
     def flip_current_sprite(self,flip_type):

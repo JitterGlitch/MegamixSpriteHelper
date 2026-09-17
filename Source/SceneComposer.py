@@ -685,9 +685,6 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
         self.edit_controls[SpriteSetting.ZOOM.value].setValue(self.edit_controls[SpriteSetting.ZOOM.value].spinbox.maximum())
         self.edit_controls[SpriteSetting.BRIGHTNESS.value].setValue(self.edit_controls[SpriteSetting.BRIGHTNESS.value].spinbox.maximum())
 
-        #self.hd_sprite_redraw_timer = QTimer(self)
-        #self.hd_sprite_redraw_timer.timeout.connect(self.redraw_timer_callback)
-        #self.hd_sprite_redraw_timer.start(1000)
 
     def redraw_and_check_status(self):
         if not self.preview_is_hq:
@@ -1817,7 +1814,6 @@ class SpriteStatusDisplay(QWidget):
                                  f"}}")
 
     def update_status(self):
-        print("Updating")
         status, error = self.tracked.get_sprite_status()
         match status:
             case SpriteStatus.OK:
@@ -1885,7 +1881,6 @@ class GroupStatusDisplay(QWidget):
 
     def set_tracked_sprite_group(self, group):
         self.tracked_sprite_group = group
-        #self.tracked_sprite_group.bind_group_to_group_status(self)
         self.tracked_sprite_group.GroupRedraw.connect(self.update_status)
         self.update_status()
 
