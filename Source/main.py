@@ -23,7 +23,7 @@ from PySide6.QtGui import QPixmap, QPalette, QColor, QImage, QPainter, QGuiAppli
 from PySide6.QtWidgets import QApplication, QMainWindow, QWidget, QFileDialog, QMessageBox, QSizePolicy, QSpacerItem, QMenu, QDialog, QVBoxLayout, QLabel, QTextEdit, QHBoxLayout, QPushButton
 
 import SceneComposer
-from SceneComposer import SpriteGroup, TextureType, SpriteStatusString
+from SceneComposer import SpriteGroup, TextureType, SpriteStatusString ,SpriteStatus
 from ui_SongFarcCreator import Ui_SongFarcCreatorWindow
 from widgets import QSmarterMenu
 
@@ -1246,13 +1246,42 @@ class SongFarcCreatorWindow(QWidget):
 
         for sprite_group_widget in self.sprite_group_widget_list:
             sprite_group_widget.SpriteGroupChanged.connect(self.connect_group_status_displays)
+            sprite_group_widget.sprite_group_status_display.StatusUpdated.connect(self.update_export_button_status)
             self.connect_group_status_displays()
 
         self.main_box.export_farc_pushbutton.pressed.connect(self.export_background_jacket_logo_farc_button_callback)
 
+        self.main_box.ignore_sprite_warnings_checkbox.toggled.connect(self.update_export_button_status)
+
         self.main_box.ex_sprites_checkbox.toggled.connect(self.ex_sprite_checkbox_callback)
         self.main_box.pv_back_sprite_checkbox.toggled.connect(self.pv_back_sprite_checkbox_callback)
         self.main_box.pv_back_sprite_group_widget.SpriteGroupChanged.connect(self.switch_pv_back_scene_sprite_group)
+
+    def get_highest_group_status_from_widgets(self):
+        status_list = [self.main_box.default_sprite_group_widget.sprite_group_status_display.get_status()]
+        if self.main_box.ex_sprites_checkbox.isChecked():
+            status_list.append(self.main_box.ex_sprite_group_widget.sprite_group_status_display.get_status())
+        if self.main_box.pv_back_sprite_checkbox.isChecked():
+            status_list.append(self.main_box.pv_back_sprite_group_widget.sprite_group_status_display.get_status())
+        return max(status_list)
+
+    def update_export_button_status(self):
+        highest_status = self.get_highest_group_status_from_widgets()
+
+        match highest_status:
+            case SpriteStatus.OK:
+                self.main_box.export_farc_pushbutton.setEnabled(True)
+            case SpriteStatus.WARNING:
+                if self.main_box.ignore_sprite_warnings_checkbox.isChecked():
+                    self.main_box.export_farc_pushbutton.setEnabled(True)
+                else:
+                    self.main_box.export_farc_pushbutton.setEnabled(False)
+            case SpriteStatus.ERROR:
+                self.main_box.export_farc_pushbutton.setEnabled(False)
+            case SpriteStatus.NOT_HQ:
+                self.main_box.export_farc_pushbutton.setEnabled(False)
+
+
     def connect_group_status_displays(self):
         for group in self.SC.sprite_groups.values():
             group.GroupRedraw.disconnect()

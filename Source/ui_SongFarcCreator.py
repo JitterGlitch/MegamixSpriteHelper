@@ -82,22 +82,25 @@ class Ui_SongFarcCreatorWindow(object):
         self.settings_label.setSizePolicy(sizePolicy)
         self.settings_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-        self.settings_layout.addWidget(self.settings_label)
 
         self.ex_sprites_checkbox = QCheckBox(Form)
         self.ex_sprites_checkbox.setText(u"Include EX Sprites")
 
-        self.settings_layout.addWidget(self.ex_sprites_checkbox)
 
         self.pv_back_sprite_checkbox = QCheckBox(Form)
         self.pv_back_sprite_checkbox.setText(u"Include PV_BACK sprite")
 
-        self.settings_layout.addWidget(self.pv_back_sprite_checkbox)
-
         self.generate_spr_db_after_export_checkbox = QCheckBox(Form)
         self.generate_spr_db_after_export_checkbox.setText(u"Generate Spr_db after export")
 
+        self.ignore_sprite_warnings_checkbox = QCheckBox(Form)
+        self.ignore_sprite_warnings_checkbox.setText(u"Ignore sprite warnings")
+
+        self.settings_layout.addWidget(self.settings_label)
+        self.settings_layout.addWidget(self.ex_sprites_checkbox)
+        self.settings_layout.addWidget(self.pv_back_sprite_checkbox)
         self.settings_layout.addWidget(self.generate_spr_db_after_export_checkbox)
+        self.settings_layout.addWidget(self.ignore_sprite_warnings_checkbox)
 
         self.settings_verticalSpacer = QSpacerItem(20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Fixed)
 

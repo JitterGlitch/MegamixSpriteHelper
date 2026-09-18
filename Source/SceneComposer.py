@@ -840,6 +840,7 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
         if reset_values:
             self.set_initial_values()
 
+        self.redraw_and_check_status()
         return ["Updated"]
     def bind_watcher(self,watcher:PathWatcher):
         self.watcher = watcher
@@ -1091,6 +1092,7 @@ class QLogo(QSpriteBase):
         self.show_logo_checkbox.setChecked(True)
         self.show_logo_checkbox.setText("Show Logo")
         self.show_logo_checkbox.toggled.connect(lambda: self.toggle_visibility(self.show_logo_checkbox.isChecked()))
+        self.show_logo_checkbox.toggled.connect(self.redraw_and_check_status)
 
         self.edge_cutoff_results = {}
         self.ui_cover_mask = QImage(u":icon/Images/Dummy/Logo UI Mask.png")
@@ -1233,23 +1235,26 @@ class QLogo(QSpriteBase):
         return False
 
     def get_sprite_status(self):
+        status_list = []
+
         self.scan_edges()
         if self.has_cutoff_edges():
             for side in self.edge_cutoff_results:
                 if self.edge_cutoff_results[side]:
-                    return SpriteStatus.ERROR, (f"{self.sprite_type.value}:\n"
-                                                "Gets cut off at ") + side
+                    status_list.append((SpriteStatus.ERROR, (f"{self.sprite_type.value}:\n"
+                                                "Gets cut off at ") + side))
 
         if self.sprite_covered_by_ui:
-            return SpriteStatus.WARNING,(f"{self.sprite_type.value}:\n"
-                                       "Covered up by UI")
+            status_list.append((SpriteStatus.WARNING,(f"{self.sprite_type.value}:\n"
+                                       "Covered up by UI")))
 
         if self.drop_shadow.is_visible:
             drop_shadow_status , drop_shadow_error = self.drop_shadow.get_sprite_status()
             if drop_shadow_status != SpriteStatus.OK:
-                return drop_shadow_status, drop_shadow_error
+                status_list.append((drop_shadow_status, drop_shadow_error))
 
-        return SpriteStatus.OK,""
+        highest_error = max(status_list, key=lambda item: item[0])
+        return highest_error
 
 
     def update_pixmap(self):
@@ -1353,6 +1358,7 @@ class QDropShadow(QGraphicsPixmapItem):
         for control in self.edit_controls:
             self.edit_controls[control].setVisible(self.add_drop_shadow_checkbox.isChecked())
         self.logo_object.update_sprite()
+        self.logo_object.redraw_and_check_status()
 
     def load_new_image(self):
         self.sprite_image = self.logo_object.sprite_image
@@ -1551,7 +1557,8 @@ class QDropShadow(QGraphicsPixmapItem):
                                             setting=setting[0],
                                             range=self.calculate_range(setting[0],self.rect),
                                             **parameters)
-                edit.editingFinished.connect(self.control_value_changed)
+                edit.valueChanged.connect(self.control_value_changed)
+                edit.editingFinished.connect(self.logo_object.redraw_and_check_status)
                 editable_values[setting[0].value] = edit
 
             if setting[0] == SpriteSetting.COLOR:
@@ -1559,7 +1566,8 @@ class QDropShadow(QGraphicsPixmapItem):
                                             setting=setting[0],
                                             range=None,
                                             **parameters)
-                edit.editingFinished.connect(self.control_value_changed)
+                edit.valueChanged.connect(self.control_value_changed)
+                edit.editingFinished.connect(self.logo_object.redraw_and_check_status)
                 editable_values[setting[0].value] = edit
         return editable_values
 
@@ -1767,6 +1775,7 @@ class SpriteStatusDisplay(QWidget):
         super().__init__()
 
         self.tracked = None
+        self.status = SpriteStatus.NOT_HQ
 
         self.frame = QFrame()
         self.frame.setObjectName(u"frame")
@@ -1825,14 +1834,18 @@ class SpriteStatusDisplay(QWidget):
             case SpriteStatus.NOT_HQ:
                 self.set_status(SpriteStatusString.PLEASE_WAIT.value)
 
+        self.status = status
+
     def set_tracked_sprite(self, sprite):
         self.tracked = sprite
         self.update_status()
 class GroupStatusDisplay(QWidget):
+    StatusUpdated = Signal()
     def __init__(self, /):
         super().__init__()
 
         self.tracked_sprite_group = None
+        self.status = SpriteStatus.NOT_HQ
 
         self.icon = QIconifyIcon("material-symbols:check-circle-rounded", color="green").pixmap(20, 20)
         self.icon_label = QLabel()
@@ -1865,6 +1878,7 @@ class GroupStatusDisplay(QWidget):
                 status = SpriteStatusString.PLEASE_WAIT.value
                 self.icon = QIconifyIcon(status[0], color=status[1]).pixmap(20, 20)
 
+        self.status = display_status
         self.icon_label.setPixmap(self.icon)
 
         if status == SpriteStatusString.OK.value:
@@ -1875,6 +1889,9 @@ class GroupStatusDisplay(QWidget):
                 tooltip_string = tooltip_string + error[1] + "\n"
 
             self.icon_label.setToolTip(tooltip_string)
+
+    def get_status(self):
+        return self.status
 
     def get_highest_status(self,status_list: list[tuple[SpriteStatus, str]]):
         return max((status for status, _ in status_list))
@@ -1890,6 +1907,7 @@ class GroupStatusDisplay(QWidget):
             status_list.append(sprite.get_sprite_status())
 
         self.set_status(status_list)
+        self.StatusUpdated.emit()
 
 class SpriteGroupPreview(QWidget):
     SpriteGroupChanged = Signal()
