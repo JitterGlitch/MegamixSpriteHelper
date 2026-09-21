@@ -5,7 +5,7 @@ on:
     branches:
       - master
     paths:
-      - 'MegamixSpriteHelper/Source/**'
+      - 'Source/**'
       - '.github/workflows/build.yml'
 
 jobs:
