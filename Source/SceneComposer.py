@@ -1839,6 +1839,12 @@ class SpriteStatusDisplay(QWidget):
     def set_tracked_sprite(self, sprite):
         self.tracked = sprite
         self.update_status()
+
+
+def get_highest_status(status_list: list[tuple[SpriteStatus, str]]):
+    return SpriteStatus(max((status.value for status, _ in status_list)))
+
+
 class GroupStatusDisplay(QWidget):
     StatusUpdated = Signal()
     def __init__(self, /):
@@ -1862,7 +1868,7 @@ class GroupStatusDisplay(QWidget):
         self.setFixedSize(20, 20)
         self.setLayout(self.layout)
     def set_status(self, status_list: list[tuple[SpriteStatus, str]]):
-        display_status = self.get_highest_status(status_list)
+        display_status = get_highest_status(status_list)
         status = None
         match display_status:
             case SpriteStatus.OK:
@@ -1892,9 +1898,6 @@ class GroupStatusDisplay(QWidget):
 
     def get_status(self):
         return SpriteStatus(self.status)
-
-    def get_highest_status(self,status_list: list[tuple[SpriteStatus, str]]):
-        return SpriteStatus(max((status.value for status, _ in status_list)))
 
     def set_tracked_sprite_group(self, group):
         self.tracked_sprite_group = group
@@ -2820,11 +2823,18 @@ class SceneComposerObjects:
                 return self.sprite_groups[sprite_group].thumbnail
 
     def create_background_jacket_texture(self, sprite_group: SpriteGroup):
+        sprite_status_list = []
+
         self.enum_to_obj(sprite_group).background.update_sprite(hq_output=True)
         self.enum_to_obj(sprite_group).background.SpriteRedraw.emit()
 
         self.enum_to_obj(sprite_group).jacket.update_sprite(hq_output=True)
         self.enum_to_obj(sprite_group).jacket.SpriteRedraw.emit()
+
+        sprite_status_list.append(self.enum_to_obj(sprite_group).background.get_sprite_status())
+        sprite_status_list.append(self.enum_to_obj(sprite_group).jacket.get_sprite_status())
+
+        highest_sprite_status = get_highest_status(sprite_status_list)
 
 
         background_jacket_texture = QImage(QSize(2048, 1024), QImage.Format.Format_ARGB32)
@@ -2846,24 +2856,19 @@ class SceneComposerObjects:
         painter.drawImage(1287, 3, self.enum_to_obj(sprite_group).jacket.image_without_fix)
         painter.end()
 
-        return background_jacket_texture
+        return background_jacket_texture, highest_sprite_status
 
     def create_logo_texture(self, sprite_group_list:list[tuple[SpriteGroup, str]]):
+        sprite_status_list = []
+
         for sprite_group in sprite_group_list:
             self.enum_to_obj(sprite_group[0]).logo.update_sprite(hq_output=True)
             self.enum_to_obj(sprite_group[0]).logo.SpriteRedraw.emit()
+            sprite_status_list.append(self.enum_to_obj(sprite_group[0]).logo.get_sprite_status())
 
-        #Hardcoded because there's no point of doing it other way right now
-        logo_texture = None
-        match len(sprite_group_list):
-            case 1:
-                logo_texture = QImage(QSize(1024, 512), QImage.Format.Format_ARGB32)
-            case 2:
-                logo_texture = QImage(QSize(1024, 1024), QImage.Format.Format_ARGB32)
-            case _:
-                return None,None
+        highest_sprite_status = get_highest_status(sprite_status_list)
 
-
+        logo_texture = QImage(QSize(1024, 512 * len(sprite_group_list)), QImage.Format.Format_ARGB32)
         logo_texture.fill(Qt.GlobalColor.transparent)
 
         painter = QPainter(logo_texture)
@@ -2882,11 +2887,17 @@ class SceneComposerObjects:
             y = y + 330 + 4
 
         painter.end()
-        return logo_texture,logo_info_list
+        return logo_texture,logo_info_list,highest_sprite_status
 
     def create_thumbnail_texture(self, sprite_group: SpriteGroup) -> QImage:
+        sprite_status_list = []
+
         self.enum_to_obj(sprite_group).thumbnail.update_sprite(hq_output=True)
         self.enum_to_obj(sprite_group).thumbnail.SpriteRedraw.emit()
+
+        sprite_status_list.append(self.enum_to_obj(sprite_group).thumbnail.get_sprite_status())
+
+        highest_sprite_status = get_highest_status(sprite_status_list)
 
 
         thumbnail = QPixmap(self.enum_to_obj(sprite_group).thumbnail.pixmap_no_mask)
@@ -2913,9 +2924,11 @@ class SceneComposerObjects:
         painter_fixer.setOpacity(255)
         painter_fixer.drawImage(0, 0, thumbnail_base)
         painter_fixer.end()
-        return thumbnail_texture
+        return thumbnail_texture,highest_sprite_status
 
     def create_pv_back_texture(self, sprite_group: SpriteGroup):
+        sprite_status_list = []
+
         self.enum_to_obj(sprite_group).background.update_sprite(hq_output=True)
         self.enum_to_obj(sprite_group).background.SpriteRedraw.emit()
 
@@ -2925,6 +2938,11 @@ class SceneComposerObjects:
         self.enum_to_obj(sprite_group).logo.update_sprite(hq_output=True)
         self.enum_to_obj(sprite_group).logo.SpriteRedraw.emit()
 
+        sprite_status_list.append(self.enum_to_obj(sprite_group).background.get_sprite_status())
+        sprite_status_list.append(self.enum_to_obj(sprite_group).jacket.get_sprite_status())
+        sprite_status_list.append(self.enum_to_obj(sprite_group).logo.get_sprite_status())
+
+        highest_sprite_status = get_highest_status(sprite_status_list)
 
         pv_back_texture = QImage(QSize(2048, 2048), QImage.Format.Format_ARGB32)
         pv_back_texture.fill(Qt.GlobalColor.transparent)
@@ -2940,4 +2958,4 @@ class SceneComposerObjects:
 
         painter.end()
 
-        return pv_back_texture
+        return pv_back_texture, highest_sprite_status

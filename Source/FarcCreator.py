@@ -2,6 +2,9 @@ from enum import Enum
 
 import kkdlib
 
+from SceneComposer import SpriteStatus
+
+
 class Compression(Enum):
     BC7 = "BC7"
     ATI2 = "YCbCr (Broken)" # Bugged in current version of KKdLib-sys
@@ -24,11 +27,27 @@ class Compression(Enum):
 
 
 class FarcCreator:
-    def create_jk_bg_logo_farc(self,song_id,jk_bg_texture,logo_texture,output_location,compression:Compression,pv_back_texture=None,ex_bg_jk_texture=None,ex_logo_included=False):
+    def create_jk_bg_logo_farc(self,song_id,
+                               jk_bg_texture,
+                               logo_texture,
+                               output_location,
+                               compression:Compression,
+                               bg_jk_highest_status: SpriteStatus,
+                               logo_highest_sprite_status: SpriteStatus,
+                               ex_bg_jk_highest_status: SpriteStatus = None,
+                               pv_back_highest_sprite_status: SpriteStatus = None,
+                               pv_back_texture=None,
+                               ex_bg_jk_texture=None,
+                               ):
         texture_count = 1
         txp = kkdlib.txp.Set()
         logo_list = []
-        names = [f"SH Texture #{texture_count}"]
+
+        if bg_jk_highest_status == SpriteStatus.OK:
+            names = [f"SH Texture #{texture_count}"]
+        else:
+            names = [f"WI_SH Texture #{texture_count}"]
+
         if compression is Compression.ATI2:
             txp.add_file(kkdlib.txp.Texture.encode_ycbcr(jk_bg_texture.width,jk_bg_texture.height,jk_bg_texture.tobytes()))
         else:
@@ -52,7 +71,12 @@ class FarcCreator:
 
         if ex_bg_jk_texture is not None:
             texture_count = texture_count + 1
-            names.append(f"SH Texture #{texture_count}")
+
+            if ex_bg_jk_highest_status == SpriteStatus.OK:
+                names.append(f"SH Texture #{texture_count}")
+            else:
+                names.append(f"WI_SH Texture #{texture_count}")
+
             if compression is Compression.ATI2:
                 txp.add_file(kkdlib.txp.Texture.encode_ycbcr(ex_bg_jk_texture.width, ex_bg_jk_texture.height, ex_bg_jk_texture.tobytes()))
             else:
@@ -78,7 +102,12 @@ class FarcCreator:
 
 
             texture_count = texture_count + 1
-            names.append(f"SH Texture #{texture_count}")
+
+            if logo_highest_sprite_status == SpriteStatus.OK:
+                names.append(f"SH Texture #{texture_count}")
+            else:
+                names.append(f"WI_SH Texture #{texture_count}")
+
             if compression is Compression.ATI2:
                 txp.add_file(kkdlib.txp.Texture.encode_ycbcr(logo_texture[0].width, logo_texture[0].height, logo_texture[0].tobytes()))
             else:
@@ -126,7 +155,12 @@ class FarcCreator:
         if pv_back_texture is not None:
 
             texture_count = texture_count + 1
-            names.append(f"SH Texture #{texture_count}")
+
+            if pv_back_highest_sprite_status == SpriteStatus.OK:
+                names.append(f"SH Texture #{texture_count}")
+            else:
+                names.append(f"WI_SH Texture #{texture_count}")
+
             if compression is Compression.ATI2:
                 txp.add_file(kkdlib.txp.Texture.encode_ycbcr(pv_back_texture.width, pv_back_texture.height, pv_back_texture.tobytes()))
             else:

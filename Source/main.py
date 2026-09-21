@@ -1337,10 +1337,11 @@ class SongFarcCreatorWindow(QWidget):
 
         self.main_box.pv_back_preview_layout.addWidget(self.scene_view)
     def export_background_jacket_logo_farc_button_callback(self):
-
-        logo = None
         pv_back_texture = None
         ex_bg_jk = None
+
+        ex_bg_jk_highest_sprite_status = None
+        pv_back_highest_sprite_status = None
 
         song_id = pad_number(int(self.main_box.farc_song_id_spinbox.value()))
         compression = self.main_box.compression_comboBox.currentEnum()
@@ -1354,9 +1355,6 @@ class SongFarcCreatorWindow(QWidget):
         ex_logo_visible = main_window.SC.enum_to_obj(self.main_box.ex_sprite_group_widget.get_selected_sprite_group()).logo.is_visible
         pv_back_checked = self.main_box.pv_back_sprite_checkbox.isChecked()
 
-        #TODO Add proper check for placeholder sprites
-
-
         output_location = QFileDialog.getExistingDirectory(self, "Choose folder to save farc file to", str(config.last_used_directory))
 
         if output_location == "":
@@ -1364,18 +1362,21 @@ class SongFarcCreatorWindow(QWidget):
         else:
             config.last_used_directory = Path(output_location)
 
-            bg_jk = Image.fromqimage(main_window.SC.create_background_jacket_texture(default_sprite_group)).transpose(Image.Transpose.FLIP_TOP_BOTTOM)
+            bg_jk_image , bg_jk_highest_sprite_status = main_window.SC.create_background_jacket_texture(default_sprite_group)
+            bg_jk = Image.fromqimage(bg_jk_image).transpose(Image.Transpose.FLIP_TOP_BOTTOM)
+
             logo_list = []
 
             if base_logo_visible:
                 logo_list.append((default_sprite_group,""))
 
             if ex_sprites_checked:
-                ex_bg_jk = Image.fromqimage(main_window.SC.create_background_jacket_texture(ex_sprite_group)).transpose(Image.Transpose.FLIP_TOP_BOTTOM)
+                ex_bg_jk_image , ex_bg_jk_highest_sprite_status = main_window.SC.create_background_jacket_texture(ex_sprite_group)
+                ex_bg_jk = Image.fromqimage(ex_bg_jk_image).transpose(Image.Transpose.FLIP_TOP_BOTTOM)
                 if ex_logo_visible:
                     logo_list.append((ex_sprite_group, "_EX"))
 
-            logo_texture, logo_info = main_window.SC.create_logo_texture(logo_list)
+            logo_texture, logo_info , logo_highest_sprite_status = main_window.SC.create_logo_texture(logo_list)
             if logo_texture is not None:
                 logo_texture = Image.fromqimage(logo_texture).transpose(Image.Transpose.FLIP_TOP_BOTTOM)
                 logos = (logo_texture,logo_info)
@@ -1383,10 +1384,16 @@ class SongFarcCreatorWindow(QWidget):
                 logos = []
 
             if pv_back_checked:
-                pv_back_texture = Image.fromqimage(main_window.SC.create_pv_back_texture(pv_back_sprite_group)).transpose(Image.Transpose.FLIP_TOP_BOTTOM)
+                pv_back_image , pv_back_highest_sprite_status = main_window.SC.create_pv_back_texture(pv_back_sprite_group)
+                pv_back_texture = Image.fromqimage(pv_back_image).transpose(Image.Transpose.FLIP_TOP_BOTTOM)
 
-            print(f"Logos = {logos}")
-            FarcCreator.create_jk_bg_logo_farc(song_id, bg_jk, logos, output_location,compression,pv_back_texture=pv_back_texture,ex_bg_jk_texture=ex_bg_jk)
+            FarcCreator.create_jk_bg_logo_farc(song_id, bg_jk, logos, output_location,compression,
+                                               bg_jk_highest_sprite_status,
+                                               logo_highest_sprite_status,
+                                               ex_bg_jk_highest_status=ex_bg_jk_highest_sprite_status,
+                                               pv_back_highest_sprite_status = pv_back_highest_sprite_status,
+                                               pv_back_texture=pv_back_texture,
+                                               ex_bg_jk_texture=ex_bg_jk)
 
             if self.main_box.generate_spr_db_after_export_checkbox.isChecked():
                 main_window.generate_spr_db_button_callback(path=output_location)
