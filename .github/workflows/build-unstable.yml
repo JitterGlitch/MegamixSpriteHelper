@@ -55,7 +55,7 @@ jobs:
 
       - name: Build with PyInstaller
         run: |
-            pyinstaller --onedir --icon=${{ matrix.icon }} -w --name MegamixSpriteHelper ./Source/main.py
+            pyinstaller --onedir --icon=${{ matrix.icon }}  --name MegamixSpriteHelper ./Source/main.py
                         
       - name: Create tarball for Linux
         if: matrix.os == 'ubuntu-latest'
