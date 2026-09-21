@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - master
+    paths:
+      - 'MegamixSpriteHelper/Source/**'
+      - '.github/workflows/build.yml'
 
 jobs:
   build:
