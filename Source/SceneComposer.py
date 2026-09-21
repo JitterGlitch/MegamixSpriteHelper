@@ -17,9 +17,6 @@ from superqt.utils import qthrottled
 
 from widgets import QSmarterMenu
 
-import resources_rc
-
-
 class State(Enum):
     FALLBACK = auto()
     IMAGE_TOO_SMALL = auto()

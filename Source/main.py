@@ -1,3 +1,6 @@
+import resources_rc
+
+
 import io
 import json
 import webbrowser
