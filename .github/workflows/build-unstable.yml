@@ -24,7 +24,7 @@ jobs:
             artifact_name: MegamixSpriteHelper-Linux
             path: dist/MegamixSpriteHelper
             kkdlib_wheel: kkdlib-0.1.0-cp39-abi3-manylinux_2_38_x86_64.whl
-            icon: /Source/Images/Icon.ico
+            icon: ./Source/Images/Icon.ico
 
     steps:
       - name: Checkout repository
@@ -55,8 +55,11 @@ jobs:
 
       - name: Build with PyInstaller
         run: |
-          pyinstaller --onedir --icon=${{ matrix.icon }} -w --name MegamixSpriteHelper ./Source/main.py
-
+            pyinstaller --onedir --icon=${{ matrix.icon }} -w --name MegamixSpriteHelper \
+                        --collect-all PySide6 \
+                        --collect-all shiboken6 \
+                        ./Source/main.py
+                        
       - name: Create tarball for Linux
         if: matrix.os == 'ubuntu-latest'
         run: |
