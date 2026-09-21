@@ -1093,6 +1093,11 @@ class MainWindow(QMainWindow):
         self.SC.enum_to_obj(self.main_box.sprite_group_combobox.currentEnum()).thumbnail.update_sprite(hq_output=True)
         self.SC.enum_to_obj(self.main_box.sprite_group_combobox.currentEnum()).logo.update_sprite(hq_output=True)
 
+        self.SC.enum_to_obj(self.main_box.sprite_group_combobox.currentEnum()).jacket.redraw_and_check_status()
+        self.SC.enum_to_obj(self.main_box.sprite_group_combobox.currentEnum()).background.redraw_and_check_status()
+        self.SC.enum_to_obj(self.main_box.sprite_group_combobox.currentEnum()).thumbnail.redraw_and_check_status()
+        self.SC.enum_to_obj(self.main_box.sprite_group_combobox.currentEnum()).logo.redraw_and_check_status()
+
         if len(self.selected_scenes) == 0:
             return
         if len(self.selected_scenes) > 1:

@@ -689,8 +689,8 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
     def redraw_and_check_status(self):
         if not self.preview_is_hq:
             self.update_sprite(hq_output=True)
-            self.check_sprite_area()
-            self.SpriteRedraw.emit()
+        self.check_sprite_area()
+        self.SpriteRedraw.emit()
     def check_sprite_area(self):
         self.sprite_area_fully_filled = is_fully_opaque(self.pixmap())
 
