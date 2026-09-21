@@ -23,7 +23,7 @@ from PySide6.QtGui import QPixmap, QPalette, QColor, QImage, QPainter, QGuiAppli
 from PySide6.QtWidgets import QApplication, QMainWindow, QWidget, QFileDialog, QMessageBox, QSizePolicy, QSpacerItem, QMenu, QDialog, QVBoxLayout, QLabel, QTextEdit, QHBoxLayout, QPushButton
 
 import SceneComposer
-from SceneComposer import SpriteGroup, TextureType, SpriteStatusString ,SpriteStatus
+from SceneComposer import SpriteGroup, TextureType ,SpriteStatus
 from ui_SongFarcCreator import Ui_SongFarcCreatorWindow
 from widgets import QSmarterMenu
 
@@ -49,7 +49,7 @@ class Configurable:
         self.script_directory = Path.cwd()
         self.is_pre_release = True
         self.repo = "JitterGlitch/MegamixSpriteHelper"
-        self.version = "1.2.1"
+        self.version = "1.3"
         self.api_url = f"https://api.github.com/repos/{self.repo}/releases/latest"
 
 
@@ -933,7 +933,7 @@ class MainWindow(QMainWindow):
 
         self.main_box.sprite_status_display.set_tracked_sprite(self.SC.type_to_sprite(group,sprite))
         new_tracked = self.main_box.sprite_status_display.tracked
-        new_tracked.SpriteStatusWait.connect(lambda: self.main_box.sprite_status_display.set_status(SpriteStatusString.PLEASE_WAIT.value))
+        new_tracked.SpriteStatusWait.connect(lambda: self.main_box.sprite_status_display.set_status(SpriteStatus.PLEASE_WAIT))
         new_tracked.SpriteRedraw.connect(lambda: self.main_box.sprite_status_display.update_status())
         self.main_box.sprite_status_display.update_status()
 
@@ -1258,28 +1258,38 @@ class SongFarcCreatorWindow(QWidget):
         self.main_box.pv_back_sprite_group_widget.SpriteGroupChanged.connect(self.switch_pv_back_scene_sprite_group)
 
     def get_highest_group_status_from_widgets(self):
-        status_list = [self.main_box.default_sprite_group_widget.sprite_group_status_display.get_status()]
+        status_list = [self.main_box.default_sprite_group_widget.sprite_group_status_display.get_status().value]
         if self.main_box.ex_sprites_checkbox.isChecked():
-            status_list.append(self.main_box.ex_sprite_group_widget.sprite_group_status_display.get_status())
+            status_list.append(self.main_box.ex_sprite_group_widget.sprite_group_status_display.get_status().value)
         if self.main_box.pv_back_sprite_checkbox.isChecked():
-            status_list.append(self.main_box.pv_back_sprite_group_widget.sprite_group_status_display.get_status())
-        return max(status_list)
+            status_list.append(self.main_box.pv_back_sprite_group_widget.sprite_group_status_display.get_status().value)
+        return SpriteStatus(max(status_list))
 
     def update_export_button_status(self):
         highest_status = self.get_highest_group_status_from_widgets()
-
+        status_description = ""
         match highest_status:
             case SpriteStatus.OK:
                 self.main_box.export_farc_pushbutton.setEnabled(True)
+                status_description = "No Issues found"
+
             case SpriteStatus.WARNING:
                 if self.main_box.ignore_sprite_warnings_checkbox.isChecked():
                     self.main_box.export_farc_pushbutton.setEnabled(True)
+                    status_description = "Warnings found , but user chose to ignore them"
                 else:
                     self.main_box.export_farc_pushbutton.setEnabled(False)
+                    status_description = "Warnings found"
+
             case SpriteStatus.ERROR:
                 self.main_box.export_farc_pushbutton.setEnabled(False)
-            case SpriteStatus.NOT_HQ:
+                status_description = "Errors found, export is blocked until they are fixed"
+
+            case SpriteStatus.PLEASE_WAIT:
                 self.main_box.export_farc_pushbutton.setEnabled(False)
+                status_description = "This shouldn't happen , most likely a bug"
+
+        self.main_box.export_status_display.set_status(SpriteStatus(highest_status),error=status_description)
 
 
     def connect_group_status_displays(self):
@@ -1287,7 +1297,6 @@ class SongFarcCreatorWindow(QWidget):
             group.GroupRedraw.disconnect()
 
         for widget in self.sprite_group_widget_list:
-            print(widget.get_selected_sprite_group())
             group = self.SC.enum_to_obj(widget.get_selected_sprite_group())
             widget.sprite_group_status_display.set_tracked_sprite_group(group)
             #group.GroupRedraw.connect(widget.sprite_group_status_display.update_status)
@@ -1298,10 +1307,12 @@ class SongFarcCreatorWindow(QWidget):
 
     def ex_sprite_checkbox_callback(self):
         self.main_box.ex_sprite_group_widget.setEnabled(self.main_box.ex_sprites_checkbox.isChecked())
+        self.update_export_button_status()
     def pv_back_sprite_checkbox_callback(self):
         self.main_box.pv_back_sprite_group_widget.setEnabled(self.main_box.pv_back_sprite_checkbox.isChecked())
         self.main_box.pv_back_tab.setEnabled(self.main_box.pv_back_sprite_checkbox.isChecked())
         self.main_box.tab_view.setTabVisible(1,self.main_box.pv_back_sprite_checkbox.isChecked())
+        self.update_export_button_status()
     def init_preview(self,scene):
         self.scene_view = QScalingGraphicsScene()
         self.scene_view.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
@@ -1343,67 +1354,7 @@ class SongFarcCreatorWindow(QWidget):
         ex_logo_visible = main_window.SC.enum_to_obj(self.main_box.ex_sprite_group_widget.get_selected_sprite_group()).logo.is_visible
         pv_back_checked = self.main_box.pv_back_sprite_checkbox.isChecked()
 
-        placeholders_used = []
-        logos_with_cutoff_edges = []
-
-        #TODO . Placeholder sprites do not use string as their location so this errors out
-        #TODO , Do this smarter, this is not maintainable
-        if main_window.SC.enum_to_obj(default_sprite_group).background.location.startswith(":"):
-            placeholders_used.append(f"{default_sprite_group.value}: {main_window.SC.enum_to_obj(default_sprite_group).background.sprite_type.name}\n")
-        if main_window.SC.enum_to_obj(default_sprite_group).jacket.location.startswith(":"):
-            placeholders_used.append(f"{default_sprite_group.value}: {main_window.SC.enum_to_obj(default_sprite_group).jacket.sprite_type.name}\n")
-
-        if base_logo_visible:
-            if main_window.SC.enum_to_obj(default_sprite_group).logo.location.startswith(":"):
-                placeholders_used.append(f"{default_sprite_group.value}: {main_window.SC.enum_to_obj(default_sprite_group).logo.sprite_type.name}\n")
-
-            if main_window.SC.enum_to_obj(default_sprite_group).logo.has_cutoff_edges():
-                logos_with_cutoff_edges.append(f"{default_sprite_group.value}: Logo\n")
-
-        if ex_sprites_checked:
-            if main_window.SC.enum_to_obj(ex_sprite_group).background.location.startswith(":"):
-                placeholders_used.append(f"{ex_sprite_group.value}: {main_window.SC.enum_to_obj(ex_sprite_group).background.sprite_type.name}\n")
-            if main_window.SC.enum_to_obj(ex_sprite_group).jacket.location.startswith(":"):
-                placeholders_used.append(f"{ex_sprite_group.value}: {main_window.SC.enum_to_obj(ex_sprite_group).jacket.sprite_type.name}\n")
-
-            if ex_logo_visible:
-                if main_window.SC.enum_to_obj(ex_sprite_group).logo.location.startswith(":"):
-                    placeholders_used.append(f"{ex_sprite_group.value}: {main_window.SC.enum_to_obj(ex_sprite_group).logo.sprite_type.name}\n")
-
-                if main_window.SC.enum_to_obj(ex_sprite_group).logo.has_cutoff_edges():
-                    logos_with_cutoff_edges.append(f"{ex_sprite_group.value}: Logo\n")
-
-        if pv_back_checked:
-            for sprite in main_window.SC.enum_to_obj(pv_back_sprite_group).list:
-                if sprite.sprite_type in (SpriteType.LOGO, SpriteType.BACKGROUND, SpriteType.JACKET):
-                    if sprite.location.startswith(":"):
-                        placeholders_used.append(f"{pv_back_sprite_group.value}: {sprite.sprite_type.name}\n")
-
-            if self.scene_view.scene().current_layout != PvBackLayout.BackgroundOnly:
-
-                if main_window.SC.enum_to_obj(pv_back_sprite_group).logo.location.startswith(":"):
-                    placeholders_used.append(f"{pv_back_sprite_group.value}: {main_window.SC.enum_to_obj(pv_back_sprite_group).logo.sprite_type.name}\n")
-
-                if main_window.SC.enum_to_obj(pv_back_sprite_group).logo.has_cutoff_edges():
-                    logos_with_cutoff_edges.append(f"{pv_back_sprite_group.value}: Logo\n")
-
-
-
-        placeholders_used = list(set(placeholders_used))
-        placeholders_used.sort()
-
-        logos_with_cutoff_edges = list(set(logos_with_cutoff_edges))
-        logos_with_cutoff_edges.sort()
-
-
-        if placeholders_used:
-            placeholder_str = "".join(placeholders_used)
-            show_message_box("Placeholders used","Following sprites are using placeholder sprites:\n\n" + placeholder_str+"\nIf that's not intended then verify if you selected correct sprite groups.")
-
-        if logos_with_cutoff_edges:
-            placeholder_str = "".join(logos_with_cutoff_edges)
-            show_message_box("Logo edges are cutoff","Following logos have their edges cutoff:\n\n" + placeholder_str+"\n")
-
+        #TODO Add proper check for placeholder sprites
 
 
         output_location = QFileDialog.getExistingDirectory(self, "Choose folder to save farc file to", str(config.last_used_directory))

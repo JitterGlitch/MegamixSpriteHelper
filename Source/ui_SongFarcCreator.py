@@ -10,7 +10,7 @@ from PySide6.QtWidgets import (QAbstractScrollArea, QCheckBox,
 from superqt import QEnumComboBox
 
 import FarcCreator
-from SceneComposer import SpriteGroup,SpriteGroupPreview
+from SceneComposer import SpriteGroup, SpriteGroupPreview, ExportStatusDisplay
 
 
 class Ui_SongFarcCreatorWindow(object):
@@ -234,8 +234,10 @@ class Ui_SongFarcCreatorWindow(object):
 
         self.tab_view.setTabVisible(1,self.pv_back_sprite_checkbox.isChecked())
 
+        self.export_status_display = ExportStatusDisplay()
 
         self.MainVLayout.addWidget(self.tab_view)
+        self.MainVLayout.addWidget(self.export_status_display)
 
         self.export_farc_pushbutton = QPushButton(Form)
         self.MainVLayout.addWidget(self.export_farc_pushbutton)

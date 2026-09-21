@@ -4,6 +4,7 @@ import os
 import tempfile
 from enum import Enum, auto, StrEnum, IntEnum
 from pathlib import Path
+from typing import cast
 
 import PySide6
 import hashlib
@@ -11,7 +12,7 @@ from PIL import Image
 from PySide6.QtCore import Qt, QRectF, QPoint, Signal, QObject, QSize, QRect, QIODevice, QFile, QThread, QTimer, QLine, QStandardPaths, QUrl
 from PySide6.QtGui import QImage, QPixmap, QPainter, QTransform, QColor, QPen, QMouseEvent, QFont, QDesktopServices
 from PySide6.QtWidgets import QGraphicsPixmapItem, QFileDialog, QGraphicsScene, QLayout, QGraphicsView, QWidget, QScrollArea, QCheckBox, QRadioButton, QLabel, QVBoxLayout, QDoubleSpinBox, QSlider, QColorDialog, QPushButton, QHBoxLayout, QGraphicsBlurEffect, QFrame, QStyleOptionSlider, QStyle
-from superqt import QDoubleSlider, QIconifyIcon, QEnumComboBox
+from superqt import QDoubleSlider, QIconifyIcon, QEnumComboBox, QCollapsible
 from superqt.utils import qthrottled
 
 from widgets import QSmarterMenu
@@ -696,7 +697,7 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
 
     def get_sprite_status(self):
         if not self.preview_is_hq:
-            return SpriteStatus.NOT_HQ,""
+            return SpriteStatus.PLEASE_WAIT,""
         if self.sprite_area_fully_filled:
             return SpriteStatus.OK, ""
         else:
@@ -1252,8 +1253,9 @@ class QLogo(QSpriteBase):
             drop_shadow_status , drop_shadow_error = self.drop_shadow.get_sprite_status()
             if drop_shadow_status != SpriteStatus.OK:
                 status_list.append((drop_shadow_status, drop_shadow_error))
-
-        highest_error = max(status_list, key=lambda item: item[0])
+        if not status_list:
+            status_list.append((SpriteStatus.OK,""))
+        highest_error = max(status_list, key=lambda item: item[0].value)
         return highest_error
 
 
@@ -1753,21 +1755,19 @@ class QLayer(QGraphicsPixmapItem):
         painter.end()
         self.setPixmap(QPixmap(result))
 
+class SpriteStatus(Enum):
+    def __new__(cls, value, icon, color, description):
+        obj = object.__new__(cls)
+        obj._value_ = value
+        obj.icon    = icon
+        obj.color   = color
+        obj.description = description
+        return obj
 
-class SpriteStatus(IntEnum):
-    OK = auto()
-    NOT_HQ = auto()
-    WARNING = auto()
-    ERROR = auto()
-
-class SpriteStatusString(Enum):
-    OK = ("material-symbols:check-circle-rounded", "green", "No issues")
-    PLEASE_WAIT = ("material-symbols:hourglass-rounded", "gray", "Please wait...")
-    WARNING = ("material-symbols:warning-rounded", "orange", "Warning")  # Issues that don't block export
-    ERROR = ("material-symbols:warning-rounded", "red", "Error")  # Issues that should block export
-
-    def __getitem__(self, item):
-        return item
+    OK          = (1,"material-symbols:check-circle-rounded", "green", "No issues")
+    PLEASE_WAIT = (2,"material-symbols:hourglass-rounded", "gray", "Please wait...")
+    WARNING     = (3,"material-symbols:warning-rounded", "orange", "Warning")  # Issues that don't block export
+    ERROR       = (4,"material-symbols:warning-rounded", "red", "Error")  # Issues that should block export
 
 
 class SpriteStatusDisplay(QWidget):
@@ -1775,7 +1775,7 @@ class SpriteStatusDisplay(QWidget):
         super().__init__()
 
         self.tracked = None
-        self.status = SpriteStatus.NOT_HQ
+        self.status = SpriteStatus.PLEASE_WAIT
 
         self.frame = QFrame()
         self.frame.setObjectName(u"frame")
@@ -1803,18 +1803,18 @@ class SpriteStatusDisplay(QWidget):
 
         self.setLayout(self.widget_layout)
 
-        self.set_status(SpriteStatusString.PLEASE_WAIT.value)
+        self.set_status(SpriteStatus.PLEASE_WAIT)
 
-    def set_status(self, status: SpriteStatusString, error: str = None):
-        self.icon = QIconifyIcon(status[0], color=status[1]).pixmap(20, 20)
+    def set_status(self, status: SpriteStatus, error: str = None):
+        self.icon = QIconifyIcon(status.icon, color=status.color).pixmap(20, 20)
         self.icon_label.setPixmap(self.icon)
 
         if error:
             self.label.setText(error)
         else:
-            self.label.setText(status[2])
+            self.label.setText(status.description)
 
-        c = QColor(status[1])
+        c = QColor(status.color)
         darker = c.darker(180)
         self.frame.setStyleSheet(f" #frame {{"
                                  f"border: 1px solid rgb({c.red()}, {c.green()}, {c.blue()});"
@@ -1826,13 +1826,13 @@ class SpriteStatusDisplay(QWidget):
         status, error = self.tracked.get_sprite_status()
         match status:
             case SpriteStatus.OK:
-                self.set_status(SpriteStatusString.OK.value)
+                self.set_status(SpriteStatus.OK)
             case SpriteStatus.WARNING:
-                self.set_status(SpriteStatusString.WARNING.value, error)
+                self.set_status(SpriteStatus.WARNING, error)
             case SpriteStatus.ERROR:
-                self.set_status(SpriteStatusString.ERROR.value, error)
-            case SpriteStatus.NOT_HQ:
-                self.set_status(SpriteStatusString.PLEASE_WAIT.value)
+                self.set_status(SpriteStatus.ERROR, error)
+            case SpriteStatus.PLEASE_WAIT:
+                self.set_status(SpriteStatus.PLEASE_WAIT)
 
         self.status = status
 
@@ -1845,7 +1845,7 @@ class GroupStatusDisplay(QWidget):
         super().__init__()
 
         self.tracked_sprite_group = None
-        self.status = SpriteStatus.NOT_HQ
+        self.status = SpriteStatus.PLEASE_WAIT
 
         self.icon = QIconifyIcon("material-symbols:check-circle-rounded", color="green").pixmap(20, 20)
         self.icon_label = QLabel()
@@ -1866,23 +1866,23 @@ class GroupStatusDisplay(QWidget):
         status = None
         match display_status:
             case SpriteStatus.OK:
-                status = SpriteStatusString.OK.value
-                self.icon = QIconifyIcon(status[0], color=status[1]).pixmap(20, 20)
+                status = SpriteStatus.OK
+                self.icon = QIconifyIcon(status.icon, color=status.color).pixmap(20, 20)
             case SpriteStatus.WARNING:
-                status = SpriteStatusString.WARNING.value
-                self.icon = QIconifyIcon(status[0], color=status[1]).pixmap(20, 20)
+                status = SpriteStatus.WARNING
+                self.icon = QIconifyIcon(status.icon, color=status.color).pixmap(20, 20)
             case SpriteStatus.ERROR:
-                status = SpriteStatusString.ERROR.value
-                self.icon = QIconifyIcon(status[0], color=status[1]).pixmap(20, 20)
+                status = SpriteStatus.ERROR
+                self.icon = QIconifyIcon(status.icon, color=status.color).pixmap(20, 20)
             case _:
-                status = SpriteStatusString.PLEASE_WAIT.value
-                self.icon = QIconifyIcon(status[0], color=status[1]).pixmap(20, 20)
+                status = SpriteStatus.PLEASE_WAIT
+                self.icon = QIconifyIcon(status.icon, color=status.color).pixmap(20, 20)
 
-        self.status = display_status
+        self.status = SpriteStatus(display_status)
         self.icon_label.setPixmap(self.icon)
 
-        if status == SpriteStatusString.OK.value:
-            self.icon_label.setToolTip(status[2])
+        if status == SpriteStatus.OK:
+            self.icon_label.setToolTip(status.description)
         else:
             tooltip_string = ""
             for error in status_list:
@@ -1891,10 +1891,10 @@ class GroupStatusDisplay(QWidget):
             self.icon_label.setToolTip(tooltip_string)
 
     def get_status(self):
-        return self.status
+        return SpriteStatus(self.status)
 
     def get_highest_status(self,status_list: list[tuple[SpriteStatus, str]]):
-        return max((status for status, _ in status_list))
+        return SpriteStatus(max((status.value for status, _ in status_list)))
 
     def set_tracked_sprite_group(self, group):
         self.tracked_sprite_group = group
@@ -1908,6 +1908,58 @@ class GroupStatusDisplay(QWidget):
 
         self.set_status(status_list)
         self.StatusUpdated.emit()
+class ExportStatusDisplay(QWidget):
+    def __init__(self, /):
+        super().__init__()
+
+
+        self.status = SpriteStatus.PLEASE_WAIT
+
+        self.frame = QFrame()
+        self.frame.setObjectName(u"frame")
+
+        self.icon = QIconifyIcon("material-symbols:warning-rounded", color="red").pixmap(20, 20)
+        self.icon_label = QLabel()
+        self.icon_label.setMaximumSize(20, 35)
+
+        self.label = QLabel()
+        font = self.label.font()
+        font.setPointSize(10)
+        self.label.setFont(font)
+
+        self.layout = QHBoxLayout()
+        self.layout.setContentsMargins(4, 4, 4, 4)
+        self.setMinimumHeight(30)
+
+        self.layout.addWidget(self.icon_label)
+        self.layout.addWidget(self.label)
+
+        self.frame.setLayout(self.layout)
+
+        self.widget_layout = QHBoxLayout()
+        self.widget_layout.setContentsMargins(0, 0, 0, 0)
+        self.widget_layout.addWidget(self.frame)
+
+        self.setLayout(self.widget_layout)
+
+        self.set_status(SpriteStatus.PLEASE_WAIT,"Placeholder text")
+
+    def set_status(self, status: SpriteStatus, error: str = None):
+        self.icon = QIconifyIcon(status.icon, color=status.color).pixmap(20, 20)
+        self.icon_label.setPixmap(self.icon)
+
+        if error:
+            self.label.setText(error)
+        else:
+            self.label.setText(status.description)
+
+        c = QColor(status.color)
+        darker = c.darker(180)
+        self.frame.setStyleSheet(f" #frame {{"
+                                 f"border: 1px solid rgb({c.red()}, {c.green()}, {c.blue()});"
+                                 f"border-radius: 1px;"
+                                 f"background-color: rgba({darker.red()}, {darker.green()}, {darker.blue()}, 50)"
+                                 f"}}")
 
 class SpriteGroupPreview(QWidget):
     SpriteGroupChanged = Signal()
@@ -1979,7 +2031,6 @@ class SpriteGroupPreview(QWidget):
     def get_selected_sprite_group(self):
         return self.group_combobox.currentEnum()
     def update_status(self):
-        print("Called")
         self.sprite_group_status_display.update_status()
 
     def change_preview(self):
@@ -2014,6 +2065,7 @@ class QControllableSprites(QObject):
     def update_sprites(self):
         for sprite in self.list:
             sprite.update_sprite()
+            sprite.redraw_and_check_status()
 
 
 class QMMSongSelectScene(QGraphicsScene):
