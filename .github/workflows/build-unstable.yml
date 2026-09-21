@@ -6,7 +6,7 @@ on:
       - master
     paths:
       - 'Source/**'
-      - '.github/workflows/build.yml'
+      - '.github/workflows/build-unstable.yml'
 
 jobs:
   build:
