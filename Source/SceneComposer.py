@@ -969,21 +969,6 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
 
     def update_pixmap(self):
         self.setPixmap(self.grab_scene_portion(self.sprite_scene, self.sprite_size))
-    def mousePressEvent(self, event, /):
-        self.save_image()
-
-        super().mousePressEvent(event)
-
-    def save_image(self):
-        filename, _ = QFileDialog.getSaveFileName(
-            None,
-            "Save Image",
-            "image.png",
-            "PNG Files (*.png)"
-        )
-        if filename:
-            self.pixmap().save(filename, "PNG",100)
-            print(f"Image saved to: {filename}")
 class QThumbnail(QSpriteBase):
     def __init__(self,
                  sprite: str,
