@@ -354,6 +354,31 @@ class ThumbnailWindow(QWidget):
             self.main_box.export_farc_button.setDisabled(False)
             self.main_box.export_farc_button.setToolTip("")
 
+    def check_thumbnail_sprite(self,image_path):
+        thumbnail_image = QImage(image_path)
+        reference_image = QImage(u":icon/Images/Dummy/SONG_JK_THUMBNAIL_DUMMY.png")
+
+        width = reference_image.width()
+        height = reference_image.height()
+
+        fmt = QImage.Format.Format_ARGB32
+        img1 = thumbnail_image.convertToFormat(fmt)
+        img2 = reference_image.convertToFormat(fmt)
+
+        ptr1 = img1.constBits()
+        ptr2 = img2.constBits()
+
+        stride1 = img1.bytesPerLine()
+        stride2 = img2.bytesPerLine()
+
+        for y in range(height):
+            row1 = ptr1[y * stride1: y * stride1 + width * 4]
+            row2 = ptr2[y * stride2: y * stride2 + width * 4]
+            if row1[3::4] != row2[3::4]:
+                return False
+
+        return True
+
     def add_thumbnail(self,image_path,inferred_id):
         if self.thumbnail_widgets:
             for thumbnail in self.thumbnail_widgets:
