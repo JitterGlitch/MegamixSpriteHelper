@@ -753,13 +753,13 @@ class ThumbnailWindow(QWidget):
 def export_texture_button_callback(texture:TextureType):
     match texture:
         case TextureType.JACKET_BACKGROUND:
-            texture_image = main_window.SC.create_background_jacket_texture(main_window.main_box.sprite_group_combobox.currentEnum())
+            texture_image,_ = main_window.SC.create_background_jacket_texture(main_window.main_box.sprite_group_combobox.currentEnum())
         case TextureType.LOGO:
             texture_image,_ = main_window.SC.create_logo_texture([(main_window.main_box.sprite_group_combobox.currentEnum(),"")])
         case TextureType.THUMBNAIL:
-            texture_image = main_window.SC.create_thumbnail_texture(main_window.main_box.sprite_group_combobox.currentEnum())
+            texture_image,_ = main_window.SC.create_thumbnail_texture(main_window.main_box.sprite_group_combobox.currentEnum())
         case TextureType.PV_BACK:
-            texture_image = main_window.SC.create_pv_back_texture(main_window.main_box.sprite_group_combobox.currentEnum())
+            texture_image,_ = main_window.SC.create_pv_back_texture(main_window.main_box.sprite_group_combobox.currentEnum())
 
     filename, _ = QFileDialog.getSaveFileName(
         None,
