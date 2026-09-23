@@ -3,10 +3,11 @@ from PySide6.QtCore import (QCoreApplication, QMetaObject, QRect,
 from PySide6.QtGui import (QIcon)
 from PySide6.QtWidgets import (QAbstractScrollArea, QGridLayout,
                                QLabel, QPushButton, QScrollArea,
-                               QVBoxLayout, QWidget, QHBoxLayout)
+                               QVBoxLayout, QWidget, QHBoxLayout, QCheckBox)
 from superqt import QEnumComboBox
 
 from FarcCreator import Compression
+from SceneComposer import SpriteStatusDisplay, SpriteStatus
 from widgets import SongpackNameInput
 
 
@@ -23,45 +24,35 @@ class Ui_ThumbnailTextureCreator(object):
         self.verticalLayout.setSpacing(5)
         self.verticalLayout.setObjectName(u"verticalLayout")
         self.verticalLayout.setContentsMargins(5, 5, 5, 5)
-        self.gridLayout_2 = QGridLayout()
-        self.gridLayout_2.setObjectName(u"gridLayout_2")
-        self.gridLayout_2.setContentsMargins(-1, 0, -1, -1)
 
         self.thumbnails_to_fillout_label = QLabel(ThumbnailTextureCreator)
         self.thumbnails_to_fillout_label.setObjectName(u"thumbnails_to_fillout_label")
         self.thumbnails_to_fillout_label.setMinimumSize(QSize(330, 0))
 
-        self.gridLayout_2.addWidget(self.thumbnails_to_fillout_label, 1, 1, 1, 1)
+        self.ignore_warnings_checkbox = QCheckBox(ThumbnailTextureCreator)
+        self.ignore_warnings_checkbox.setText("Ignore warnings")
+        self.ignore_warnings_checkbox.setChecked(False)
 
-        self.thumbnails_loaded_label = QLabel(ThumbnailTextureCreator)
-        self.thumbnails_loaded_label.setObjectName(u"thumbnails_loaded_label")
+        self.thumbnail_status_display = SpriteStatusDisplay()
+        self.thumbnail_status_display.set_status(SpriteStatus.PLEASE_WAIT,"No Thumbnails loaded")
 
-        self.gridLayout_2.addWidget(self.thumbnails_loaded_label, 0, 1, 1, 1)
+        self.warning_layout = QHBoxLayout()
+        self.warning_layout.addWidget(self.thumbnail_status_display)
+        self.warning_layout.addWidget(self.ignore_warnings_checkbox)
 
         self.load_folder_button = QPushButton(ThumbnailTextureCreator)
         self.load_folder_button.setObjectName(u"load_folder_button")
 
-        self.gridLayout_2.addWidget(self.load_folder_button, 0, 0, 1, 1)
-
         self.load_image_button = QPushButton(ThumbnailTextureCreator)
         self.load_image_button.setObjectName(u"load_image_button")
 
-        self.gridLayout_2.addWidget(self.load_image_button, 1, 0, 1, 1)
-
-
         self.mod_name_lineedit = SongpackNameInput()
-
-        self.gridLayout_2.addWidget(self.mod_name_lineedit, 2, 0, 1, 1)
 
         self.export_farc_button = QPushButton(ThumbnailTextureCreator)
         self.export_farc_button.setObjectName(u"export_farc_button")
 
-        self.gridLayout_2.addWidget(self.export_farc_button, 3, 0, 1, 1)
-
         self.delete_all_thumbs_button = QPushButton(ThumbnailTextureCreator)
         self.delete_all_thumbs_button.setObjectName(u"delete_all_thumbs_button")
-
-        self.gridLayout_2.addWidget(self.delete_all_thumbs_button, 2, 1, 1, 1)
 
         self.H_Layout = QHBoxLayout()
         self.farc_compression_label = QLabel()
@@ -74,8 +65,19 @@ class Ui_ThumbnailTextureCreator(object):
         self.farc_compression_combobox.setEnumClass(Compression)
         self.H_Layout.addWidget(self.farc_compression_combobox)
 
-        self.gridLayout_2.addItem(self.H_Layout, 3, 1, 1, 1)
+        self.gridLayout_2 = QGridLayout()
+        self.gridLayout_2.setObjectName(u"gridLayout_2")
+        self.gridLayout_2.setContentsMargins(-1, 0, -1, -1)
 
+        self.gridLayout_2.addWidget(self.load_folder_button,         0, 0, 1, 1)
+        self.gridLayout_2.addWidget(self.load_image_button,          1, 0, 1, 1)
+        self.gridLayout_2.addWidget(self.delete_all_thumbs_button,   2, 0, 1, 1)
+        self.gridLayout_2.addWidget(self.thumbnails_to_fillout_label,3, 0, 1, 1)
+
+        self.gridLayout_2.addWidget(self.mod_name_lineedit,          0, 1, 1, 1)
+        self.gridLayout_2.addItem(self.H_Layout,                     1, 1, 1, 1)
+        self.gridLayout_2.addLayout(self.warning_layout,             2, 1, 1, 1)
+        self.gridLayout_2.addWidget(self.export_farc_button,         3, 1, 1, 1)
 
         self.verticalLayout.addLayout(self.gridLayout_2)
 
@@ -107,7 +109,6 @@ class Ui_ThumbnailTextureCreator(object):
     def retranslateUi(self, ThumbnailTextureCreator):
         ThumbnailTextureCreator.setWindowTitle(QCoreApplication.translate("ThumbnailTextureCreator", u"Thumbnail Texture Creator", None))
         self.thumbnails_to_fillout_label.setText(QCoreApplication.translate("ThumbnailTextureCreator", u"ID's left to fill out: 0", None))
-        self.thumbnails_loaded_label.setText(QCoreApplication.translate("ThumbnailTextureCreator", u"Unique Thumbnails loaded: 0", None))
         self.load_folder_button.setText(QCoreApplication.translate("ThumbnailTextureCreator", u"Load from folder", None))
         self.load_image_button.setText(QCoreApplication.translate("ThumbnailTextureCreator", u"Load image", None))
         self.export_farc_button.setText(QCoreApplication.translate("ThumbnailTextureCreator", u"Export Farc", None))

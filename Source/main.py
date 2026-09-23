@@ -269,12 +269,14 @@ class ThumbnailWindow(QWidget):
         self.main_box = Ui_ThumbnailTextureCreator()
         self.main_box.setupUi(self)
         self.setAttribute(Qt.WidgetAttribute.WA_QuitOnClose, False)
+
         self.main_box.load_folder_button.clicked.connect(self.scan_folder_for_thumbnails)
         self.main_box.export_farc_button.clicked.connect(self.create_thumbnail_farc)
         self.main_box.load_image_button.clicked.connect(self.select_file_for_thumbnails)
-        self.main_box.load_image_button.clicked.connect(self.update_thumbnail_count_labels)
         self.main_box.delete_all_thumbs_button.clicked.connect(self.delete_all_thumbs)
         self.main_box.mod_name_lineedit.delete_button.clicked.connect(self.delete_selected_name)
+        self.main_box.ignore_warnings_checkbox.toggled.connect(self.update_thumbnail_count_labels)
+
         self.thumbnail_widgets = []
         self.resized.connect(self.space_out_thumbnails)
         self.main_box.export_farc_button.setDisabled(True)
@@ -303,12 +305,16 @@ class ThumbnailWindow(QWidget):
     def update_thumbnail_count_labels(self):
         loaded_thumbs = len(self.thumbnail_widgets)
         left_to_fillout = 0
+        warning_count = 0
 
         id_seen = []
 
         #Gather list of id's, Apply colors
         for thumbnail_widget in self.thumbnail_widgets:
             thumbnail_widget.setStyleSheet("")
+
+            if thumbnail_widget.ui.thumbnail_status_display.get_status() != SpriteStatus.OK:
+                warning_count = warning_count + 1
 
             for id_field in thumbnail_widget.id_field_list:
 
@@ -342,16 +348,33 @@ class ThumbnailWindow(QWidget):
                     left_to_fillout = left_to_fillout + 1
 
         self.main_box.thumbnails_to_fillout_label.setText(f"ID's left to fill out: {left_to_fillout}")
-        self.main_box.thumbnails_loaded_label.setText(f"Unique Thumbnails loaded: {loaded_thumbs}")
 
-        if left_to_fillout > 0:
-            self.main_box.export_farc_button.setDisabled(True)
-            self.main_box.export_farc_button.setToolTip("Please fill out all id fields before exporting FARC file.")
-        elif loaded_thumbs == 0:
+        warnings_ignored = self.main_box.ignore_warnings_checkbox.isChecked()
+        is_export_blocked = False
+
+        if loaded_thumbs != 0:
+
+            if warning_count > 0:
+                self.main_box.thumbnail_status_display.set_status(SpriteStatus.WARNING,f"{warning_count} Thumbnails contain issues")
+                is_export_blocked = not warnings_ignored
+            else:
+                self.main_box.thumbnail_status_display.set_status(SpriteStatus.OK,f"No issues")
+                is_export_blocked = False
+
+        else:
+            self.main_box.thumbnail_status_display.set_status(SpriteStatus.PLEASE_WAIT, "No Thumbnails loaded")
+
+
+
+        if loaded_thumbs == 0:
             self.main_box.export_farc_button.setDisabled(True)
             self.main_box.export_farc_button.setToolTip("")
+        elif left_to_fillout > 0:
+            self.main_box.export_farc_button.setDisabled(True)
+            self.main_box.export_farc_button.setToolTip("Please fill out all id fields before exporting FARC file.")
+
         else:
-            self.main_box.export_farc_button.setDisabled(False)
+            self.main_box.export_farc_button.setDisabled(is_export_blocked)
             self.main_box.export_farc_button.setToolTip("")
 
     def check_thumbnail_sprite(self,image_path):
@@ -605,8 +628,12 @@ class ThumbnailWindow(QWidget):
                 self.save_pack_name()
                 thumbnail_texture.save(str(config.saved_files_location) + "/Thumbnail Texture.png","png")
                 compression = self.main_box.farc_compression_combobox.currentEnum()
+                warnings_ignored = False
 
-                FarcCreator.create_thumbnail_farc(thumbnail_positions,thumbnail_texture.transpose(Image.Transpose.FLIP_TOP_BOTTOM),chosen_dir,mod_name,compression)
+                if self.main_box.thumbnail_status_display.get_status() != SpriteStatus.OK:
+                    warnings_ignored = True
+
+                FarcCreator.create_thumbnail_farc(thumbnail_positions,thumbnail_texture.transpose(Image.Transpose.FLIP_TOP_BOTTOM),chosen_dir,mod_name,compression,warnings_ignored)
 
                 msgBox = QMessageBox()
                 msgBox.setWindowTitle(" ")

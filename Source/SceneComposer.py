@@ -1783,7 +1783,10 @@ class SpriteStatusDisplay(QWidget):
 
         self.set_status(SpriteStatus.PLEASE_WAIT)
 
+    def get_status(self):
+        return SpriteStatus(self.status)
     def set_status(self, status: SpriteStatus, error: str = None):
+        self.status = status
         self.icon = QIconifyIcon(status.icon, color=status.color).pixmap(20, 20)
         self.icon_label.setPixmap(self.icon)
 

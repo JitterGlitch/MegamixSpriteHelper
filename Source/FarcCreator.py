@@ -196,7 +196,7 @@ class FarcCreator:
         farc.add_file_data("spr_sel_pv"+song_id+".bin", spr.to_buf())
         farc.write(output_location+'/spr_sel_pv'+song_id+'.farc', False, False)
 
-    def create_thumbnail_farc(self,thumb_data,thumbnail_texture,output_location,mod_name,compression:Compression):
+    def create_thumbnail_farc(self,thumb_data,thumbnail_texture,output_location,mod_name,compression:Compression,warnings_ignored):
         txp = kkdlib.txp.Set()
         if compression is Compression.ATI2:
             txp.add_file(kkdlib.txp.Texture.encode_ycbcr(thumbnail_texture.width,thumbnail_texture.height,thumbnail_texture.tobytes()))
@@ -204,7 +204,10 @@ class FarcCreator:
             txp.add_file(kkdlib.txp.Texture.py_from_rgba(thumbnail_texture.width,thumbnail_texture.height,thumbnail_texture.tobytes(),compression.to_kkdlib_format()))
 
         spr = kkdlib.spr.Set()
-        spr.set_txp(txp, ["SH Texture #1"])
+        if warnings_ignored:
+            spr.set_txp(txp, ["WI_SH Texture #1"])
+        else:
+            spr.set_txp(txp, ["SH Texture #1"])
         spr.ready = True
 
         for thumb in thumb_data:
