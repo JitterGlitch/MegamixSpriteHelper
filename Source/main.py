@@ -800,36 +800,7 @@ class MainWindow(QMainWindow):
         self.thumbnail_creator = ThumbnailWindow()
         self.song_farc_creator = SongFarcCreatorWindow(self.SC)
 
-        self.menu = self.main_box.menu
-
-        self.export_menu = self.menu.addMenu("Export")
-        self.export_menu.addAction("Create Song Sprite Farc", lambda: self.song_farc_creator.show())
-        self.export_menu.addAction("Create Thumbnail Farc", lambda: self.thumbnail_creator.show())
-        self.export_menu.addAction("Generate Sprite Database", lambda: self.generate_spr_db_button_callback())
-
-        self.export_menu.addSection("Textures")
-
-        self.export_menu.addAction(f"Export {TextureType.JACKET_BACKGROUND}", lambda: export_texture_button_callback(TextureType.JACKET_BACKGROUND))
-        self.export_menu.addAction(f"Export {TextureType.LOGO}", lambda: export_texture_button_callback(TextureType.LOGO))
-        self.export_menu.addAction(f"Export {TextureType.THUMBNAIL}", lambda: export_texture_button_callback(TextureType.THUMBNAIL))
-        self.export_menu.addAction(f"Export {TextureType.PV_BACK}", lambda: export_texture_button_callback(TextureType.PV_BACK))
-
-
-        self.config_scenes_menu = QSmarterMenu("Configure Scenes",self)
-        self.display_scenes_menu = QSmarterMenu("Display Scenes", self)
-
-        self.debug_menu = QSmarterMenu("Debug Menu",self)
-        self.debug_menu.addAction(f"Refresh SpriteStatus display",self.main_box.sprite_status_display.update_status)
-        self.debug_menu.addAction(f"Redraw Current Sprite",self.debug_redraw_sprite)
-
-        self.menu.addMenu(self.config_scenes_menu)
-        self.menu.addMenu(self.display_scenes_menu)
-        self.menu.addMenu(self.debug_menu)
-
-        self.share_menu = QSmarterMenu("Share",self)
-        self.menu.addMenu(self.share_menu)
-        self.share_menu.addAction("Copy preview to clipboard",lambda: self.generate_preview(OutputTarget.CLIPBOARD)).setShortcut("Ctrl+C")
-        self.share_menu.addAction("Open preview in external program",lambda: self.generate_preview(OutputTarget.IMAGE_VIEWER)).setShortcut("Ctrl+O")
+        self.setup_menu()
 
         self.main_box.flip_horizontal_button.clicked.connect(lambda: self.flip_current_sprite(Qt.Orientation.Horizontal))
         self.main_box.flip_vertical_button.clicked.connect(lambda: self.flip_current_sprite(Qt.Orientation.Vertical))
@@ -1030,6 +1001,37 @@ class MainWindow(QMainWindow):
 
         self.display_selected_scenes()
 
+    def setup_menu(self):
+        self.menu = self.main_box.menu
+
+        self.export_menu = self.menu.addMenu("Export")
+        self.export_menu.addAction("Create Song Sprite Farc", lambda: self.song_farc_creator.show())
+        self.export_menu.addAction("Create Thumbnail Farc", lambda: self.thumbnail_creator.show())
+        self.export_menu.addAction("Generate Sprite Database", lambda: self.generate_spr_db_button_callback())
+
+        self.export_menu.addSection("Textures")
+
+        self.export_menu.addAction(f"Export {TextureType.JACKET_BACKGROUND}", lambda: export_texture_button_callback(TextureType.JACKET_BACKGROUND))
+        self.export_menu.addAction(f"Export {TextureType.LOGO}", lambda: export_texture_button_callback(TextureType.LOGO))
+        self.export_menu.addAction(f"Export {TextureType.THUMBNAIL}", lambda: export_texture_button_callback(TextureType.THUMBNAIL))
+        self.export_menu.addAction(f"Export {TextureType.PV_BACK}", lambda: export_texture_button_callback(TextureType.PV_BACK))
+
+        self.config_scenes_menu = QSmarterMenu("Configure Scenes", self)
+        self.display_scenes_menu = QSmarterMenu("Display Scenes", self)
+
+        self.debug_menu = QSmarterMenu("Debug Menu", self)
+        self.debug_menu.addAction(f"Refresh SpriteStatus display", self.main_box.sprite_status_display.update_status)
+        self.debug_menu.addAction(f"Redraw Current Sprite", self.debug_redraw_sprite)
+        self.debug_menu.addAction(f"Print Current Sprite's info", self.debug_print_sprite_info)
+
+        self.menu.addMenu(self.config_scenes_menu)
+        self.menu.addMenu(self.display_scenes_menu)
+        self.menu.addMenu(self.debug_menu)
+
+        self.share_menu = QSmarterMenu("Share", self)
+        self.menu.addMenu(self.share_menu)
+        self.share_menu.addAction("Copy preview to clipboard", lambda: self.generate_preview(OutputTarget.CLIPBOARD)).setShortcut("Ctrl+C")
+        self.share_menu.addAction("Open preview in external program", lambda: self.generate_preview(OutputTarget.IMAGE_VIEWER)).setShortcut("Ctrl+O")
     def populate_display_scene_menu(self):
         self.mm_song_select_toggle = self.display_scenes_menu.addAction("MegaMix Song Select")
         self.mm_result_toggle = self.display_scenes_menu.addAction("MegaMix Results")
