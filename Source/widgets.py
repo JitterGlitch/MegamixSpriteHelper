@@ -84,7 +84,7 @@ class SongpackNameInput(QWidget):
 
         self.delete_button = QPushButton()
         self.delete_button.setPalette(palette)
-        self.delete_button.setIcon(QIconifyIcon("fa-solid:minus", color="red").pixmap(27, 27))
+        self.delete_button.setIcon(QIconifyIcon("tabler:minus", color="red").pixmap(27, 27))
         self.delete_button.setFixedSize(30,27)
 
         self.layout = QHBoxLayout(self)
