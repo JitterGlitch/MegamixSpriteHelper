@@ -624,8 +624,8 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
         self.t_edges = get_transparent_edge_pixels(self.sprite_image)
         self.rect = get_real_image_area(self.sprite_image)
         self.t_rect = self.rect
-        self.x = 0
-        self.y = 0
+        self.x = self.rect.x()
+        self.y = self.rect.y()
 
         self.sprite_slaves_list = []
         self.sprite_layered_behind = None
@@ -751,20 +751,13 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
             case SpriteSetting.HORIZONTAL_OFFSET:
                 area_over_req_size = rect.width() - self.required_size().width()
 
-                if area_over_req_size > 0:
-                    return -area_over_req_size-self.x+self.offset.x(), -self.x-self.offset.x()
+                return -area_over_req_size-self.x, -self.x
 
-                else:
-                    return -self.offset.x(),-self.offset.x()
 
             case SpriteSetting.VERTICAL_OFFSET:
                 area_over_req_size = rect.height() - self.required_size().height()
 
-                if area_over_req_size > 0:
-                    return -area_over_req_size-self.y-self.offset.y(), -self.y-self.offset.y()
-
-                else:
-                    return -self.offset.y(),-self.offset.y()
+                return -area_over_req_size-self.y, -self.y
 
             case SpriteSetting.ZOOM:
                 if self.required_size() == QSize(0,0):
@@ -826,8 +819,8 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
 
         self.t_edges = get_transparent_edge_pixels(self.sprite_image)
         self.rect = get_real_image_area(self.sprite_image)
-        self.x = 0
-        self.y = 0
+        self.x = self.rect.x()
+        self.y = self.rect.y()
 
 
 
@@ -836,10 +829,11 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
         self.update_all_ranges(self.rect)
 
         self.NewImageLoaded.emit()
-        self.update_sprite()
+
         if reset_values:
             self.set_initial_values()
 
+        self.update_sprite()
         self.redraw_and_check_status()
         return ["Updated"]
     def bind_watcher(self,watcher:PathWatcher):
@@ -976,7 +970,7 @@ class QThumbnail(QSpriteBase):
                  mask: str):
 
         self.sprite_mask = QImage(mask)
-        super().__init__(sprite,SpriteType.THUMBNAIL,size,offset=QPoint(28,1))
+        super().__init__(sprite,SpriteType.THUMBNAIL,size,offset=QPoint(27,0))
 
     def check_sprite_area(self):
         image = self.pixmap().toImage()
@@ -2047,6 +2041,7 @@ class QControllableSprites(QObject):
         for sprite in self.list:
             sprite.bind_watcher(self.sprite_updater)
             sprite.SpriteRedraw.connect(self.sprite_updated_callback)
+            sprite.update_all_ranges(sprite.t_rect)
     def sprite_updated_callback(self):
         self.GroupRedraw.emit()
     def update_sprites(self):
