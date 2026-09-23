@@ -375,9 +375,9 @@ class ThumbnailWindow(QWidget):
             row1 = ptr1[y * stride1: y * stride1 + width * 4]
             row2 = ptr2[y * stride2: y * stride2 + width * 4]
             if row1[3::4] != row2[3::4]:
-                return False
+                return SpriteStatus.WARNING,"Thumbnail has wrong shape"
 
-        return True
+        return SpriteStatus.OK,"No issues"
 
     def add_thumbnail(self,image_path,inferred_id):
         if self.thumbnail_widgets:
@@ -386,6 +386,8 @@ class ThumbnailWindow(QWidget):
                     return
 
         thumbnail_widget = ThumbnailWidget(image_path=image_path, inferred_id=inferred_id)
+        status , error = self.check_thumbnail_sprite(image_path)
+        thumbnail_widget.ui.thumbnail_status_display.set_status(status, error)
 
 
         thumbnail_widget.removeRequested.connect(self.remove_thumbnail_widget)
@@ -411,7 +413,6 @@ class ThumbnailWindow(QWidget):
             image_name = Path(image_path).stem
             image_name = image_name.removeprefix("pv_")
             is_ex = False
-            print(image_name)
 
             if image_name.endswith("_EX"):
                 image_name = image_name.removesuffix("_EX")
@@ -420,7 +421,6 @@ class ThumbnailWindow(QWidget):
                 print(image_name)
 
             if image_name.isdigit() and len(image_name) >= 3:
-                print(image_name)
                 if is_ex:
                     id_list = [str(image_name)+"_EX"]
                 else:
@@ -481,7 +481,6 @@ class ThumbnailWindow(QWidget):
         if not selected_files:
             print("No files were selected")
         else:
-            print(Path(selected_files[0]).parent)
             config.last_used_directory = Path(selected_files[0]).parent
 
             with ThreadPoolExecutor() as executor:  # This was a waste of time to add...
@@ -492,10 +491,9 @@ class ThumbnailWindow(QWidget):
                         try:
                             with Image.open(file) as open_image:
                                 if open_image.size == (128, 64):
-                                    print(f"found thumbnail at: {file}")
                                     futures.append(executor.submit(self.infer_thumbnail_id, file))
                         except:
-                            print("Skipping invalid file")
+                            #print("Skipping invalid file")
                             continue
 
             results = [future.result() for future in futures]
@@ -517,7 +515,6 @@ class ThumbnailWindow(QWidget):
         if selected_folder == "":
             print("Folder wasn't selected")
         else:
-            print(selected_folder)
             config.last_used_directory = Path(selected_folder)
 
             with ThreadPoolExecutor() as executor:  # This was a waste of time to add...
@@ -531,10 +528,9 @@ class ThumbnailWindow(QWidget):
                             try:
                                 with Image.open(file) as open_image:
                                     if open_image.size == (128, 64):
-                                        print(f"found thumbnail at: {file}")
                                         futures.append(executor.submit(self.infer_thumbnail_id, file))
                             except PIL.UnidentifiedImageError:
-                                print("Skipping invalid file")
+                                #print("Skipping invalid file")
                                 continue
 
             results = [future.result() for future in futures]
