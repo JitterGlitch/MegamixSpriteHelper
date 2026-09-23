@@ -854,6 +854,21 @@ class MainWindow(QMainWindow):
         group = self.main_box.sprite_group_combobox.currentEnum()
 
         self.SC.type_to_sprite(group, sprite).redraw_and_check_status()
+    def debug_print_sprite_info(self):
+        sprite = self.main_box.current_sprite_combobox.currentText()
+        group = self.main_box.sprite_group_combobox.currentEnum()
+
+        current_sprite =self.SC.type_to_sprite(group, sprite)
+
+        print(current_sprite.sprite_type)
+        print(f"X = {current_sprite.x}")
+        print(f"Y = {current_sprite.y}")
+        print(f"rect = {current_sprite.rect}")
+        print(f"offset = {current_sprite.offset}")
+        print(f"T_Edges ={current_sprite.t_edges}")
+        print(f"Required Size ={current_sprite.required_size()}")
+        print(f"Horizontal range: {current_sprite.calculate_range(SpriteSetting.HORIZONTAL_OFFSET,current_sprite.t_rect)}, "
+              f"area over: {current_sprite.t_rect.width() - current_sprite.required_size().width()}")
 
     def update_check(self):
         try:
