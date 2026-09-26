@@ -186,6 +186,9 @@ class SpriteColorPicker(QWidget):
             self.color_picker_layout.addWidget(element)
     def get_color(self):
         return self.color_picker.currentColor()
+    def set_color(self,color):
+        self.color_history_list[0].update_color(color)
+        self.editingFinished.emit()
     def drop_shadow_color_changed(self):
         self.color_history_list[0].update_color(self.color_picker.currentColor())
         self.editingFinished.emit()
@@ -274,6 +277,7 @@ class SpriteSettingControl(QWidget):
         self.initial_value = initial_value
         self.value = initial_value
         self.decimals = decimals
+        self.sprite_setting = None
         self.block_drawing = False
         self.block_editing = False
         self._slider_manual_drag = False
@@ -289,6 +293,7 @@ class SpriteSettingControl(QWidget):
     def create_control_ui(self, sprite=None, setting=None, decimals=0,
                            rough_step=1, precise_step=1, range=(0, 1)):
         if setting in (SpriteSetting.get_simple_setting_list()):
+            self.sprite_setting = setting
             self.setFixedSize(160, 75)
 
             self.editable_label_size = QSize(160, 30)
@@ -532,14 +537,17 @@ class SpriteSettingControl(QWidget):
             self.label.setCursor(Qt.CursorShape.IBeamCursor)
 
     def setValue(self, value):
-        if self.decimals == 0:
-            self.value = int(value)
-        else:
-            self.value = value
+        if self.sprite_setting in SpriteSetting.get_simple_setting_list():
+            if self.decimals == 0:
+                self.value = int(value)
+            else:
+                self.value = value
 
-        self.label.setText(f"{value:.{self.decimals}f}")
-        self.spinbox.setValue(self.value)
-        self.slider.setValue(self.value)
+            self.label.setText(f"{value:.{self.decimals}f}")
+            self.spinbox.setValue(self.value)
+            self.slider.setValue(self.value)
+        if self.sprite_setting == SpriteSetting.COLOR:
+            self.colorpicker.set_color(value)
 
     def getValue(self):
         return self.value
@@ -1326,7 +1334,7 @@ class QDropShadow(QGraphicsPixmapItem):
         self.add_drop_shadow_checkbox = QCheckBox()
         self.add_drop_shadow_checkbox.setChecked(False)
         self.add_drop_shadow_checkbox.setText("Add Drop shadow")
-        self.add_drop_shadow_checkbox.clicked.connect(self.add_drop_shadow_checkbox_callback)
+        self.add_drop_shadow_checkbox.toggled.connect(self.add_drop_shadow_checkbox_callback)
 
 
         self.sprite_settings = [
@@ -1571,12 +1579,7 @@ class QDropShadow(QGraphicsPixmapItem):
 
 
     def toggle_visibility(self,state):
-        self.is_visible = state
-        self.update_sprite()
-        for setting in self.edit_controls:
-            self.edit_controls[setting].setEnabled(state)
-        self.controls_enabled = state
-        self.SpriteUpdated.emit()
+        self.add_drop_shadow_checkbox.setChecked(state)
     def update_pixmap(self):
         self.setPixmap(self.grab_scene_portion(self.sprite_scene, self.sprite_size))
     def _apply_flips(self,image:QImage):

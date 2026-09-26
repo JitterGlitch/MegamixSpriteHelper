@@ -889,6 +889,18 @@ class MainWindow(QMainWindow):
 
             ProjectFile.save_project(self.SC,output_path)
 
+    def debug_read_sprite_group_save_info(self):
+        output_path, _ = (QFileDialog.getOpenFileName(self,
+                                                      f"Load MMSH project file",
+                                                      "Project.mmsh",
+                                                      "MMSH project files (*.mmsh)"))
+        if output_path == "":
+            print("User canceled out")
+        else:
+            output_path = Path(output_path)
+
+            ProjectFile.load_project(self.SC,output_path,Path(config.saved_files_location))
+
     def update_check(self):
         try:
             req = urllib.request.Request(
@@ -1073,6 +1085,7 @@ class MainWindow(QMainWindow):
         self.debug_menu.addAction(f"Print Current Sprite's info", self.debug_print_sprite_info)
         self.debug_menu.addAction(f"Print Current Sprite's save data" , self.debug_print_save_info)
         self.debug_menu.addAction(f"Dump Sprite Group info" , self.debug_print_sprite_group_save_info)
+        self.debug_menu.addAction(f"Load Project file", self.debug_read_sprite_group_save_info)
 
         self.menu.addMenu(self.config_scenes_menu)
         self.menu.addMenu(self.display_scenes_menu)
