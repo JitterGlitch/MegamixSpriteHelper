@@ -1,6 +1,5 @@
 import resources_rc
 
-
 import io
 import json
 import webbrowser
@@ -26,6 +25,7 @@ from PySide6.QtGui import QPixmap, QPalette, QColor, QImage, QPainter, QGuiAppli
 from PySide6.QtWidgets import QApplication, QMainWindow, QWidget, QFileDialog, QMessageBox, QSizePolicy, QSpacerItem, QMenu, QDialog, QVBoxLayout, QLabel, QTextEdit, QHBoxLayout, QPushButton
 
 import SceneComposer
+import ProjectFile
 from SceneComposer import SpriteGroup, TextureType ,SpriteStatus
 from ui_SongFarcCreator import Ui_SongFarcCreatorWindow
 from widgets import QSmarterMenu
@@ -863,6 +863,31 @@ class MainWindow(QMainWindow):
         print(f"Required Size ={current_sprite.required_size()}")
         print(f"Horizontal range: {current_sprite.calculate_range(SpriteSetting.HORIZONTAL_OFFSET,current_sprite.t_rect)}, "
               f"area over: {current_sprite.t_rect.width() - current_sprite.required_size().width()}")
+    def debug_print_save_info(self):
+        sprite = self.main_box.current_sprite_combobox.currentText()
+        group = self.main_box.sprite_group_combobox.currentEnum()
+
+        current_sprite = self.SC.type_to_sprite(group, sprite)
+
+        data = current_sprite.save_data()
+        data.update({"Sprite Group":group})
+        for key in data.keys():
+            print(f"{key}:{data.get(key)}")
+
+    def debug_print_sprite_group_save_info(self):
+        output_path , _ = (QFileDialog.getSaveFileName(self,
+                                                       f"Save MMSH project file",
+                                                       "Project.mmsh",
+                                                       "MMSH project files (*.mmsh);;All files (*)"))
+        if output_path == "":
+            print("User canceled out")
+        else:
+            output_path = Path(output_path)
+            if output_path.suffix.lower() != ".mmsh":
+                output_path = output_path.with_suffix(".mmsh")
+
+
+            ProjectFile.save_project(self.SC,output_path)
 
     def update_check(self):
         try:
@@ -1046,6 +1071,8 @@ class MainWindow(QMainWindow):
         self.debug_menu.addAction(f"Refresh SpriteStatus display", self.main_box.sprite_status_display.update_status)
         self.debug_menu.addAction(f"Redraw Current Sprite", self.debug_redraw_sprite)
         self.debug_menu.addAction(f"Print Current Sprite's info", self.debug_print_sprite_info)
+        self.debug_menu.addAction(f"Print Current Sprite's save data" , self.debug_print_save_info)
+        self.debug_menu.addAction(f"Dump Sprite Group info" , self.debug_print_sprite_group_save_info)
 
         self.menu.addMenu(self.config_scenes_menu)
         self.menu.addMenu(self.display_scenes_menu)

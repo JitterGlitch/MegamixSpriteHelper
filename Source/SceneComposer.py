@@ -602,7 +602,7 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
     SpriteRedraw = Signal()
     NewImageLoaded = Signal()
     def __init__(self,
-                 sprite:str,
+                 sprite:str | io.BytesIO,
                  sprite_type:SpriteType,
                  size:PySide6.QtCore.QRectF,
                  scale:float=None,
@@ -685,7 +685,35 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
         self.edit_controls[SpriteSetting.ZOOM.value].setValue(self.edit_controls[SpriteSetting.ZOOM.value].spinbox.maximum())
         self.edit_controls[SpriteSetting.BRIGHTNESS.value].setValue(self.edit_controls[SpriteSetting.BRIGHTNESS.value].spinbox.maximum())
 
+    def save_data(self):
+        if not isinstance(self.location, io.BytesIO):
 
+            data = {
+                "Sprite Type": self.sprite_type,
+                "Location": self.location,
+                "Transparent Edges": self.t_edges,
+                "Rect": self.rect,
+                "T_Rect": self.t_rect,
+                "X": self.x,
+                "Y": self.y,
+                "Flipped Horizontally": self.flipped_h,
+                "Flipped Vertically": self.flipped_v,
+                "Is Visible": self.is_visible,
+            }
+
+            edit_controls = {}
+            for setting in self.edit_controls.keys():
+                edit_controls.update({f"{setting}":self.edit_controls[setting].getValue()})
+            data.update({"Edit Controls":edit_controls})
+
+            sprite_specific = self.get_sprite_specific_save_data()
+            if sprite_specific is not None:
+                data.update({"Sprite Specific": sprite_specific})
+
+            return data
+        else:
+            #Skip saving sprite info that's using placeholder sprite
+            return None
     def redraw_and_check_status(self):
         if not self.preview_is_hq:
             self.update_sprite(hq_output=True)
@@ -704,6 +732,8 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
                                         f"Area isn't fully covered")
     def add_sprite_specific_settings(self):
         pass
+    def get_sprite_specific_save_data(self):
+        return None
     def create_edit_controls(self):
         editable_values = {}
         for setting in self.sprite_settings:
@@ -1138,6 +1168,12 @@ class QLogo(QSpriteBase):
         self.drop_shadow = QDropShadow(self)
         self.NewImageLoaded.connect(self.drop_shadow.load_new_image)
 
+    def get_sprite_specific_save_data(self):
+        data = ({
+            "Drop Shadow":self.drop_shadow.save_data()
+        })
+        return data
+
     def add_edit_controls_to(self,layout:QLayout):
         layout.addWidget(self.show_logo_checkbox)
         for control in self.edit_controls:
@@ -1333,6 +1369,28 @@ class QDropShadow(QGraphicsPixmapItem):
         self.edit_controls = self.create_edit_controls()
 
         self.update_sprite()
+
+    def save_data(self):
+        data = {
+            "Sprite Type": self.sprite_type,
+            "Transparent Edges": self.t_edges,
+            "Rect": self.rect,
+            "T_Rect": self.t_rect,
+            "X": self.x,
+            "Y": self.y,
+            "Flipped Horizontally": self.flipped_h,
+            "Flipped Vertically": self.flipped_v,
+            "Is Visible": self.is_visible,
+        }
+
+        edit_controls = {}
+
+        for setting in self.edit_controls.keys():
+            edit_controls.update({f"{setting}": self.edit_controls[setting].getValue()})
+        data.update({"Edit Controls": edit_controls})
+
+        return data
+
     def add_drop_shadow_checkbox_callback(self):
         self.is_visible = self.add_drop_shadow_checkbox.isChecked()
         for control in self.edit_controls:
