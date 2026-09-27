@@ -20,7 +20,7 @@ import kkdlib
 
 import yaml
 from PIL import Image
-from PySide6.QtCore import Qt, QSize, Signal, QRectF, QStandardPaths, QUrl, QPoint, QCoreApplication, QSettings
+from PySide6.QtCore import Qt, QSize, Signal, QRectF, QStandardPaths, QUrl, QPoint, QCoreApplication, QSettings, QObject
 from PySide6.QtGui import QPixmap, QPalette, QColor, QImage, QPainter, QGuiApplication, QDesktopServices, QAction, QImageReader
 from PySide6.QtWidgets import QApplication, QMainWindow, QWidget, QFileDialog, QMessageBox, QSizePolicy, QSpacerItem, QMenu, QDialog, QVBoxLayout, QLabel, QTextEdit, QHBoxLayout, QPushButton
 
@@ -779,6 +779,47 @@ class ThumbnailWindow(QWidget):
         self.main_box.mod_name_lineedit.combo_box.setCurrentText("")
 
 ###################################################################################################
+class RecentFilesMenu(QObject):
+    file_selected = Signal(str)
+
+    def __init__(self, parent=None, max_files: int = 10):
+        super().__init__(parent)
+        self.max_files = max_files
+        self.settings = QSettings(QApplication.applicationName(),QApplication.applicationName())
+        self._paths: list[str] = self._load()
+
+    def _load(self) -> list[str]:
+        stored = self.settings.value("recentFiles", [], type=list)
+        return [p for p in stored if os.path.isfile(p)]
+
+    def _save(self):
+        self.settings.setValue("recentFiles", self._paths)
+
+    def add(self, path: str):
+        path = os.path.abspath(path)
+        if path in self._paths:
+            self._paths.remove(path)
+        self._paths.insert(0, path)
+
+        self._paths = self._paths[: self.max_files]
+        self._save()
+
+    def remove(self, path: str):
+        if path in self._paths:
+            self._paths.remove(path)
+            self._save()
+
+    def clear(self):
+        self._paths.clear()
+        self._save()
+
+    def paths(self) -> list[str]:
+        return list(self._paths)
+
+    def _on_clear_clicked(self):
+        self.clear()
+        self.file_selected.emit("")
+
 def export_texture_button_callback(texture:TextureType):
     match texture:
         case TextureType.JACKET_BACKGROUND:
@@ -815,6 +856,8 @@ class MainWindow(QMainWindow):
         self.main_box = Ui_MainWindow()
         self.main_box.setupUi(self)
         self.SC = SceneComposer.SceneComposerObjects()
+        self.recent_files = RecentFilesMenu(self, max_files=10)
+        self.recent_files.file_selected.connect(self.open_mmsh_project_file)
         self._prev_enum = None
 
         preview_string = ""
@@ -931,17 +974,18 @@ class MainWindow(QMainWindow):
 
 
             ProjectFile.save_project(self.SC,output_path,config)
-    def open_mmsh_project_file(self):
-        output_path, _ = (QFileDialog.getOpenFileName(self,
-                                                      f"Load MMSH project file",
-                                                      "Project.mmsh",
-                                                      "MMSH project files (*.mmsh)"))
-        if output_path == "":
+    def open_mmsh_project_file(self,path=None):
+        if path is None:
+            path, _ = (QFileDialog.getOpenFileName(self,
+                                                          f"Load MMSH project file",
+                                                          "Project.mmsh",
+                                                          "MMSH project files (*.mmsh)"))
+        if path == "":
             print("User canceled out")
         else:
-            output_path = Path(output_path)
-
-            ProjectFile.load_project(self.SC,output_path,Path(config.saved_files_location))
+            path = Path(path)
+            ProjectFile.load_project(self.SC,path,Path(config.saved_files_location))
+            self.recent_manager.add(path)
 
     def open_mmsh_config_folder(self):
         return QDesktopServices.openUrl(QUrl.fromLocalFile(config.saved_files_location))
@@ -1070,13 +1114,34 @@ class MainWindow(QMainWindow):
 
         self.display_selected_scenes()
 
+    def _refresh_recent_menu(self):
+        self.recent_menu.clear()
+
+        paths = self.recent_files.paths()
+        if not paths:
+            empty = self.recent_menu.addAction("(No recent files)")
+            empty.setEnabled(False)
+            return
+
+        for path in paths:
+            action = self.recent_menu.addAction(
+                path,
+                lambda checked=False, p=path: self.recent_files.file_selected.emit(p),
+            )
+            action.setToolTip(path)
+
+        self.recent_menu.addSeparator()
+        self.recent_menu.addAction("Clear Recent", self.recent_files.clear)
+
     def setup_menu(self):
         self.menu = self.main_box.menu
 
         self.file_menu = self.menu.addMenu("File")
         self.file_menu.addAction("Open Project file", self.open_mmsh_project_file).setShortcut("Ctrl+O")
+        self.recent_menu = self.file_menu.addMenu("Open Recent")
+        self.recent_menu.aboutToShow.connect(self._refresh_recent_menu)
         self.file_menu.addAction("Save Project file", self.save_mmsh_project_file).setShortcut("Ctrl+S")
-        self.file_menu.addAction("Open MMSH config folder" , self.open_mmsh_config_folder)
+        self.file_menu.addAction("Open MMSH folder" , self.open_mmsh_config_folder)
 
         self.export_menu = self.menu.addMenu("Export")
         self.export_menu.addAction("Create Song Sprite Farc", lambda: self.song_farc_creator.show())
