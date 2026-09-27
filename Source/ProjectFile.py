@@ -110,6 +110,9 @@ def load_project(SC:SceneComposerObjects,project_path,unpack_path:Path):
                         sprite_object.load_new_image(str(sprite_info["Location"]))
                     else:
                         sprite_object.load_new_image(missing_image_dict[str(sprite_info["Location"])])
+
+                    sprite_object.flipped_v = sprite_info["Flipped Vertically"]
+                    sprite_object.flipped_h = sprite_info["Flipped Horizontally"]
                     sprite_object.edit_controls[SpriteSetting.ZOOM.value].setValue(sprite_info["Edit Controls"]["Zoom"])
                     sprite_object.edit_controls[SpriteSetting.ROTATION.value].setValue(sprite_info["Edit Controls"]["Rotation"])
 
