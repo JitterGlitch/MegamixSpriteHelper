@@ -5,19 +5,26 @@ from pathlib import Path
 from PySide6.QtWidgets import QFileDialog
 
 from SceneComposer import SceneComposerObjects, SpriteSetting
+from main import Configurable
 
 
-def save_project(SC:SceneComposerObjects, output_path:Path):
+def save_project(SC:SceneComposerObjects, output_path:Path,config:Configurable):
 
+        main_data = {}
         group_data = {}
         image_path_set = set()
 
+        save_file_version = 1
+
+        main_data.update({
+            "MMSH Version": config.version_long,
+            "Save File Version": save_file_version
+        })
         for sprite_group in SC.sprite_groups:
             sprite_data = {}
             sprite_group_object = SC.enum_to_obj(sprite_group.value)
 
             for sprite in sprite_group_object.list:
-
                 sprite_info = sprite.save_data()
 
                 sprite_data.update({
@@ -33,8 +40,14 @@ def save_project(SC:SceneComposerObjects, output_path:Path):
                 if image_path is not None:
                     image_path_set.add(image_path)
 
+        main_data.update({
+            "Sprites":group_data
+        })
+
+
+
         with zipfile.ZipFile(output_path.with_suffix(".mmsh"), 'w', zipfile.ZIP_DEFLATED) as zf:
-            manifest = yaml.dump(group_data, default_flow_style=False, allow_unicode=True)
+            manifest = yaml.dump(main_data, default_flow_style=False, allow_unicode=True)
             zf.writestr('manifest.yaml', manifest)
 
             for img_path in image_path_set:

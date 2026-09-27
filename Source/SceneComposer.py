@@ -697,13 +697,7 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
         if not isinstance(self.location, io.BytesIO):
 
             data = {
-                "Sprite Type": self.sprite_type,
                 "Location": self.location,
-                "Transparent Edges": self.t_edges,
-                "Rect": self.rect,
-                "T_Rect": self.t_rect,
-                "X": self.x,
-                "Y": self.y,
                 "Flipped Horizontally": self.flipped_h,
                 "Flipped Vertically": self.flipped_v,
                 "Is Visible": self.is_visible,
@@ -1380,14 +1374,6 @@ class QDropShadow(QGraphicsPixmapItem):
 
     def save_data(self):
         data = {
-            "Sprite Type": self.sprite_type,
-            "Transparent Edges": self.t_edges,
-            "Rect": self.rect,
-            "T_Rect": self.t_rect,
-            "X": self.x,
-            "Y": self.y,
-            "Flipped Horizontally": self.flipped_h,
-            "Flipped Vertically": self.flipped_v,
             "Is Visible": self.is_visible,
         }
 

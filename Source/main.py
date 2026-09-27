@@ -53,6 +53,12 @@ class Configurable:
         self.is_pre_release = True
         self.repo = "JitterGlitch/MegamixSpriteHelper"
         self.version = "1.3"
+
+        if self.is_pre_release:
+            self.version_long = f"{self.version} (Preview)"
+        else:
+            self.version_long = self.version
+
         self.api_url = f"https://api.github.com/repos/{self.repo}/releases/latest"
 
 
@@ -887,7 +893,7 @@ class MainWindow(QMainWindow):
                 output_path = output_path.with_suffix(".mmsh")
 
 
-            ProjectFile.save_project(self.SC,output_path)
+            ProjectFile.save_project(self.SC,output_path,config)
 
     def debug_read_sprite_group_save_info(self):
         output_path, _ = (QFileDialog.getOpenFileName(self,
