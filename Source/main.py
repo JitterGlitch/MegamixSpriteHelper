@@ -1100,7 +1100,7 @@ class MainWindow(QMainWindow):
         self.share_menu = QSmarterMenu("Share", self)
         self.menu.addMenu(self.share_menu)
         self.share_menu.addAction("Copy preview to clipboard", lambda: self.generate_preview(OutputTarget.CLIPBOARD)).setShortcut("Ctrl+C")
-        self.share_menu.addAction("Open preview in external program", lambda: self.generate_preview(OutputTarget.IMAGE_VIEWER)).setShortcut("Ctrl+O")
+        self.share_menu.addAction("Open preview in external program", lambda: self.generate_preview(OutputTarget.IMAGE_VIEWER)).setShortcut("Ctrl+E")
     def populate_display_scene_menu(self):
         self.mm_song_select_toggle = self.display_scenes_menu.addAction("MegaMix Song Select")
         self.mm_result_toggle = self.display_scenes_menu.addAction("MegaMix Results")
