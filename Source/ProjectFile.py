@@ -55,13 +55,12 @@ def save_project(SC:SceneComposerObjects, output_path:Path,config:Configurable):
                 archive_name = f"Images/{img_path.name}"
                 zf.write(img_path, arcname=archive_name)
 
-def get_list_of_missing_files(SC:SceneComposerObjects,manifest) -> set[Path]:
+def get_list_of_missing_files(manifest) -> set[Path]:
     missing_list = set()
 
-    for sprite_group in manifest:
-        for sprite_type in manifest[sprite_group]:
-            sprite_object = SC.type_to_sprite(sprite_group, sprite_type)
-            sprite_info = manifest[sprite_group][sprite_type]
+    for sprite_group in manifest["Sprites"]:
+        for sprite_type in manifest["Sprites"][sprite_group]:
+            sprite_info = manifest["Sprites"][sprite_group][sprite_type]
 
             if sprite_info is None:
                 continue
@@ -78,7 +77,7 @@ def load_project(SC:SceneComposerObjects,project_path,unpack_path:Path):
         manifest = yaml.unsafe_load(zf.read('manifest.yaml'))
         archive_name = Path(zf.filename).name.removesuffix(".mmsh")
 
-        missing_image_list = get_list_of_missing_files(SC,manifest)
+        missing_image_list = get_list_of_missing_files(manifest)
         missing_image_dict = {}
         for image in missing_image_list:
 
@@ -88,10 +87,10 @@ def load_project(SC:SceneComposerObjects,project_path,unpack_path:Path):
 
 
 
-        for sprite_group in manifest:
-            for sprite_type in manifest[sprite_group]:
+        for sprite_group in manifest["Sprites"]:
+            for sprite_type in manifest["Sprites"][sprite_group]:
                 sprite_object = SC.type_to_sprite(sprite_group,sprite_type)
-                sprite_info = manifest[sprite_group][sprite_type]
+                sprite_info = manifest["Sprites"][sprite_group][sprite_type]
 
                 if sprite_info is None:
                     continue
