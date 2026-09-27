@@ -1090,7 +1090,7 @@ class MainWindow(QMainWindow):
         self.debug_menu.addAction(f"Redraw Current Sprite", self.debug_redraw_sprite)
         self.debug_menu.addAction(f"Print Current Sprite's info", self.debug_print_sprite_info)
         self.debug_menu.addAction(f"Print Current Sprite's save data" , self.debug_print_save_info)
-        self.debug_menu.addAction(f"Dump Sprite Group info" , self.debug_print_sprite_group_save_info)
+        self.debug_menu.addAction(f"Save Project file" , self.debug_print_sprite_group_save_info)
         self.debug_menu.addAction(f"Load Project file", self.debug_read_sprite_group_save_info)
 
         self.menu.addMenu(self.config_scenes_menu)
