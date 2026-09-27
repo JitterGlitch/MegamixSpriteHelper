@@ -880,32 +880,6 @@ class MainWindow(QMainWindow):
         for key in data.keys():
             print(f"{key}:{data.get(key)}")
 
-    def debug_print_sprite_group_save_info(self):
-        output_path , _ = (QFileDialog.getSaveFileName(self,
-                                                       f"Save MMSH project file",
-                                                       "Project.mmsh",
-                                                       "MMSH project files (*.mmsh);;All files (*)"))
-        if output_path == "":
-            print("User canceled out")
-        else:
-            output_path = Path(output_path)
-            if output_path.suffix.lower() != ".mmsh":
-                output_path = output_path.with_suffix(".mmsh")
-
-
-            ProjectFile.save_project(self.SC,output_path,config)
-
-    def debug_read_sprite_group_save_info(self):
-        output_path, _ = (QFileDialog.getOpenFileName(self,
-                                                      f"Load MMSH project file",
-                                                      "Project.mmsh",
-                                                      "MMSH project files (*.mmsh)"))
-        if output_path == "":
-            print("User canceled out")
-        else:
-            output_path = Path(output_path)
-
-            ProjectFile.load_project(self.SC,output_path,Path(config.saved_files_location))
 
     def update_check(self):
         try:
@@ -942,6 +916,35 @@ class MainWindow(QMainWindow):
     def _on_check_err(self, msg: str):
         print("Update check failed:", msg)
 
+
+    def save_mmsh_project_file(self):
+        output_path , _ = (QFileDialog.getSaveFileName(self,
+                                                       f"Save MMSH project file",
+                                                       "Project.mmsh",
+                                                       "MMSH project files (*.mmsh);;All files (*)"))
+        if output_path == "":
+            print("User canceled out")
+        else:
+            output_path = Path(output_path)
+            if output_path.suffix.lower() != ".mmsh":
+                output_path = output_path.with_suffix(".mmsh")
+
+
+            ProjectFile.save_project(self.SC,output_path,config)
+    def open_mmsh_project_file(self):
+        output_path, _ = (QFileDialog.getOpenFileName(self,
+                                                      f"Load MMSH project file",
+                                                      "Project.mmsh",
+                                                      "MMSH project files (*.mmsh)"))
+        if output_path == "":
+            print("User canceled out")
+        else:
+            output_path = Path(output_path)
+
+            ProjectFile.load_project(self.SC,output_path,Path(config.saved_files_location))
+
+    def open_mmsh_config_folder(self):
+        return QDesktopServices.openUrl(QUrl.fromLocalFile(config.saved_files_location))
 
     def sprite_group_changed(self):
         current_enum = self.main_box.sprite_group_combobox.currentEnum()
@@ -1070,6 +1073,11 @@ class MainWindow(QMainWindow):
     def setup_menu(self):
         self.menu = self.main_box.menu
 
+        self.file_menu = self.menu.addMenu("File")
+        self.file_menu.addAction("Open Project file", self.open_mmsh_project_file).setShortcut("Ctrl+O")
+        self.file_menu.addAction("Save Project file", self.save_mmsh_project_file).setShortcut("Ctrl+S")
+        self.file_menu.addAction("Open MMSH config folder" , self.open_mmsh_config_folder)
+
         self.export_menu = self.menu.addMenu("Export")
         self.export_menu.addAction("Create Song Sprite Farc", lambda: self.song_farc_creator.show())
         self.export_menu.addAction("Create Thumbnail Farc", lambda: self.thumbnail_creator.show())
@@ -1085,17 +1093,17 @@ class MainWindow(QMainWindow):
         self.config_scenes_menu = QSmarterMenu("Configure Scenes", self)
         self.display_scenes_menu = QSmarterMenu("Display Scenes", self)
 
-        self.debug_menu = QSmarterMenu("Debug Menu", self)
-        self.debug_menu.addAction(f"Refresh SpriteStatus display", self.main_box.sprite_status_display.update_status)
-        self.debug_menu.addAction(f"Redraw Current Sprite", self.debug_redraw_sprite)
-        self.debug_menu.addAction(f"Print Current Sprite's info", self.debug_print_sprite_info)
-        self.debug_menu.addAction(f"Print Current Sprite's save data" , self.debug_print_save_info)
-        self.debug_menu.addAction(f"Save Project file" , self.debug_print_sprite_group_save_info)
-        self.debug_menu.addAction(f"Load Project file", self.debug_read_sprite_group_save_info)
 
         self.menu.addMenu(self.config_scenes_menu)
         self.menu.addMenu(self.display_scenes_menu)
-        self.menu.addMenu(self.debug_menu)
+        if config.is_pre_release:
+            self.debug_menu = QSmarterMenu("Debug Menu", self)
+            self.debug_menu.addAction(f"Refresh SpriteStatus display", self.main_box.sprite_status_display.update_status)
+            self.debug_menu.addAction(f"Redraw Current Sprite", self.debug_redraw_sprite)
+            self.debug_menu.addAction(f"Print Current Sprite's info", self.debug_print_sprite_info)
+            self.debug_menu.addAction(f"Print Current Sprite's save data", self.debug_print_save_info)
+
+            self.menu.addMenu(self.debug_menu)
 
         self.share_menu = QSmarterMenu("Share", self)
         self.menu.addMenu(self.share_menu)
