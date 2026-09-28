@@ -10,7 +10,7 @@ import PySide6
 import hashlib
 from PIL import Image
 from PySide6.QtCore import Qt, QRectF, QPoint, Signal, QObject, QSize, QRect, QIODevice, QFile, QThread, QTimer, QLine, QStandardPaths, QUrl
-from PySide6.QtGui import QImage, QPixmap, QPainter, QTransform, QColor, QPen, QMouseEvent, QFont, QDesktopServices
+from PySide6.QtGui import QImage, QPixmap, QPainter, QTransform, QColor, QPen, QMouseEvent, QFont, QDesktopServices, QPalette
 from PySide6.QtWidgets import QGraphicsPixmapItem, QFileDialog, QGraphicsScene, QLayout, QGraphicsView, QWidget, QScrollArea, QCheckBox, QRadioButton, QLabel, QVBoxLayout, QDoubleSpinBox, QSlider, QColorDialog, QPushButton, QHBoxLayout, QGraphicsBlurEffect, QFrame, QStyleOptionSlider, QStyle
 from superqt import QDoubleSlider, QIconifyIcon, QEnumComboBox, QCollapsible
 from superqt.utils import qthrottled
@@ -1812,6 +1812,11 @@ class SpriteStatusDisplay(QWidget):
         self.label = QLabel()
         font = self.label.font()
         font.setPointSize(9)
+
+        palette = self.label.palette()
+        palette.setColor(QPalette.ColorRole.WindowText, QColor("white"))
+
+        self.label.setPalette(palette)
         self.label.setFont(font)
 
         self.layout = QHBoxLayout()
@@ -1843,11 +1848,11 @@ class SpriteStatusDisplay(QWidget):
             self.label.setText(status.description)
 
         c = QColor(status.color)
-        darker = c.darker(240)
+        darker = c.darker(120)
         self.frame.setStyleSheet(f" #frame {{"
                                  f"border: 1px solid rgb({c.red()}, {c.green()}, {c.blue()});"
                                  f"border-radius: 1px;"
-                                 f"background-color: rgba({darker.red()}, {darker.green()}, {darker.blue()}, 200)"
+                                 f"background-color: rgba({darker.red()}, {darker.green()}, {darker.blue()}, 160)"
                                  f"}}")
 
     def update_status(self):
@@ -1956,6 +1961,11 @@ class ExportStatusDisplay(QWidget):
         self.label = QLabel()
         font = self.label.font()
         font.setPointSize(10)
+
+        palette = self.label.palette()
+        palette.setColor(QPalette.ColorRole.WindowText, QColor("white"))
+
+        self.label.setPalette(palette)
         self.label.setFont(font)
 
         self.layout = QHBoxLayout()
@@ -1985,11 +1995,11 @@ class ExportStatusDisplay(QWidget):
             self.label.setText(status.description)
 
         c = QColor(status.color)
-        darker = c.darker(240)
+        darker = c.darker(120)
         self.frame.setStyleSheet(f" #frame {{"
                                  f"border: 1px solid rgb({c.red()}, {c.green()}, {c.blue()});"
                                  f"border-radius: 1px;"
-                                 f"background-color: rgba({darker.red()}, {darker.green()}, {darker.blue()}, 200)"
+                                 f"background-color: rgba({darker.red()}, {darker.green()}, {darker.blue()}, 160)"
                                  f"}}")
 
 class SpriteGroupPreview(QWidget):
