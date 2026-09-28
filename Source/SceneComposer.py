@@ -1843,11 +1843,11 @@ class SpriteStatusDisplay(QWidget):
             self.label.setText(status.description)
 
         c = QColor(status.color)
-        darker = c.darker(180)
+        darker = c.darker(240)
         self.frame.setStyleSheet(f" #frame {{"
                                  f"border: 1px solid rgb({c.red()}, {c.green()}, {c.blue()});"
                                  f"border-radius: 1px;"
-                                 f"background-color: rgba({darker.red()}, {darker.green()}, {darker.blue()}, 50)"
+                                 f"background-color: rgba({darker.red()}, {darker.green()}, {darker.blue()}, 200)"
                                  f"}}")
 
     def update_status(self):
@@ -1985,11 +1985,11 @@ class ExportStatusDisplay(QWidget):
             self.label.setText(status.description)
 
         c = QColor(status.color)
-        darker = c.darker(180)
+        darker = c.darker(240)
         self.frame.setStyleSheet(f" #frame {{"
                                  f"border: 1px solid rgb({c.red()}, {c.green()}, {c.blue()});"
                                  f"border-radius: 1px;"
-                                 f"background-color: rgba({darker.red()}, {darker.green()}, {darker.blue()}, 50)"
+                                 f"background-color: rgba({darker.red()}, {darker.green()}, {darker.blue()}, 200)"
                                  f"}}")
 
 class SpriteGroupPreview(QWidget):
