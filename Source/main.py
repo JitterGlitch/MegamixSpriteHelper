@@ -24,14 +24,12 @@ from PySide6.QtCore import Qt, QSize, Signal, QRectF, QStandardPaths, QUrl, QPoi
 from PySide6.QtGui import QPixmap, QPalette, QColor, QImage, QPainter, QGuiApplication, QDesktopServices, QAction, QImageReader
 from PySide6.QtWidgets import QApplication, QMainWindow, QWidget, QFileDialog, QMessageBox, QSizePolicy, QSpacerItem, QMenu, QDialog, QVBoxLayout, QLabel, QTextEdit, QHBoxLayout, QPushButton
 
-import SceneComposer
 import ProjectFile
-from SceneComposer import SpriteGroup, TextureType ,SpriteStatus
+from SceneComposer import SpriteGroup, TextureType, SpriteStatus, SpriteSetting, QSpriteSlave, SpriteType, QScalingGraphicsScene, PvBackLayout, SpriteSelector, SceneComposerObjects
 from ui_SongFarcCreator import Ui_SongFarcCreatorWindow
 from widgets import QSmarterMenu
 
 from FarcCreator import FarcCreator
-from SceneComposer import SpriteSetting, QSpriteSlave, SpriteType, QScalingGraphicsScene, PvBackLayout
 from ThirdParty.auto_creat_mod_spr_db import Manager,add_farc_to_Manager,read_farc
 from ui_SpriteHelper import Ui_MainWindow
 from ui_ThumbnailIDField import Ui_ThumbnailIDField
@@ -823,13 +821,13 @@ class RecentFilesMenu(QObject):
 def export_texture_button_callback(texture:TextureType):
     match texture:
         case TextureType.JACKET_BACKGROUND:
-            texture_image,_ = main_window.SC.create_background_jacket_texture(main_window.main_box.sprite_group_combobox.currentEnum())
+            texture_image,_ = main_window.SC.create_background_jacket_texture(main_window.main_box.sprite_selector.get_current_sprite_group_object)
         case TextureType.LOGO:
-            texture_image,_ = main_window.SC.create_logo_texture([(main_window.main_box.sprite_group_combobox.currentEnum(),"")])
+            texture_image,_ = main_window.SC.create_logo_texture([(main_window.main_box.sprite_selector.get_current_sprite_group_object,"")])
         case TextureType.THUMBNAIL:
-            texture_image,_ = main_window.SC.create_thumbnail_texture(main_window.main_box.sprite_group_combobox.currentEnum())
+            texture_image,_ = main_window.SC.create_thumbnail_texture(main_window.main_box.sprite_selector.get_current_sprite_group_object)
         case TextureType.PV_BACK:
-            texture_image,_ = main_window.SC.create_pv_back_texture(main_window.main_box.sprite_group_combobox.currentEnum())
+            texture_image,_ = main_window.SC.create_pv_back_texture(main_window.main_box.sprite_selector.get_current_sprite_group_object)
 
     filename, _ = QFileDialog.getSaveFileName(
         None,
@@ -854,11 +852,10 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super(MainWindow, self).__init__()
         self.main_box = Ui_MainWindow()
-        self.main_box.setupUi(self)
-        self.SC = SceneComposer.SceneComposerObjects()
+        self.SC = SceneComposerObjects()
+        self.main_box.setupUi(self, self.SC)
         self.recent_files = RecentFilesMenu(self, max_files=10)
         self.recent_files.file_selected.connect(self.open_mmsh_project_file)
-        self._prev_enum = None
 
         preview_string = ""
         if config.is_pre_release:
@@ -868,40 +865,22 @@ class MainWindow(QMainWindow):
 
         self.setWindowTitle("Megamix Sprite Helper" + " " + str(config.version)+preview_string)
 
-        # Prepare new window
         self.thumbnail_creator = ThumbnailWindow()
         self.song_farc_creator = SongFarcCreatorWindow(self.SC)
 
         self.setup_menu()
 
-        self.main_box.flip_horizontal_button.clicked.connect(lambda: self.flip_current_sprite(Qt.Orientation.Horizontal))
-        self.main_box.flip_vertical_button.clicked.connect(lambda: self.flip_current_sprite(Qt.Orientation.Vertical))
-        self.main_box.current_sprite_combobox.currentIndexChanged.connect(lambda: self.current_sprite_tab_switcher(self.main_box.current_sprite_combobox.currentIndex()))
-        self.main_box.sprite_group_combobox.currentEnumChanged.connect(self.sprite_group_changed)
+        self.main_box.sprite_selector.ImageLoadRequested.connect(self.load_new_sprite_image)
 
         self.display_scenes()
 
         self.song_farc_creator.init_preview(self.SC.P_Scenes.PV_Back_Creator_Window)
-
-        #Make sure that tab matches options shown on start
-        self.current_sprite_tab_switcher(self.main_box.current_sprite_combobox.currentIndex())
-
-        self.SC.enum_to_obj(self.main_box.sprite_group_combobox.currentEnum()).logo.VisibilityToggled.connect(self.disable_shared_controls)
-        self._prev_enum = self.main_box.sprite_group_combobox.currentEnum()
-
-
         self.song_farc_creator.update_group_status_displays()
 
     def debug_redraw_sprite(self):
-        sprite = self.main_box.current_sprite_combobox.currentText()
-        group = self.main_box.sprite_group_combobox.currentEnum()
-
-        self.SC.type_to_sprite(group, sprite).redraw_and_check_status()
+        self.main_box.sprite_selector.get_current_sprite_object().redraw_and_check_status()
     def debug_print_sprite_info(self):
-        sprite = self.main_box.current_sprite_combobox.currentText()
-        group = self.main_box.sprite_group_combobox.currentEnum()
-
-        current_sprite =self.SC.type_to_sprite(group, sprite)
+        current_sprite = self.main_box.sprite_selector.get_current_sprite_object()
 
         print(current_sprite.sprite_type)
         print(f"X = {current_sprite.x}")
@@ -913,10 +892,8 @@ class MainWindow(QMainWindow):
         print(f"Horizontal range: {current_sprite.calculate_range(SpriteSetting.HORIZONTAL_OFFSET,current_sprite.t_rect)}, "
               f"area over: {current_sprite.t_rect.width() - current_sprite.required_size().width()}")
     def debug_print_save_info(self):
-        sprite = self.main_box.current_sprite_combobox.currentText()
-        group = self.main_box.sprite_group_combobox.currentEnum()
-
-        current_sprite = self.SC.type_to_sprite(group, sprite)
+        group = self.main_box.sprite_selector.get_current_sprite_group_enum()
+        current_sprite = self.main_box.sprite_selector.get_current_sprite_object()
 
         data = current_sprite.save_data()
         data.update({"Sprite Group":group})
@@ -959,7 +936,6 @@ class MainWindow(QMainWindow):
     def _on_check_err(self, msg: str):
         print("Update check failed:", msg)
 
-
     def save_mmsh_project_file(self):
         output_path , _ = (QFileDialog.getSaveFileName(self,
                                                        f"Save MMSH project file",
@@ -985,96 +961,12 @@ class MainWindow(QMainWindow):
         else:
             path = Path(path)
             ProjectFile.load_project(self.SC,path,Path(config.saved_files_location))
-            self.recent_manager.add(path)
-
+            self.recent_files.add(path)
     def open_mmsh_config_folder(self):
         return QDesktopServices.openUrl(QUrl.fromLocalFile(config.saved_files_location))
 
-    def sprite_group_changed(self):
-        current_enum = self.main_box.sprite_group_combobox.currentEnum()
-        current_sprite_object = self.SC.enum_to_obj(current_enum)
-
-        non_active_sprite_object_list = list(self.SC.sprite_groups.values())
-        non_active_sprite_object_list.remove(current_sprite_object)
-
-        self.SC.P_Scenes.switch_sprite_group(current_sprite_object)
-
-        self.SC.enum_to_obj(self._prev_enum).logo.VisibilityToggled.disconnect(self.disable_shared_controls)
-        self.SC.enum_to_obj(current_enum).logo.VisibilityToggled.connect(self.disable_shared_controls)
-        self._prev_enum = current_enum
-
-        for sprite in current_sprite_object.list:
-            for slave in sprite.sprite_slaves_list:
-                slave.tracked.SpriteUpdated.connect(slave.update_sprite)
-
-        current_sprite_object.update_sprites()
-
-        for sprite in current_sprite_object.list:
-            sprite.hide_edit_controls(False)
-
-        for sprite_object in non_active_sprite_object_list:
-            for sprite in sprite_object.list:
-                sprite.hide_edit_controls(True)
-        for sprite in current_sprite_object.list:
-            sprite.redraw_and_check_status()
-        self.update_tracked_sprite_status()
-        self.disable_shared_controls()
-
     def resizeEvent(self,event):
         self.space_out_scenes()
-
-    def current_sprite_tab_switcher(self,tab):
-        self.main_box.sprite_controls.setCurrentIndex(tab)
-
-        self.main_box.load_image_button.clicked.disconnect()
-
-        sprite = self.main_box.current_sprite_combobox.currentText()
-        self.main_box.load_image_button.clicked.connect(lambda:self.load_new_sprite_image(sprite))
-        self.main_box.load_image_button.setText(f"Load {sprite} Image")
-
-        self.update_tracked_sprite_status()
-        match sprite:
-            case SpriteType.BACKGROUND:
-                self.main_box.load_image_button.setEnabled(self.SC.enum_to_obj(self.main_box.sprite_group_combobox.currentEnum()).background.controls_enabled)
-                self.main_box.flip_vertical_button.setEnabled(self.SC.enum_to_obj(self.main_box.sprite_group_combobox.currentEnum()).background.controls_enabled)
-                self.main_box.flip_horizontal_button.setEnabled(self.SC.enum_to_obj(self.main_box.sprite_group_combobox.currentEnum()).background.controls_enabled)
-            case SpriteType.JACKET:
-                self.main_box.load_image_button.setEnabled(self.SC.enum_to_obj(self.main_box.sprite_group_combobox.currentEnum()).jacket.controls_enabled)
-                self.main_box.flip_vertical_button.setEnabled(self.SC.enum_to_obj(self.main_box.sprite_group_combobox.currentEnum()).jacket.controls_enabled)
-                self.main_box.flip_horizontal_button.setEnabled(self.SC.enum_to_obj(self.main_box.sprite_group_combobox.currentEnum()).jacket.controls_enabled)
-            case SpriteType.LOGO:
-                self.main_box.load_image_button.setEnabled(self.SC.enum_to_obj(self.main_box.sprite_group_combobox.currentEnum()).logo.controls_enabled)
-                self.main_box.flip_vertical_button.setEnabled(self.SC.enum_to_obj(self.main_box.sprite_group_combobox.currentEnum()).logo.controls_enabled)
-                self.main_box.flip_horizontal_button.setEnabled(self.SC.enum_to_obj(self.main_box.sprite_group_combobox.currentEnum()).logo.controls_enabled)
-            case SpriteType.THUMBNAIL:
-                self.main_box.load_image_button.setEnabled(self.SC.enum_to_obj(self.main_box.sprite_group_combobox.currentEnum()).thumbnail.controls_enabled)
-                self.main_box.flip_vertical_button.setEnabled(self.SC.enum_to_obj(self.main_box.sprite_group_combobox.currentEnum()).thumbnail.controls_enabled)
-                self.main_box.flip_horizontal_button.setEnabled(self.SC.enum_to_obj(self.main_box.sprite_group_combobox.currentEnum()).thumbnail.controls_enabled)
-    def update_tracked_sprite_status(self):
-        sprite = self.main_box.current_sprite_combobox.currentText()
-        group = self.main_box.sprite_group_combobox.currentEnum()
-        tracked = self.main_box.sprite_status_display.tracked
-        if tracked is not None:
-            tracked.SpriteStatusWait.disconnect()
-            tracked.SpriteRedraw.disconnect()
-
-        self.main_box.sprite_status_display.set_tracked_sprite(self.SC.type_to_sprite(group,sprite))
-        new_tracked = self.main_box.sprite_status_display.tracked
-        new_tracked.SpriteStatusWait.connect(lambda: self.main_box.sprite_status_display.set_status(SpriteStatus.PLEASE_WAIT))
-        new_tracked.SpriteRedraw.connect(lambda: self.main_box.sprite_status_display.update_status())
-        self.main_box.sprite_status_display.update_status()
-
-    def flip_current_sprite(self,flip_type):
-        current_sprite = self.main_box.current_sprite_combobox.currentText()
-        match current_sprite:
-            case SpriteType.BACKGROUND:
-                self.SC.enum_to_obj(self.main_box.sprite_group_combobox.currentEnum()).background.toggle_flip(flip_type)
-            case SpriteType.JACKET:
-                self.SC.enum_to_obj(self.main_box.sprite_group_combobox.currentEnum()).jacket.toggle_flip(flip_type)
-            case SpriteType.LOGO:
-                self.SC.enum_to_obj(self.main_box.sprite_group_combobox.currentEnum()).logo.toggle_flip(flip_type)
-            case SpriteType.THUMBNAIL:
-                self.SC.enum_to_obj(self.main_box.sprite_group_combobox.currentEnum()).thumbnail.toggle_flip(flip_type)
 
     def display_scenes(self):
         self.populate_display_scene_menu()
@@ -1082,36 +974,7 @@ class MainWindow(QMainWindow):
         self.mm_practice_toggle.setChecked(False)
         self.pv_back_toggle.setChecked(False)
 
-        current_enum = self.main_box.sprite_group_combobox.currentEnum()
-        current_sprite_object = self.SC.enum_to_obj(current_enum)
-
-        sprite_object_list = list(self.SC.sprite_groups.values())
-
-        for sprite_object in sprite_object_list:
-            sprite_object.thumbnail.add_edit_controls_to(self.main_box.thumbnail_control_layout)
-            sprite_object.logo.add_edit_controls_to(self.main_box.logo_control_layout)
-            sprite_object.jacket.add_edit_controls_to(self.main_box.jacket_control_layout)
-            sprite_object.background.add_edit_controls_to(self.main_box.background_control_layout)
-
-        sprite_object_list.remove(current_sprite_object)
-
-        for sprite_object in sprite_object_list:
-            for sprite in sprite_object.list:
-                sprite.hide_edit_controls(True)
-
-        sprite_control_layout = [self.main_box.thumbnail_control_layout,
-                                 self.main_box.logo_control_layout,
-                                 self.main_box.jacket_control_layout,
-                                 self.main_box.background_control_layout]
-
-        verticalSpacer = QSpacerItem(0, 0, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
-
-        for layout in sprite_control_layout:
-            layout.addItem(verticalSpacer)
-
         self.selected_scenes_views = []
-
-
         self.display_selected_scenes()
 
     def _refresh_recent_menu(self):
@@ -1163,7 +1026,7 @@ class MainWindow(QMainWindow):
         self.menu.addMenu(self.display_scenes_menu)
         if config.is_pre_release:
             self.debug_menu = QSmarterMenu("Debug Menu", self)
-            self.debug_menu.addAction(f"Refresh SpriteStatus display", self.main_box.sprite_status_display.update_status)
+            self.debug_menu.addAction(f"Refresh SpriteStatus display", self.main_box.sprite_selector.sprite_status_display.update_status)
             self.debug_menu.addAction(f"Redraw Current Sprite", self.debug_redraw_sprite)
             self.debug_menu.addAction(f"Print Current Sprite's info", self.debug_print_sprite_info)
             self.debug_menu.addAction(f"Print Current Sprite's save data", self.debug_print_save_info)
@@ -1272,15 +1135,15 @@ class MainWindow(QMainWindow):
                 x = x + 1
 
     def generate_preview(self,target:OutputTarget):
-        self.SC.enum_to_obj(self.main_box.sprite_group_combobox.currentEnum()).jacket.update_sprite(hq_output=True)
-        self.SC.enum_to_obj(self.main_box.sprite_group_combobox.currentEnum()).background.update_sprite(hq_output=True)
-        self.SC.enum_to_obj(self.main_box.sprite_group_combobox.currentEnum()).thumbnail.update_sprite(hq_output=True)
-        self.SC.enum_to_obj(self.main_box.sprite_group_combobox.currentEnum()).logo.update_sprite(hq_output=True)
+        self.main_box.sprite_selector.get_current_sprite_group_object().jacket.update_sprite(hq_output=True)
+        self.main_box.sprite_selector.get_current_sprite_group_object().background.update_sprite(hq_output=True)
+        self.main_box.sprite_selector.get_current_sprite_group_object().thumbnail.update_sprite(hq_output=True)
+        self.main_box.sprite_selector.get_current_sprite_group_object().logo.update_sprite(hq_output=True)
 
-        self.SC.enum_to_obj(self.main_box.sprite_group_combobox.currentEnum()).jacket.redraw_and_check_status()
-        self.SC.enum_to_obj(self.main_box.sprite_group_combobox.currentEnum()).background.redraw_and_check_status()
-        self.SC.enum_to_obj(self.main_box.sprite_group_combobox.currentEnum()).thumbnail.redraw_and_check_status()
-        self.SC.enum_to_obj(self.main_box.sprite_group_combobox.currentEnum()).logo.redraw_and_check_status()
+        self.main_box.sprite_selector.get_current_sprite_group_object().jacket.redraw_and_check_status()
+        self.main_box.sprite_selector.get_current_sprite_group_object().background.redraw_and_check_status()
+        self.main_box.sprite_selector.get_current_sprite_group_object().thumbnail.redraw_and_check_status()
+        self.main_box.sprite_selector.get_current_sprite_group_object().logo.redraw_and_check_status()
 
         if len(self.selected_scenes) == 0:
             return
@@ -1327,31 +1190,12 @@ class MainWindow(QMainWindow):
                     url = QUrl.fromLocalFile(temp_file)
                     QDesktopServices.openUrl(url)
 
-
-    def disable_shared_controls(self):
-        state = self.SC.enum_to_obj(self.main_box.sprite_group_combobox.currentEnum()).logo.is_visible
-
-        if self.main_box.current_sprite_combobox.currentText() == SpriteType.LOGO:
-            self.main_box.load_image_button.setEnabled(state)
-            self.main_box.flip_vertical_button.setEnabled(state)
-            self.main_box.flip_horizontal_button.setEnabled(state)
-
-
-
-    def load_new_sprite_image(self,sprite):
-        sprite_object = None
-        match sprite:
-            case SpriteType.BACKGROUND:
-                sprite_object = self.SC.enum_to_obj(self.main_box.sprite_group_combobox.currentEnum()).background
-            case SpriteType.JACKET:
-                sprite_object = self.SC.enum_to_obj(self.main_box.sprite_group_combobox.currentEnum()).jacket
-            case SpriteType.THUMBNAIL:
-                sprite_object = self.SC.enum_to_obj(self.main_box.sprite_group_combobox.currentEnum()).thumbnail
-            case SpriteType.LOGO:
-                sprite_object = self.SC.enum_to_obj(self.main_box.sprite_group_combobox.currentEnum()).logo
+    def load_new_sprite_image(self):
+        sprite_object = self.main_box.sprite_selector.get_current_sprite_object()
+        sprite = sprite_object.sprite_type.value
 
         image_location = QFileDialog.getOpenFileName(self,
-                                                 f"Open {sprite_object.sprite_type.value} image",
+                                                 f"Open {sprite} image",
                                                  str(config.last_used_directory),
                                                  config.allowed_file_types)[0]
         if image_location == "":
@@ -1429,7 +1273,7 @@ class SongFarcCreatorWindow(QWidget):
         self.main_box = Ui_SongFarcCreatorWindow()
         self.setAttribute(Qt.WidgetAttribute.WA_QuitOnClose, False)
         self.SC = SC_obj
-        self.main_box.setupUi(self,SC_obj=self.SC,sprite_group_enum=SceneComposer.SpriteGroup)
+        self.main_box.setupUi(self,SC_obj=self.SC,sprite_group_enum=SpriteGroup)
 
         self.sprite_group_widget_list = []
         self.sprite_group_widget_list.append(self.main_box.default_sprite_group_widget)

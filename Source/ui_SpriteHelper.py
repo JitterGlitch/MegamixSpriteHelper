@@ -1,20 +1,20 @@
 from PySide6.QtCore import (QCoreApplication, QLocale,
                             QMetaObject, QRect,
                             QSize, Qt)
-from PySide6.QtGui import (QFont, QIcon)
+from PySide6.QtGui import (QFont, QIcon, QPixmap)
 from PySide6.QtWidgets import (QAbstractScrollArea, QComboBox,
                                QDoubleSpinBox, QFrame, QGridLayout, QHBoxLayout,
                                QLabel, QLayout, QPushButton,
                                QScrollArea, QSizePolicy, QSpacerItem, QStackedWidget,
                                QTabWidget, QVBoxLayout, QWidget, QMenuBar)
-from superqt import QEnumComboBox
+from superqt import QEnumComboBox, QIconifyIcon
 from FarcCreator import Compression
-from SceneComposer import SpriteGroup,SpriteStatusDisplay
+from SceneComposer import SpriteGroup, SpriteStatusDisplay, SpriteSelector, SceneComposerObjects
 
 import resources_rc
 
 class Ui_MainWindow(object):
-    def setupUi(self, MainWindow):
+    def setupUi(self, MainWindow,SC:SceneComposerObjects):
         if not MainWindow.objectName():
             MainWindow.setObjectName(u"MainWindow")
         MainWindow.setWindowModality(Qt.WindowModality.NonModal)
@@ -85,214 +85,20 @@ class Ui_MainWindow(object):
         self.image_grid.setSizeConstraint(QLayout.SizeConstraint.SetDefaultConstraint)
         self.image_grid.setContentsMargins(0, 0, 0, 0)
 
-
         self.ImageGrid_Layout.addWidget(self.scrollArea)
         self.scrollArea.setWidget(self.scrollAreaWidgetContents)
 
         self.load_buttons_box = QVBoxLayout()
-        self.load_buttons_box.setSpacing(5)
+        self.load_buttons_box.setSpacing(0)
+        self.load_buttons_box.setContentsMargins(0,0,0,0)
         self.load_buttons_box.setObjectName(u"load_buttons_box")
         self.load_buttons_box.setSizeConstraint(QLayout.SizeConstraint.SetDefaultConstraint)
-        self.horizontalLayout = QHBoxLayout()
-        self.horizontalLayout.setObjectName(u"horizontalLayout")
 
+        self.sprite_selector = SpriteSelector(SC)
+        self.sprite_selector.setMaximumWidth(220)
 
-        self.current_sprite_combobox = QComboBox(self.grid)
-        self.current_sprite_combobox.addItem("")
-        self.current_sprite_combobox.addItem("")
-        self.current_sprite_combobox.addItem("")
-        self.current_sprite_combobox.addItem("")
-        self.current_sprite_combobox.setObjectName(u"current_sprite_combobox")
-
-        self.sprite_group_combobox = QEnumComboBox(self.grid)
-        self.sprite_group_combobox.setEnumClass(SpriteGroup)
-
-        self.horizontalLayout.addWidget(self.current_sprite_combobox)
-        self.horizontalLayout.addWidget(self.sprite_group_combobox)
-
-
-        self.load_buttons_box.addLayout(self.horizontalLayout)
-
-        self.sprite_options_v_layout = QVBoxLayout()
-        self.sprite_options_v_layout.setContentsMargins(-1, 0, -1, -1)
-        self.load_image_button = QPushButton(self.grid)
-        self.load_image_button.setText("Load Image")
-        self.sprite_options_v_layout.addWidget(self.load_image_button)
-        self.load_buttons_box.addLayout(self.sprite_options_v_layout)
-
-        self.horizontalLayout_2 = QHBoxLayout()
-        self.horizontalLayout_2.setObjectName(u"horizontalLayout_2")
-        self.horizontalLayout_2.setContentsMargins(-1, 0, -1, -1)
-        self.flip_horizontal_button = QPushButton(self.grid)
-        self.flip_horizontal_button.setObjectName(u"flip_horizontal_button")
-
-        self.horizontalLayout_2.addWidget(self.flip_horizontal_button)
-
-        self.flip_vertical_button = QPushButton(self.grid)
-        self.flip_vertical_button.setObjectName(u"flip_vertical_button")
-
-        self.horizontalLayout_2.addWidget(self.flip_vertical_button)
-
-
-        self.load_buttons_box.addLayout(self.horizontalLayout_2)
-
-        self.sprite_status_display = SpriteStatusDisplay()
-        self.sprite_status_display.setMaximumSize(QSize(200, 35))
-        self.load_buttons_box.addWidget(self.sprite_status_display)
-
-        self.image_edit_scroll_area = QScrollArea(self.grid)
-        self.image_edit_scroll_area.setObjectName(u"image_edit_scroll_area")
-        self.image_edit_scroll_area.setEnabled(True)
-        sizePolicy3 = QSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Preferred)
-        sizePolicy3.setHorizontalStretch(0)
-        sizePolicy3.setVerticalStretch(0)
-        sizePolicy3.setHeightForWidth(self.image_edit_scroll_area.sizePolicy().hasHeightForWidth())
-        self.image_edit_scroll_area.setSizePolicy(sizePolicy3)
-        self.image_edit_scroll_area.setMinimumSize(QSize(0, 229))
-        self.image_edit_scroll_area.setAutoFillBackground(False)
-        self.image_edit_scroll_area.setFrameShape(QFrame.Shape.StyledPanel)
-        self.image_edit_scroll_area.setFrameShadow(QFrame.Shadow.Sunken)
-        self.image_edit_scroll_area.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
-        self.image_edit_scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        self.image_edit_scroll_area.setSizeAdjustPolicy(QAbstractScrollArea.SizeAdjustPolicy.AdjustToContents)
-        self.image_edit_scroll_area.setWidgetResizable(True)
-        self.image_edit_scroll_area.setAlignment(Qt.AlignmentFlag.AlignBottom|Qt.AlignmentFlag.AlignLeading|Qt.AlignmentFlag.AlignLeft)
-        self.image_edit_area_widget_properties = QWidget()
-        self.image_edit_area_widget_properties.setObjectName(u"image_edit_area_widget_properties")
-        self.image_edit_area_widget_properties.setGeometry(QRect(0, 0, 196, 227))
-        sizePolicy4 = QSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Minimum)
-        sizePolicy4.setHorizontalStretch(0)
-        sizePolicy4.setVerticalStretch(0)
-        sizePolicy4.setHeightForWidth(self.image_edit_area_widget_properties.sizePolicy().hasHeightForWidth())
-        self.image_edit_area_widget_properties.setSizePolicy(sizePolicy4)
-        self.image_edit_area_widget_properties.setMinimumSize(QSize(0, 220))
-        self.image_edit_area_widget_properties.setMaximumSize(QSize(16777215, 16777215))
-        self.image_edit_area_widget_properties.setSizeIncrement(QSize(0, -31072))
-        self.image_edit_area_widget_properties.setBaseSize(QSize(0, -31072))
-        self.image_edit_area_widget_properties.setContextMenuPolicy(Qt.ContextMenuPolicy.DefaultContextMenu)
-        self.image_edit_area_widget_properties.setAutoFillBackground(True)
-        self.verticalLayout = QVBoxLayout(self.image_edit_area_widget_properties)
-        self.verticalLayout.setSpacing(0)
-        self.verticalLayout.setObjectName(u"verticalLayout")
-        self.verticalLayout.setSizeConstraint(QLayout.SizeConstraint.SetDefaultConstraint)
-        self.verticalLayout.setContentsMargins(0, 0, 0, 0)
-        self.sprite_controls = QStackedWidget(self.image_edit_area_widget_properties)
-        self.sprite_controls.setObjectName(u"sprite_controls")
-        sizePolicy3.setHeightForWidth(self.sprite_controls.sizePolicy().hasHeightForWidth())
-        self.sprite_controls.setSizePolicy(sizePolicy3)
-        self.sprite_controls.setMaximumSize(QSize(16777215, 25000))
-        self.jacket_tab = QWidget()
-        self.jacket_tab.setObjectName(u"jacket_tab")
-        self.verticalLayout_5 = QVBoxLayout(self.jacket_tab)
-        self.verticalLayout_5.setSpacing(0)
-        self.verticalLayout_5.setObjectName(u"verticalLayout_5")
-        self.verticalLayout_5.setContentsMargins(0, 0, 0, 0)
-        self.jacket_tab_scrollarea = QScrollArea(self.jacket_tab)
-        self.jacket_tab_scrollarea.setObjectName(u"jacket_tab_scrollarea")
-        self.jacket_tab_scrollarea.setWidgetResizable(True)
-        self.jacket_scrollarea_contents = QWidget()
-        self.jacket_scrollarea_contents.setObjectName(u"jacket_scrollarea_contents")
-        self.jacket_scrollarea_contents.setGeometry(QRect(0, 0, 176, 213))
-        self.jacket_control_layout = QVBoxLayout(self.jacket_scrollarea_contents)
-        self.jacket_control_layout.setSpacing(2)
-        self.jacket_control_layout.setObjectName(u"verticalLayout_10")
-        self.jacket_control_layout.setContentsMargins(0, 0, 0, 0)
-        self.jacket_tab_scrollarea.setWidget(self.jacket_scrollarea_contents)
-
-        self.verticalLayout_5.addWidget(self.jacket_tab_scrollarea)
-
-        self.sprite_controls.addWidget(self.jacket_tab)
-        self.background_tab = QWidget()
-        self.background_tab.setObjectName(u"background_tab")
-        self.verticalLayout_2 = QVBoxLayout(self.background_tab)
-        self.verticalLayout_2.setSpacing(0)
-        self.verticalLayout_2.setObjectName(u"verticalLayout_2")
-        self.verticalLayout_2.setContentsMargins(0, 0, 0, 0)
-        self.background_tab_scrollarea = QScrollArea(self.background_tab)
-        self.background_tab_scrollarea.setObjectName(u"background_tab_scrollarea")
-        self.background_tab_scrollarea.setWidgetResizable(True)
-        self.background_scrollarea_contents = QWidget()
-        self.background_scrollarea_contents.setObjectName(u"background_scrollarea_contents")
-        self.background_scrollarea_contents.setGeometry(QRect(0, 0, 194, 225))
-        self.background_control_layout = QVBoxLayout(self.background_scrollarea_contents)
-        self.background_control_layout.setSpacing(2)
-        self.background_control_layout.setObjectName(u"verticalLayout_8")
-        self.background_control_layout.setContentsMargins(0, 0, 0, 0)
-        self.background_tab_scrollarea.setWidget(self.background_scrollarea_contents)
-
-        self.verticalLayout_2.addWidget(self.background_tab_scrollarea)
-
-        self.sprite_controls.addWidget(self.background_tab)
-        self.thumbnail_tab = QWidget()
-        self.thumbnail_tab.setObjectName(u"thumbnail_tab")
-        self.verticalLayout_7 = QVBoxLayout(self.thumbnail_tab)
-        self.verticalLayout_7.setSpacing(0)
-        self.verticalLayout_7.setObjectName(u"verticalLayout_7")
-        self.verticalLayout_7.setContentsMargins(0, 0, 0, 0)
-        self.thumbnail_tab_scrollarea = QScrollArea(self.thumbnail_tab)
-        self.thumbnail_tab_scrollarea.setObjectName(u"thumbnail_tab_scrollarea")
-        self.thumbnail_tab_scrollarea.setWidgetResizable(True)
-        self.thumbnail_scrollarea_contents = QWidget()
-        self.thumbnail_scrollarea_contents.setObjectName(u"thumbnail_scrollarea_contents")
-        self.thumbnail_scrollarea_contents.setGeometry(QRect(0, 0, 176, 213))
-        self.thumbnail_control_layout = QVBoxLayout(self.thumbnail_scrollarea_contents)
-        self.thumbnail_control_layout.setSpacing(2)
-        self.thumbnail_control_layout.setObjectName(u"verticalLayout_12")
-        self.thumbnail_control_layout.setContentsMargins(0, 0, 0, 0)
-        self.thumbnail_tab_scrollarea.setWidget(self.thumbnail_scrollarea_contents)
-
-        self.verticalLayout_7.addWidget(self.thumbnail_tab_scrollarea)
-
-        self.sprite_controls.addWidget(self.thumbnail_tab)
-        self.logo_tab = QWidget()
-        self.logo_tab.setObjectName(u"logo_tab")
-        self.verticalLayout_6 = QVBoxLayout(self.logo_tab)
-        self.verticalLayout_6.setSpacing(0)
-        self.verticalLayout_6.setObjectName(u"verticalLayout_6")
-        self.verticalLayout_6.setContentsMargins(0, 0, 0, 0)
-        self.logo_tab_scrollarea = QScrollArea(self.logo_tab)
-        self.logo_tab_scrollarea.setObjectName(u"logo_tab_scrollarea")
-        self.logo_tab_scrollarea.setWidgetResizable(True)
-        self.logo_scrollarea_contents = QWidget()
-        self.logo_scrollarea_contents.setObjectName(u"logo_scrollarea_contents")
-        self.logo_scrollarea_contents.setGeometry(QRect(0, 0, 176, 213))
-        self.logo_control_layout = QVBoxLayout(self.logo_scrollarea_contents)
-        self.logo_control_layout.setSpacing(2)
-        self.logo_control_layout.setObjectName(u"verticalLayout_11")
-        self.logo_control_layout.setContentsMargins(0, 0, 0, 0)
-        self.logo_tab_scrollarea.setWidget(self.logo_scrollarea_contents)
-
-        self.verticalLayout_6.addWidget(self.logo_tab_scrollarea)
-
-        self.sprite_controls.addWidget(self.logo_tab)
-
-        self.verticalLayout.addWidget(self.sprite_controls)
-
-        self.image_edit_scroll_area.setWidget(self.image_edit_area_widget_properties)
-
-        self.load_buttons_box.addWidget(self.image_edit_scroll_area)
-
+        self.load_buttons_box.addWidget(self.sprite_selector)
 
         self.Holder_Layout.addLayout(self.load_buttons_box)
 
         MainWindow.setCentralWidget(self.grid)
-
-        self.retranslateUi(MainWindow)
-
-        self.current_sprite_combobox.setCurrentIndex(1)
-        self.sprite_controls.setCurrentIndex(1)
-
-
-        QMetaObject.connectSlotsByName(MainWindow)
-    # setupUi
-
-    def retranslateUi(self, MainWindow):
-        self.current_sprite_combobox.setItemText(0, QCoreApplication.translate("MainWindow", u"Jacket", None))
-        self.current_sprite_combobox.setItemText(1, QCoreApplication.translate("MainWindow", u"Background", None))
-        self.current_sprite_combobox.setItemText(2, QCoreApplication.translate("MainWindow", u"Thumbnail", None))
-        self.current_sprite_combobox.setItemText(3, QCoreApplication.translate("MainWindow", u"Logo", None))
-
-        self.flip_horizontal_button.setText(QCoreApplication.translate("MainWindow", u"Flip Horizontally", None))
-        self.flip_vertical_button.setText(QCoreApplication.translate("MainWindow", u"Flip Vertically", None))
-    # retranslateUi
-

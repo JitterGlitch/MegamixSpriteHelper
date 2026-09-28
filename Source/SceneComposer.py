@@ -11,7 +11,7 @@ import hashlib
 from PIL import Image
 from PySide6.QtCore import Qt, QRectF, QPoint, Signal, QObject, QSize, QRect, QIODevice, QFile, QThread, QTimer, QLine, QStandardPaths, QUrl
 from PySide6.QtGui import QImage, QPixmap, QPainter, QTransform, QColor, QPen, QMouseEvent, QFont, QDesktopServices, QPalette
-from PySide6.QtWidgets import QGraphicsPixmapItem, QFileDialog, QGraphicsScene, QLayout, QGraphicsView, QWidget, QScrollArea, QCheckBox, QRadioButton, QLabel, QVBoxLayout, QDoubleSpinBox, QSlider, QColorDialog, QPushButton, QHBoxLayout, QGraphicsBlurEffect, QFrame, QStyleOptionSlider, QStyle
+from PySide6.QtWidgets import QGraphicsPixmapItem, QFileDialog, QGraphicsScene, QLayout, QGraphicsView, QWidget, QScrollArea, QCheckBox, QRadioButton, QLabel, QVBoxLayout, QDoubleSpinBox, QSlider, QColorDialog, QPushButton, QHBoxLayout, QGraphicsBlurEffect, QFrame, QStyleOptionSlider, QStyle, QComboBox, QSpacerItem, QSizePolicy, QStackedWidget
 from superqt import QDoubleSlider, QIconifyIcon, QEnumComboBox, QCollapsible
 from superqt.utils import qthrottled
 
@@ -1795,7 +1795,6 @@ class SpriteStatus(Enum):
     WARNING     = (3,"material-symbols:warning-rounded", "orange", "Warning")  # Issues that don't block export
     ERROR       = (4,"material-symbols:warning-rounded", "red", "Error")  # Issues that should block export
 
-
 class SpriteStatusDisplay(QWidget):
     def __init__(self, /):
         super().__init__()
@@ -2096,7 +2095,7 @@ class QControllableSprites(QObject):
                                         SpriteType.BACKGROUND,
                                         QRectF(0, 0, 1280, 720))
 
-        self.list = [self.thumbnail,self.logo,self.jacket,self.background]
+        self.list = [self.jacket,self.background,self.logo,self.thumbnail]
         self.sprite_updater = PathWatcher(self)
 
         for sprite in self.list:
@@ -2897,7 +2896,6 @@ class SceneComposerObjects:
         painter.end()
 
         return background_jacket_texture, highest_sprite_status
-
     def create_logo_texture(self, sprite_group_list:list[tuple[SpriteGroup, str]]):
         sprite_status_list = []
 
@@ -2928,7 +2926,6 @@ class SceneComposerObjects:
 
         painter.end()
         return logo_texture,logo_info_list,highest_sprite_status
-
     def create_thumbnail_texture(self, sprite_group: SpriteGroup) -> QImage:
         sprite_status_list = []
 
@@ -2965,7 +2962,6 @@ class SceneComposerObjects:
         painter_fixer.drawImage(0, 0, thumbnail_base)
         painter_fixer.end()
         return thumbnail_texture,highest_sprite_status
-
     def create_pv_back_texture(self, sprite_group: SpriteGroup):
         sprite_status_list = []
 
@@ -2999,3 +2995,233 @@ class SceneComposerObjects:
         painter.end()
 
         return pv_back_texture, highest_sprite_status
+
+
+class SpriteSelector(QWidget):
+    ImageLoadRequested = Signal()
+
+    def __init__(self, SC:SceneComposerObjects):
+        super().__init__()
+        self.SC = SC
+        self.sprite_tab_dict = {}
+        self.setup_ui()
+
+        self.load_image_button.clicked.connect(self.ImageLoadRequested.emit)
+        self.flip_horizontal_button.clicked.connect(lambda: self.flip_current_sprite(Qt.Orientation.Horizontal))
+        self.flip_vertical_button.clicked.connect(lambda: self.flip_current_sprite(Qt.Orientation.Vertical))
+        self.open_in_external_button.clicked.connect(self.open_sprite_in_external_editor)
+        self.current_sprite_combobox.currentIndexChanged.connect(self.current_sprite_tab_switcher)
+        self.sprite_group_combobox.currentEnumChanged.connect(self.sprite_group_changed)
+
+        self.current_sprite_tab_switcher()
+
+        self.get_current_sprite_group_object().logo.VisibilityToggled.connect(self.update_shared_controls)
+        self._prev_enum = self.sprite_group_combobox.currentEnum()
+
+
+    def build_sprite_controls(self):
+        sprite_controls = QStackedWidget()
+        sprite_controls.setContentsMargins(0,0,0,0)
+
+        for sprite in self.SC.Group_A_Sprites.list:
+            sprite_tab = QWidget()
+            sprite_tab.setContentsMargins(0,0,0,0)
+
+            sprite_tab_layout = QVBoxLayout()
+            sprite_tab_layout.setContentsMargins(0, 0, 0, 0)
+            sprite_tab_layout.setSpacing(0)
+
+
+            sprite_tab_scrollarea = QScrollArea(sprite_tab)
+            sprite_tab_scrollarea.setWidgetResizable(True)
+            sprite_tab_scrollarea.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+            sprite_tab_scrollarea.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+            sprite_tab_scrollarea.setContentsMargins(0,0,0,0)
+
+            sprite_tab_scrollarea_contents = QWidget()
+            sprite_tab_scrollarea_contents.setContentsMargins(0,0,0,0)
+
+            sprite_tab_control_layout = QVBoxLayout(sprite_tab_scrollarea_contents)
+            sprite_tab_control_layout.setSpacing(0)
+
+            sprite_tab_scrollarea.setWidget(sprite_tab_scrollarea_contents)
+            sprite_tab_layout.addWidget(sprite_tab_scrollarea)
+
+            sprite_tab.setLayout(sprite_tab_layout)
+
+            self.sprite_tab_dict.update({sprite.sprite_type:sprite_tab_control_layout})
+            sprite_controls.addWidget(sprite_tab)
+
+        sprite_control_layouts = []
+        #TODO Dict doesn't work , uses order from the list instead.
+        sprite_group_list = list(self.SC.sprite_groups.values())
+        for group in sprite_group_list:
+            for sprite in group.list:
+                sprite.add_edit_controls_to(self.sprite_tab_dict[sprite.sprite_type])
+                sprite_control_layouts.append(self.sprite_tab_dict[sprite.sprite_type])
+
+        sprite_group_list.remove(self.get_current_sprite_group_object())
+
+        for group in sprite_group_list:
+            for sprite in group.list:
+                sprite.hide_edit_controls(True)
+
+        for layout in sprite_control_layouts:
+            layout.addStretch(1)
+
+        return sprite_controls
+    def setup_ui(self):
+        self.main_layout = QVBoxLayout()
+        self.setLayout(self.main_layout)
+
+        self.first_line_layout = QHBoxLayout()
+        self.second_line_layout = QHBoxLayout()
+        self.third_line_layout = QHBoxLayout()
+        self.fourth_line_layout = QHBoxLayout()
+
+        self.current_sprite_combobox = QComboBox()
+        self.current_sprite_combobox.addItem("Jacket")
+        self.current_sprite_combobox.addItem("Background")
+        self.current_sprite_combobox.addItem("Logo")
+        self.current_sprite_combobox.addItem("Thumbnail")
+
+
+        self.sprite_group_combobox = QEnumComboBox()
+        self.sprite_group_combobox.setEnumClass(SpriteGroup)
+
+        self.load_image_button = QPushButton()
+
+        self.flip_horizontal_button = QPushButton()
+        self.flip_horizontal_button.setIcon(QPixmap(":icon/Images/tabler--flip-horizontal.png"))
+        self.flip_horizontal_button.setIconSize(QSize(25, 25))
+        self.flip_horizontal_button.setFixedWidth(35)
+
+        self.flip_vertical_button = QPushButton()
+        self.flip_vertical_button.setIcon(QPixmap(":icon/Images/tabler--flip-vertical.png"))
+        self.flip_vertical_button.setIconSize(QSize(25, 25))
+        self.flip_vertical_button.setFixedWidth(35)
+
+        self.open_in_external_button = QPushButton()
+        self.open_in_external_button.setIcon(QPixmap(":icon/Images/tabler--pencil-share.png"))
+        self.open_in_external_button.setIconSize(QSize(25, 25))
+        self.open_in_external_button.setFixedWidth(35)
+
+        horizontal_spacer = QSpacerItem(660, 0, QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Minimum)
+
+        self.sprite_status_display = SpriteStatusDisplay()
+        self.sprite_status_display.setMinimumSize(QSize(200, 35))
+
+        self.sprite_controls = self.build_sprite_controls()
+
+
+
+        self.first_line_layout.addWidget(self.current_sprite_combobox)
+        self.first_line_layout.addWidget(self.sprite_group_combobox)
+
+        self.second_line_layout.addWidget(self.load_image_button)
+
+        self.third_line_layout.addWidget(self.flip_horizontal_button)
+        self.third_line_layout.addWidget(self.flip_vertical_button)
+        self.third_line_layout.addSpacerItem(horizontal_spacer)
+        self.third_line_layout.addWidget(self.open_in_external_button)
+
+        self.fourth_line_layout.addWidget(self.sprite_status_display)
+
+        self.main_layout.addLayout(self.first_line_layout)
+        self.main_layout.addLayout(self.second_line_layout)
+        self.main_layout.addLayout(self.third_line_layout)
+        self.main_layout.addLayout(self.fourth_line_layout)
+        self.main_layout.addWidget(self.sprite_controls)
+
+    def get_current_sprite_name(self):
+        return self.current_sprite_combobox.currentText()
+    def get_current_sprite_group_enum(self):
+        return self.sprite_group_combobox.currentEnum()
+    def get_current_sprite_group_object(self):
+        return self.SC.enum_to_obj(self.get_current_sprite_group_enum())
+    def get_current_sprite_object(self) -> QThumbnail | QJacket | QSpriteBase | QLogo | QBackground:
+        return self.SC.type_to_sprite(self.sprite_group_combobox.currentEnum(),self.current_sprite_combobox.currentText())
+
+
+    def flip_current_sprite(self,flip_type):
+        self.get_current_sprite_object().toggle_flip(flip_type)
+
+    def open_sprite_in_external_editor(self):
+        current_sprite = self.get_current_sprite_object()
+        return QDesktopServices.openUrl(QUrl.fromLocalFile(current_sprite.location))
+
+    def current_sprite_tab_switcher(self):
+        self.sprite_controls.setCurrentIndex(self.current_sprite_combobox.currentIndex())
+
+        current_sprite = self.get_current_sprite_object()
+
+        self.load_image_button.setText(f"Load {current_sprite.sprite_type.value} Image")
+
+        self.load_image_button.setEnabled(current_sprite.controls_enabled)
+        self.flip_vertical_button.setEnabled(current_sprite.controls_enabled)
+        self.flip_horizontal_button.setEnabled(current_sprite.controls_enabled)
+
+        self.update_tracked_sprite_status()
+        self.update_shared_controls()
+
+    def sprite_group_changed(self):
+        current_enum = self.get_current_sprite_group_enum()
+        current_sprite_group = self.get_current_sprite_group_object()
+
+        non_active_sprite_object_list = list(self.SC.sprite_groups.values())
+        non_active_sprite_object_list.remove(current_sprite_group)
+
+        self.SC.P_Scenes.switch_sprite_group(current_sprite_group)
+
+        self.SC.enum_to_obj(self._prev_enum).logo.VisibilityToggled.disconnect(self.update_shared_controls)
+        self.SC.enum_to_obj(current_enum).logo.VisibilityToggled.connect(self.update_shared_controls)
+        self._prev_enum = current_enum
+
+        for sprite in current_sprite_group.list:
+            for slave in sprite.sprite_slaves_list:
+                slave.tracked.SpriteUpdated.connect(slave.update_sprite)
+
+        current_sprite_group.update_sprites()
+
+        for sprite in current_sprite_group.list:
+            sprite.hide_edit_controls(False)
+
+        for sprite_object in non_active_sprite_object_list:
+            for sprite in sprite_object.list:
+                sprite.hide_edit_controls(True)
+
+        for sprite in current_sprite_group.list:
+            sprite.redraw_and_check_status()
+        self.update_tracked_sprite_status()
+        self.update_shared_controls()
+
+
+    def update_tracked_sprite_status(self):
+        current_sprite = self.get_current_sprite_object()
+        tracked = self.sprite_status_display.tracked
+        if tracked is not None:
+            tracked.SpriteStatusWait.disconnect()
+            tracked.SpriteRedraw.disconnect()
+
+        self.sprite_status_display.set_tracked_sprite(current_sprite)
+        new_tracked = self.sprite_status_display.tracked
+        new_tracked.SpriteStatusWait.connect(lambda: self.sprite_status_display.set_status(SpriteStatus.PLEASE_WAIT))
+        new_tracked.SpriteRedraw.connect(lambda: self.sprite_status_display.update_status())
+        self.sprite_status_display.update_status()
+
+    def update_shared_controls(self):
+        state = self.SC.enum_to_obj(self.sprite_group_combobox.currentEnum()).logo.is_visible
+
+        if self.current_sprite_combobox.currentText() == SpriteType.LOGO:
+            self.load_image_button.setEnabled(state)
+            self.flip_vertical_button.setEnabled(state)
+            self.flip_horizontal_button.setEnabled(state)
+
+        if type(self.get_current_sprite_object().location) != str:
+            is_placeholder = True
+        else:
+            is_placeholder = False
+
+        #TODO Make this more obvious by changing color of the icon
+        self.open_in_external_button.setEnabled(not is_placeholder)
+
