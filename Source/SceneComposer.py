@@ -187,8 +187,9 @@ class SpriteColorPicker(QWidget):
     def get_color(self):
         return self.color_picker.currentColor()
     def set_color(self,color):
-        self.color_history_list[0].update_color(color)
-        self.editingFinished.emit()
+        self.color_picker.setCurrentColor(color)
+        self.drop_shadow_color_accepted()
+        self.drop_shadow_color_changed()
     def drop_shadow_color_changed(self):
         self.color_history_list[0].update_color(self.color_picker.currentColor())
         self.editingFinished.emit()
@@ -355,6 +356,7 @@ class SpriteSettingControl(QWidget):
             return
 
         if setting == SpriteSetting.COLOR:
+            self.sprite_setting = setting
             self.setFixedSize(160, 75)
 
             self.layout = QVBoxLayout(self)
@@ -550,7 +552,11 @@ class SpriteSettingControl(QWidget):
             self.colorpicker.set_color(value)
 
     def getValue(self):
-        return self.value
+        if self.sprite_setting in SpriteSetting.get_simple_setting_list():
+            return self.value
+        if self.sprite_setting == SpriteSetting.COLOR:
+            return self.colorpicker.get_color()
+
 
     def reset_value(self):
         self.setValue(self.initial_value)
