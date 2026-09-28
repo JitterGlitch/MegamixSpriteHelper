@@ -272,81 +272,7 @@ class Ui_MainWindow(object):
 
         self.load_buttons_box.addWidget(self.image_edit_scroll_area)
 
-        self.image_tab_vertical_layout = QVBoxLayout()
-        self.image_tab_vertical_layout.setSpacing(5)
-        self.image_tab_vertical_layout.setObjectName(u"image_tab_vertical_layout")
-        self.export_controls = QTabWidget(self.grid)
-        self.export_controls.setObjectName(u"export_controls")
-        sizePolicy5 = QSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Preferred)
-        sizePolicy5.setHorizontalStretch(0)
-        sizePolicy5.setVerticalStretch(0)
-        sizePolicy5.setHeightForWidth(self.export_controls.sizePolicy().hasHeightForWidth())
-        self.export_controls.setSizePolicy(sizePolicy5)
-        self.export_controls.setTabPosition(QTabWidget.TabPosition.North)
-        self.export_controls.setIconSize(QSize(16, 16))
-        self.export_controls.setElideMode(Qt.TextElideMode.ElideNone)
-        self.export_controls.setDocumentMode(False)
-        self.to_farc_tab = QWidget()
-        self.to_farc_tab.setObjectName(u"to_farc_tab")
-        self.verticalLayout_3 = QVBoxLayout(self.to_farc_tab)
-        self.verticalLayout_3.setSpacing(4)
-        self.verticalLayout_3.setObjectName(u"verticalLayout_3")
-        self.verticalLayout_3.setContentsMargins(4, 4, 4, 4)
-        self.song_id_label = QLabel(self.to_farc_tab)
-        self.song_id_label.setObjectName(u"song_id_label")
-        self.song_id_label.setMaximumSize(QSize(195, 16777215))
-        sizePolicy6 = QSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Maximum)
-        sizePolicy6.setHorizontalStretch(0)
-        sizePolicy6.setVerticalStretch(0)
-        sizePolicy6.setHeightForWidth(self.song_id_label.sizePolicy().hasHeightForWidth())
-        self.song_id_label.setSizePolicy(sizePolicy6)
 
-        self.verticalLayout_3.addWidget(self.song_id_label)
-
-        self.farc_song_id_spinbox = QDoubleSpinBox(self.to_farc_tab)
-        self.farc_song_id_spinbox.setMaximumSize(QSize(195, 16777215))
-        self.farc_song_id_spinbox.setObjectName(u"farc_song_id_spinbox")
-        self.farc_song_id_spinbox.setDecimals(0)
-        self.farc_song_id_spinbox.setMinimum(1.000000000000000)
-        self.farc_song_id_spinbox.setMaximum(4294967295.000000000000000)
-        self.farc_song_id_spinbox.setValue(1.000000000000000)
-
-        self.verticalLayout_3.addWidget(self.farc_song_id_spinbox)
-
-
-        self.farc_compression_label = QLabel(self.to_farc_tab)
-        self.farc_compression_label.setMaximumSize(QSize(195, 16777215))
-        self.farc_compression_label.setText("Compression:")
-
-        self.verticalLayout_3.addWidget(self.farc_compression_label)
-
-        self.farc_compression_dropdown = QEnumComboBox()
-        self.farc_compression_dropdown.setMaximumSize(QSize(195, 16777215))
-        self.farc_compression_dropdown.setEnumClass(Compression)
-
-        self.verticalLayout_3.addWidget(self.farc_compression_dropdown)
-
-
-        self.farc_export_button = QPushButton(self.to_farc_tab)
-        self.farc_export_button.setMaximumSize(QSize(195, 16777215))
-        self.farc_export_button.setObjectName(u"farc_export_button")
-
-        self.verticalLayout_3.addWidget(self.farc_export_button)
-
-
-        self.verticalSpacer = QSpacerItem(0, 0, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
-
-        self.verticalLayout_3.addItem(self.verticalSpacer)
-
-        self.export_controls.addTab(self.to_farc_tab, "")
-
-        self.image_tab_vertical_layout.addWidget(self.export_controls)
-        self.export_controls.setVisible(False)
-
-        self.load_buttons_box.addLayout(self.image_tab_vertical_layout)
-
-
-        #self.ImageGrid_Layout.addLayout(self.load_buttons_box)
         self.Holder_Layout.addLayout(self.load_buttons_box)
 
         MainWindow.setCentralWidget(self.grid)
@@ -355,7 +281,6 @@ class Ui_MainWindow(object):
 
         self.current_sprite_combobox.setCurrentIndex(1)
         self.sprite_controls.setCurrentIndex(1)
-        self.export_controls.setCurrentIndex(0)
 
 
         QMetaObject.connectSlotsByName(MainWindow)
@@ -369,9 +294,5 @@ class Ui_MainWindow(object):
 
         self.flip_horizontal_button.setText(QCoreApplication.translate("MainWindow", u"Flip Horizontally", None))
         self.flip_vertical_button.setText(QCoreApplication.translate("MainWindow", u"Flip Vertically", None))
-        self.song_id_label.setText(QCoreApplication.translate("MainWindow", u"Song ID", None))
-        self.farc_export_button.setText(QCoreApplication.translate("MainWindow", u"Export BG/JK/Logo Farc", None))
-        self.export_controls.setTabText(self.export_controls.indexOf(self.to_farc_tab), QCoreApplication.translate("MainWindow", u"To Farc", None))
-        pass
     # retranslateUi
 
