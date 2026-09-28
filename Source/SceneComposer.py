@@ -985,6 +985,7 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
                 self.flipped_h = not self.flipped_h
 
         self.update_sprite()
+        self.redraw_and_check_status()
     def toggle_visibility(self,state):
         self.is_visible = state
         self.update_sprite()
