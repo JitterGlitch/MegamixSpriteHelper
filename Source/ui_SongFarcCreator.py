@@ -65,6 +65,7 @@ class Ui_SongFarcCreatorWindow(object):
 
         self.compression_comboBox = QEnumComboBox(Form)
         self.compression_comboBox.setEnumClass(FarcCreator.Compression)
+        self.compression_comboBox.setToolTip("Compression used for all sprites in the farc")
 
         self.SongInfoLayout.addWidget(self.compression_comboBox)
 
@@ -115,11 +116,6 @@ class Ui_SongFarcCreatorWindow(object):
         self.sprite_group_chooser_layout = QVBoxLayout()
         self.sprite_group_chooser_layout.setContentsMargins(-1, -1, -1, 0)
 
-
-
-        #self.sprite_group_V_spacer = QSpacerItem(0,20, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Fixed)
-
-
         self.default_sprite_group_widget = SpriteGroupPreview("Default Sprite Group",SC_obj=SC_obj,sprite_group=sprite_group_enum)
         self.ex_sprite_group_widget = SpriteGroupPreview("_EX Sprite Group",SC_obj=SC_obj,sprite_group=sprite_group_enum)
         self.pv_back_sprite_group_widget = SpriteGroupPreview("PV_BACK Sprite Group",SC_obj=SC_obj,sprite_group=sprite_group_enum)
@@ -131,9 +127,6 @@ class Ui_SongFarcCreatorWindow(object):
 
         self.ex_sprite_group_widget.setEnabled(self.ex_sprites_checkbox.isChecked())
         self.pv_back_sprite_group_widget.setEnabled(self.pv_back_sprite_checkbox.isChecked())
-
-
-
 
         self.pv_back_options_layout = QHBoxLayout()
         self.pv_back_options_layout.setSizeConstraint(QLayout.SizeConstraint.SetDefaultConstraint)
@@ -203,21 +196,12 @@ class Ui_SongFarcCreatorWindow(object):
         self.pv_back_scene_option_Vlayout.addWidget(self.scene_options_label)
         self.pv_back_scene_option_Vlayout.addWidget(self.select_layout_scrollArea)
 
-
         self.pv_back_options_layout.addLayout(self.pv_back_scene_option_Vlayout)
-
-
-
-
-
-
-        #self.MainVLayout.addLayout(self.pv_back_options_layout)
 
         self.pv_back_preview_layout = QHBoxLayout()
         self.pv_back_preview_layout.setSizeConstraint(QLayout.SizeConstraint.SetFixedSize)
         self.pv_back_preview_layout.setContentsMargins(-1, -1, -1, 0)
 
-        #self.MainVLayout.addLayout(self.pv_back_preview_layout)
         self.sprite_group_tab = QFrame()
         self.sprite_group_tab.setLayout(self.sprite_group_chooser_layout)
 
@@ -241,7 +225,6 @@ class Ui_SongFarcCreatorWindow(object):
 
         self.export_farc_pushbutton = QPushButton(Form)
         self.MainVLayout.addWidget(self.export_farc_pushbutton)
-
 
         self.song_info_label.setFont(header_font)
         self.select_layout_label.setFont(header_font)

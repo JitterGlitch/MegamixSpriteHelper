@@ -2061,6 +2061,7 @@ class SpriteGroupPreview(QWidget):
 
         self.group_combobox = QEnumComboBox()
         self.group_combobox.setEnumClass(self.sprite_group_enum)
+        self.group_combobox.setToolTip("Sprite group")
         self._prev_enum = self.group_combobox.currentEnum()
 
         self.sprite_group_status_display = GroupStatusDisplay()
@@ -3133,10 +3134,12 @@ class SpriteSelector(QWidget):
         self.current_sprite_combobox.addItem("Background")
         self.current_sprite_combobox.addItem("Logo")
         self.current_sprite_combobox.addItem("Thumbnail")
+        self.current_sprite_combobox.setToolTip("Current sprite")
 
 
         self.sprite_group_combobox = QEnumComboBox()
         self.sprite_group_combobox.setEnumClass(SpriteGroup)
+        self.sprite_group_combobox.setToolTip("Sprite group")
 
         self.load_image_button = QPushButton()
 
@@ -3144,16 +3147,19 @@ class SpriteSelector(QWidget):
         self.flip_horizontal_button.setIcon(QPixmap(":icon/Images/tabler--flip-horizontal.png"))
         self.flip_horizontal_button.setIconSize(QSize(25, 25))
         self.flip_horizontal_button.setFixedWidth(35)
+        self.flip_horizontal_button.setToolTip("Horizontal Flip")
 
         self.flip_vertical_button = QPushButton()
         self.flip_vertical_button.setIcon(QPixmap(":icon/Images/tabler--flip-vertical.png"))
         self.flip_vertical_button.setIconSize(QSize(25, 25))
         self.flip_vertical_button.setFixedWidth(35)
+        self.flip_vertical_button.setToolTip("Vertical Flip")
 
         self.open_in_external_button = QPushButton()
         self.open_in_external_button.setIcon(QPixmap(":icon/Images/tabler--pencil-share.png"))
         self.open_in_external_button.setIconSize(QSize(25, 25))
         self.open_in_external_button.setFixedWidth(35)
+        self.open_in_external_button.setToolTip("Open current sprite in external editor")
 
         horizontal_spacer = QSpacerItem(660, 0, QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Minimum)
 
