@@ -151,6 +151,7 @@ class SpriteColorSquare(QLabel):
 
 class SpriteColorPicker(QWidget):
     editingFinished = Signal()
+    valueChanged = Signal()
     def __init__(self):
         super().__init__()
         self.open_color_picker_button = QPushButton()
@@ -192,10 +193,11 @@ class SpriteColorPicker(QWidget):
         self.drop_shadow_color_changed()
     def drop_shadow_color_changed(self):
         self.color_history_list[0].update_color(self.color_picker.currentColor())
-        self.editingFinished.emit()
+        self.valueChanged.emit()
     def drop_shadow_color_accepted(self):
         for i in reversed(range(self.color_history_list.__len__() - 1)):
             self.color_history_list[i+1].update_color(self.color_history_list[i].color)
+        self.editingFinished.emit()
     def open_color_picker_button_callback(self):
         self.color_picker.show()
 
@@ -368,6 +370,7 @@ class SpriteSettingControl(QWidget):
 
             self.colorpicker = SpriteColorPicker()
             self.colorpicker.editingFinished.connect(self.editingFinished.emit)
+            self.colorpicker.valueChanged.connect(self.valueChanged.emit)
 
             self.layout.addWidget(self.info_label)
             self.layout.addWidget(self.colorpicker)
