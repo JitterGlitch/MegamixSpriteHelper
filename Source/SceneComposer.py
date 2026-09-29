@@ -2870,17 +2870,17 @@ class SceneComposerObjects:
             case SpriteType.THUMBNAIL:
                 return self.sprite_groups[sprite_group].thumbnail
 
-    def create_background_jacket_texture(self, sprite_group: SpriteGroup):
+    def create_background_jacket_texture(self, sprite_group: QControllableSprites):
         sprite_status_list = []
 
-        self.enum_to_obj(sprite_group).background.update_sprite(hq_output=True)
-        self.enum_to_obj(sprite_group).background.SpriteRedraw.emit()
+        sprite_group.background.update_sprite(hq_output=True)
+        sprite_group.background.SpriteRedraw.emit()
 
-        self.enum_to_obj(sprite_group).jacket.update_sprite(hq_output=True)
-        self.enum_to_obj(sprite_group).jacket.SpriteRedraw.emit()
+        sprite_group.jacket.update_sprite(hq_output=True)
+        sprite_group.jacket.SpriteRedraw.emit()
 
-        sprite_status_list.append(self.enum_to_obj(sprite_group).background.get_sprite_status())
-        sprite_status_list.append(self.enum_to_obj(sprite_group).jacket.get_sprite_status())
+        sprite_status_list.append(sprite_group.background.get_sprite_status())
+        sprite_status_list.append(sprite_group.jacket.get_sprite_status())
 
         highest_sprite_status = get_highest_status(sprite_status_list)
 
@@ -2893,25 +2893,25 @@ class SceneComposerObjects:
         painter.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform)
         painter.setRenderHint(QPainter.RenderHint.VerticalSubpixelPositioning)
 
-        # Background needs to be extended bit beyond what game uses to prevent light edges on sides
-        painter.drawPixmap(1, 1, self.enum_to_obj(sprite_group).background.pixmap().scaled(1282, 722))
-        painter.drawPixmap(2, 2, self.enum_to_obj(sprite_group).background.pixmap())
+        # Background needs to be extended a bit beyond what game uses to prevent light edges on sides
+        painter.drawPixmap(1, 1, sprite_group.background.pixmap().scaled(1282, 722))
+        painter.drawPixmap(2, 2, sprite_group.background.pixmap())
 
-        # To prevent jagged edges on the jacket , semi-transparent edges are added to create poor-man's anti-aliasing
+        # To prevent jagged edges on the jacket , semi-transparent edges are added to create poor-man's antialiasing
         painter.setOpacity(50 / 255)
-        painter.drawImage(1286, 2, self.enum_to_obj(sprite_group).jacket.image_without_fix.scaled(502, 502))
+        painter.drawImage(1286, 2, sprite_group.jacket.image_without_fix.scaled(502, 502))
         painter.setOpacity(255)
-        painter.drawImage(1287, 3, self.enum_to_obj(sprite_group).jacket.image_without_fix)
+        painter.drawImage(1287, 3, sprite_group.jacket.image_without_fix)
         painter.end()
 
         return background_jacket_texture, highest_sprite_status
-    def create_logo_texture(self, sprite_group_list:list[tuple[SpriteGroup, str]]):
+    def create_logo_texture(self, sprite_group_list:list[tuple[QControllableSprites, str]]):
         sprite_status_list = []
 
         for sprite_group in sprite_group_list:
-            self.enum_to_obj(sprite_group[0]).logo.update_sprite(hq_output=True)
-            self.enum_to_obj(sprite_group[0]).logo.SpriteRedraw.emit()
-            sprite_status_list.append(self.enum_to_obj(sprite_group[0]).logo.get_sprite_status())
+            sprite_group[0].logo.update_sprite(hq_output=True)
+            sprite_group[0].logo.SpriteRedraw.emit()
+            sprite_status_list.append(sprite_group[0].logo.get_sprite_status())
 
         highest_sprite_status = get_highest_status(sprite_status_list)
 
@@ -2926,7 +2926,7 @@ class SceneComposerObjects:
         x,y = 2,2
         logo_info_list = []
         for sprite_group in sprite_group_list:
-            logo = self.enum_to_obj(sprite_group[0]).logo.pixmap()
+            logo = sprite_group[0].logo.pixmap()
             prefix = sprite_group[1]
 
             painter.drawPixmap(x, y, logo)
@@ -2935,19 +2935,19 @@ class SceneComposerObjects:
 
         painter.end()
         return logo_texture,logo_info_list,highest_sprite_status
-    def create_thumbnail_texture(self, sprite_group: SpriteGroup) -> QImage:
+    def create_thumbnail_texture(self, sprite_group: QControllableSprites) -> QImage:
         sprite_status_list = []
 
-        self.enum_to_obj(sprite_group).thumbnail.update_sprite(hq_output=True)
-        self.enum_to_obj(sprite_group).thumbnail.SpriteRedraw.emit()
+        sprite_group.thumbnail.update_sprite(hq_output=True)
+        sprite_group.thumbnail.SpriteRedraw.emit()
 
-        sprite_status_list.append(self.enum_to_obj(sprite_group).thumbnail.get_sprite_status())
+        sprite_status_list.append(sprite_group.thumbnail.get_sprite_status())
 
         highest_sprite_status = get_highest_status(sprite_status_list)
 
 
-        thumbnail = QPixmap(self.enum_to_obj(sprite_group).thumbnail.pixmap_no_mask)
-        thumbnail_dummy = QPixmap(u":icon/Images/Dummy/SONG_JK_THUMBNAIL_DUMMY.png")
+        thumbnail = QPixmap(sprite_group.thumbnail.pixmap_no_mask)
+        thumbnail_dummy = QPixmap(u":icon/Images/Dummy/THUMBNAIL_BASE.png")
         thumbnail_texture = QImage(QSize(128, 64), QImage.Format.Format_RGBA8888)
         thumbnail_texture.fill(Qt.GlobalColor.transparent)
 
@@ -2971,21 +2971,21 @@ class SceneComposerObjects:
         painter_fixer.drawImage(0, 0, thumbnail_base)
         painter_fixer.end()
         return thumbnail_texture,highest_sprite_status
-    def create_pv_back_texture(self, sprite_group: SpriteGroup):
+    def create_pv_back_texture(self, sprite_group: QControllableSprites):
         sprite_status_list = []
 
-        self.enum_to_obj(sprite_group).background.update_sprite(hq_output=True)
-        self.enum_to_obj(sprite_group).background.SpriteRedraw.emit()
+        sprite_group.background.update_sprite(hq_output=True)
+        sprite_group.background.SpriteRedraw.emit()
 
-        self.enum_to_obj(sprite_group).jacket.update_sprite(hq_output=True)
-        self.enum_to_obj(sprite_group).jacket.SpriteRedraw.emit()
+        sprite_group.jacket.update_sprite(hq_output=True)
+        sprite_group.jacket.SpriteRedraw.emit()
 
-        self.enum_to_obj(sprite_group).logo.update_sprite(hq_output=True)
-        self.enum_to_obj(sprite_group).logo.SpriteRedraw.emit()
+        sprite_group.logo.update_sprite(hq_output=True)
+        sprite_group.logo.SpriteRedraw.emit()
 
-        sprite_status_list.append(self.enum_to_obj(sprite_group).background.get_sprite_status())
-        sprite_status_list.append(self.enum_to_obj(sprite_group).jacket.get_sprite_status())
-        sprite_status_list.append(self.enum_to_obj(sprite_group).logo.get_sprite_status())
+        sprite_status_list.append(sprite_group.background.get_sprite_status())
+        sprite_status_list.append(sprite_group.jacket.get_sprite_status())
+        sprite_status_list.append(sprite_group.logo.get_sprite_status())
 
         highest_sprite_status = get_highest_status(sprite_status_list)
 
