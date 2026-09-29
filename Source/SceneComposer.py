@@ -1320,8 +1320,8 @@ class QDropShadow(QGraphicsPixmapItem):
         self.t_edges = get_transparent_edge_pixels(self.sprite_image)
         self.rect = get_real_image_area(self.sprite_image)
         self.t_rect = self.rect
-        self.x = 0
-        self.y = 0
+        self.x = self.rect.x()
+        self.y = self.rect.y()
 
         self.edge_cutoff_results = None
 
@@ -1406,8 +1406,8 @@ class QDropShadow(QGraphicsPixmapItem):
         self.sprite_image = self.logo_object.sprite_image
         self.t_edges = get_transparent_edge_pixels(self.sprite_image)
         self.rect = get_real_image_area(self.sprite_image)
-        self.x = 0
-        self.y = 0
+        self.x = self.rect.x()
+        self.y = self.rect.y()
 
         self.initial_calc = True
         self.last_value = {}
@@ -1440,10 +1440,10 @@ class QDropShadow(QGraphicsPixmapItem):
 
         match sprite_setting:
             case SpriteSetting.HORIZONTAL_OFFSET:
-                return (self.logo_object.edit_controls[SpriteSetting.HORIZONTAL_OFFSET].range[0]+blur_radius-curr_logo_h_offset,
+                return (self.logo_object.edit_controls[SpriteSetting.HORIZONTAL_OFFSET].range[0]+blur_radius+curr_logo_h_offset,
                         self.logo_object.edit_controls[SpriteSetting.HORIZONTAL_OFFSET].range[1]-blur_radius-curr_logo_h_offset)
             case SpriteSetting.VERTICAL_OFFSET:
-                return (self.logo_object.edit_controls[SpriteSetting.VERTICAL_OFFSET].range[0]+blur_radius-curr_logo_v_offset,
+                return (self.logo_object.edit_controls[SpriteSetting.VERTICAL_OFFSET].range[0]+blur_radius+curr_logo_v_offset,
                         self.logo_object.edit_controls[SpriteSetting.VERTICAL_OFFSET].range[1]-blur_radius-curr_logo_v_offset)
 
             case SpriteSetting.OPACITY:
