@@ -859,7 +859,7 @@ class MainWindow(QMainWindow):
 
         self.current_project_file_path = None
         self.changes_made_since_load = False
-        self.SC.SpriteUpdated.connect(self.sprite_changed_callback)
+        self.SC.SpriteUserEdit.connect(self.sprite_changed_callback)
 
 
         preview_string = ""
@@ -1479,6 +1479,9 @@ class SongFarcCreatorWindow(QWidget):
         if output_location == "":
             print("Directory wasn't chosen")
         else:
+            if main_window.current_project_file_path is not None:
+                main_window.save_mmsh_project_file()
+
             config.last_used_directory = Path(output_location)
 
             bg_jk_image , bg_jk_highest_sprite_status = main_window.SC.create_background_jacket_texture(default_sprite_group)
@@ -1519,9 +1522,6 @@ class SongFarcCreatorWindow(QWidget):
 
             if self.main_box.generate_spr_db_after_export_checkbox.isChecked():
                 main_window.generate_spr_db_button_callback(path=output_location)
-
-            if main_window.current_project_file_path is not None:
-                main_window.save_mmsh_project_file()
 
     def switch_pv_back_scene_sprite_group(self):
         self.scene_view.scene().switch_sprite_group(main_window.SC.enum_to_obj(self.main_box.pv_back_sprite_group_widget.get_selected_sprite_group()))

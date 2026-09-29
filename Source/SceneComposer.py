@@ -618,6 +618,7 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
     SpriteStatusWait = Signal()
     SpriteRedraw = Signal()
     NewImageLoaded = Signal()
+    SpriteUserUpdate = Signal()
     def __init__(self,
                  sprite:str | io.BytesIO,
                  sprite_type:SpriteType,
@@ -757,6 +758,7 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
                                             **parameters)
                 edit.valueChanged.connect(self.update_sprite)
                 edit.editingFinished.connect(self.redraw_and_check_status)
+                edit.editingFinished.connect(self.send_user_edit_signal)
                 editable_values[setting[0].value] = edit
 
             if setting[0] == SpriteSetting.COLOR:
@@ -766,12 +768,16 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
                                             **parameters)
                 edit.valueChanged.connect(self.update_sprite)
                 edit.editingFinished.connect(self.redraw_and_check_status)
+                edit.editingFinished.connect(self.send_user_edit_signal)
                 editable_values[setting[0].value] = edit
         return editable_values
 
     def add_edit_controls_to(self,layout:QLayout):
         for control in self.edit_controls:
             layout.addWidget(self.edit_controls[control])
+
+    def send_user_edit_signal(self):
+        self.SpriteUserUpdate.emit()
 
     def hide_edit_controls(self,state):
         for control in self.edit_controls:
@@ -2100,6 +2106,7 @@ class SpriteGroupPreview(QWidget):
 class QControllableSprites(QObject):
     GroupRedraw = Signal()
     SpriteUpdated = Signal()
+    GroupUserEdit = Signal()
     def __init__(self, /):
         super().__init__()
         self.thumbnail = QThumbnail(u":icon/Images/Dummy/SONG_JK_THUMBNAIL_DUMMY.png",
@@ -2120,9 +2127,12 @@ class QControllableSprites(QObject):
         for sprite in self.list:
             sprite.bind_watcher(self.sprite_updater)
             sprite.SpriteRedraw.connect(self.sprite_updated_callback)
+            sprite.SpriteUserUpdate.connect(self.sprite_user_edit_callback)
             sprite.update_all_ranges(sprite.t_rect)
     def sprite_updated_callback(self):
         self.SpriteUpdated.emit()
+    def sprite_user_edit_callback(self):
+        self.GroupUserEdit.emit()
     def update_sprites(self):
         for sprite in self.list:
             sprite.update_sprite()
@@ -2852,6 +2862,7 @@ class QPreviewScenes:
             scene.switch_sprite_group(sprite_object)
 class SceneComposerObjects(QObject):
     SpriteUpdated = Signal()
+    SpriteUserEdit = Signal()
     def __init__(self, /):
         super().__init__()
         self.Group_A_Sprites = QControllableSprites()
@@ -2867,10 +2878,13 @@ class SceneComposerObjects(QObject):
 
         for group in self.sprite_groups.values():
             group.SpriteUpdated.connect(self.sprite_updated_callback)
+            group.GroupUserEdit.connect(self.sprite_user_edit_callback)
             for sprite in group.list:
                 sprite.redraw_and_check_status()
     def sprite_updated_callback(self):
         self.SpriteUpdated.emit()
+    def sprite_user_edit_callback(self):
+        self.SpriteUserEdit.emit()
     def enum_to_obj(self,sprite_group:SpriteGroup):
         return self.sprite_groups[sprite_group]
     def type_to_sprite(self,sprite_group:SpriteGroup,type:SpriteType):
