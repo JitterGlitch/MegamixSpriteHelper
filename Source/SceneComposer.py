@@ -1261,6 +1261,15 @@ class QLogo(QSpriteBase):
         self.edit_controls[SpriteSetting.BRIGHTNESS.value].setValue(100)
 
     def scan_edges(self):
+        if not self.is_visible:
+            self.edge_cutoff_results = {
+                'left': False,
+                'right': False,
+                'top': False,
+                'bottom': False
+            }
+            return self.edge_cutoff_results
+
         scene_rect = self.sprite_scene.sceneRect()
 
         rect = self.t_rect
