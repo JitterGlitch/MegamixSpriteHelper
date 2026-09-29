@@ -817,7 +817,10 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
                 width_factor = self.required_size().width() / (self.sprite_image.width()-self.t_edges["Left"]-self.t_edges["Right"])
                 height_factor = self.required_size().height() / (self.sprite_image.height()-self.t_edges["Left"]-self.t_edges["Right"])
 
-                return round_up(min(width_factor,height_factor,1),3),1.00
+                highest_factor = max(width_factor,height_factor)
+                minimum_scale = min(highest_factor,1)
+
+                return round_up(minimum_scale,3),1.00
 
             case SpriteSetting.ROTATION:
                 return -360,0
