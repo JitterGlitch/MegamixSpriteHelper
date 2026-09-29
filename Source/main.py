@@ -942,10 +942,14 @@ class MainWindow(QMainWindow):
         print("Update check failed:", msg)
 
     def save_mmsh_project_file(self):
-        output_path , _ = (QFileDialog.getSaveFileName(self,
-                                                       f"Save MMSH project file",
-                                                       "Project.mmsh",
-                                                       "MMSH project files (*.mmsh);;All files (*)"))
+        if self.current_project_file_path is None:
+            output_path , _ = (QFileDialog.getSaveFileName(self,
+                                                           f"Save MMSH project file",
+                                                           "Project.mmsh",
+                                                           "MMSH project files (*.mmsh);;All files (*)"))
+        else:
+            output_path = self.current_project_file_path
+
         if output_path == "":
             print("User canceled out")
         else:
@@ -955,6 +959,9 @@ class MainWindow(QMainWindow):
 
 
             ProjectFile.save_project(self.SC,output_path,config)
+            self.current_project_file_path = output_path
+            self.changes_made_since_load = False
+            self.update_window_title()
     def open_mmsh_project_file(self,path=None):
         if path is None:
             path, _ = (QFileDialog.getOpenFileName(self,
@@ -965,11 +972,20 @@ class MainWindow(QMainWindow):
             print("User canceled out")
         else:
             path = Path(path)
+            self.close_mmsh_project_file()
             ProjectFile.load_project(self.SC,path,Path(config.saved_files_location))
             self.current_project_file_path = path
             self.changes_made_since_load = False
             self.update_window_title()
+            self.close_project_action.setEnabled(True)
             self.recent_files.add(path)
+    def close_mmsh_project_file(self):
+        self.current_project_file_path = None
+        self.changes_made_since_load = False
+        self.close_project_action.setEnabled(False)
+        for group in self.SC.sprite_groups.values():
+            for sprite in group.list:
+                sprite.load_placeholder_sprites()
     def open_mmsh_config_folder(self):
         return QDesktopServices.openUrl(QUrl.fromLocalFile(config.saved_files_location))
     def sprite_changed_callback(self):
@@ -1024,6 +1040,8 @@ class MainWindow(QMainWindow):
         self.file_menu.addAction("Open Project file", self.open_mmsh_project_file).setShortcut("Ctrl+O")
         self.recent_menu = self.file_menu.addMenu("Open Recent")
         self.recent_menu.aboutToShow.connect(self._refresh_recent_menu)
+        self.close_project_action = self.file_menu.addAction("Close Project file", self.close_mmsh_project_file)
+        self.close_project_action.setEnabled(False)
         self.file_menu.addAction("Save Project file", self.save_mmsh_project_file).setShortcut("Ctrl+S")
         self.file_menu.addAction("Open MMSH folder" , self.open_mmsh_config_folder)
 

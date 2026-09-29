@@ -858,6 +858,10 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
             self.sprite_image = qimage
             self.hash = compute_file_hash(image_location)
 
+        self.new_image_setup(reset_values)
+        return ["Updated"]
+
+    def new_image_setup(self,reset_values):
         self.t_edges = get_transparent_edge_pixels(self.sprite_image)
         self.rect = get_real_image_area(self.sprite_image)
         self.x = self.rect.x()
@@ -876,7 +880,12 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
 
         self.update_sprite()
         self.redraw_and_check_status()
-        return ["Updated"]
+    def load_placeholder_sprites(self):
+        self.location = self.dummy_location
+        self.sprite_image = QImage(self.location)
+        self.hash = compute_file_hash(self.location)
+        self.new_image_setup(True)
+
     def bind_watcher(self,watcher:PathWatcher):
         self.watcher = watcher
     def update_location(self,image_location):
