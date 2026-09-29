@@ -963,6 +963,16 @@ class MainWindow(QMainWindow):
             self.changes_made_since_load = False
             self.update_window_title()
     def open_mmsh_project_file(self,path=None):
+        if self.current_project_file_path is not None:
+            if self.changes_made_since_load:
+                match self.project_not_saved_messagebox():
+                    case "Save":
+                        self.save_mmsh_project_file()
+                    case "Cancel":
+                        return
+                    case "Discard":
+                        pass
+
         if path is None:
             path, _ = (QFileDialog.getOpenFileName(self,
                                                           f"Load MMSH project file",
@@ -980,12 +990,38 @@ class MainWindow(QMainWindow):
             self.close_project_action.setEnabled(True)
             self.recent_files.add(path)
     def close_mmsh_project_file(self):
+        if self.current_project_file_path is not None:
+            if self.changes_made_since_load:
+                match self.project_not_saved_messagebox():
+                    case "Save":
+                        self.save_mmsh_project_file()
+                    case "Cancel":
+                        return
+                    case "Discard":
+                        pass
+
         self.current_project_file_path = None
         self.changes_made_since_load = False
         self.close_project_action.setEnabled(False)
         for group in self.SC.sprite_groups.values():
             for sprite in group.list:
                 sprite.load_placeholder_sprites()
+    def project_not_saved_messagebox(self):
+        msg_box = QMessageBox(self)
+        msg_box.setWindowTitle("Project not saved")
+        msg_box.setIcon(QMessageBox.Icon.Question)
+        msg_box.setText("Do you want to save your changes?")
+        msg_box.setInformativeText("Please select one of the options below.")
+
+        save_btn = msg_box.addButton("Save", QMessageBox.ButtonRole.AcceptRole)
+        discard_btn = msg_box.addButton("Discard", QMessageBox.ButtonRole.DestructiveRole)
+        cancel_btn = msg_box.addButton("Cancel", QMessageBox.ButtonRole.RejectRole)
+
+        msg_box.setDefaultButton(save_btn)
+        msg_box.exec()
+
+        clicked = msg_box.clickedButton()
+        return clicked.text()
     def open_mmsh_config_folder(self):
         return QDesktopServices.openUrl(QUrl.fromLocalFile(config.saved_files_location))
     def sprite_changed_callback(self):
@@ -1000,10 +1036,18 @@ class MainWindow(QMainWindow):
             else:
                 self.setWindowTitle(f"{self.current_project_file_path.name} - {self.window_tite_base}")
 
-
-
     def resizeEvent(self,event):
         self.space_out_scenes()
+    def closeEvent(self, event):
+        if self.current_project_file_path is not None:
+            if self.changes_made_since_load:
+                match self.project_not_saved_messagebox():
+                    case "Save":
+                        self.save_mmsh_project_file()
+                    case "Cancel":
+                        event.ignore()
+                    case "Discard":
+                        pass
 
     def display_scenes(self):
         self.populate_display_scene_menu()
