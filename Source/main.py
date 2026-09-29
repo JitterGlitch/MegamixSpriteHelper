@@ -1535,4 +1535,9 @@ if __name__ == "__main__":
     app.setStyle("Fusion")
     main_window = MainWindow()
     main_window.show()
+
+    if len(sys.argv) > 1:
+        filepath = sys.argv[1]
+        main_window.open_mmsh_project_file(filepath)
+
     app.exec()
