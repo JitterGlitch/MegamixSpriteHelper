@@ -1465,9 +1465,9 @@ class SongFarcCreatorWindow(QWidget):
         song_id = pad_number(int(self.main_box.farc_song_id_spinbox.value()))
         compression = self.main_box.compression_comboBox.currentEnum()
 
-        default_sprite_group = self.main_box.default_sprite_group_widget.get_selected_sprite_group()
-        ex_sprite_group = self.main_box.ex_sprite_group_widget.get_selected_sprite_group()
-        pv_back_sprite_group = self.main_box.pv_back_sprite_group_widget.get_selected_sprite_group()
+        default_sprite_group = self.SC.enum_to_obj(self.main_box.default_sprite_group_widget.get_selected_sprite_group())
+        ex_sprite_group = self.SC.enum_to_obj(self.main_box.ex_sprite_group_widget.get_selected_sprite_group())
+        pv_back_sprite_group = self.SC.enum_to_obj(self.main_box.pv_back_sprite_group_widget.get_selected_sprite_group())
 
         ex_sprites_checked = self.main_box.ex_sprites_checkbox.isChecked()
         base_logo_visible = main_window.SC.enum_to_obj(self.main_box.default_sprite_group_widget.get_selected_sprite_group()).logo.is_visible
@@ -1519,6 +1519,9 @@ class SongFarcCreatorWindow(QWidget):
 
             if self.main_box.generate_spr_db_after_export_checkbox.isChecked():
                 main_window.generate_spr_db_button_callback(path=output_location)
+
+            if main_window.current_project_file_path is not None:
+                main_window.save_mmsh_project_file()
 
     def switch_pv_back_scene_sprite_group(self):
         self.scene_view.scene().switch_sprite_group(main_window.SC.enum_to_obj(self.main_box.pv_back_sprite_group_widget.get_selected_sprite_group()))
