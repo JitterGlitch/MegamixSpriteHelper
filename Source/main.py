@@ -1218,16 +1218,6 @@ class MainWindow(QMainWindow):
                 x = x + 1
 
     def generate_preview(self,target:OutputTarget):
-        self.main_box.sprite_selector.get_current_sprite_group_object().jacket.update_sprite(hq_output=True)
-        self.main_box.sprite_selector.get_current_sprite_group_object().background.update_sprite(hq_output=True)
-        self.main_box.sprite_selector.get_current_sprite_group_object().thumbnail.update_sprite(hq_output=True)
-        self.main_box.sprite_selector.get_current_sprite_group_object().logo.update_sprite(hq_output=True)
-
-        self.main_box.sprite_selector.get_current_sprite_group_object().jacket.redraw_and_check_status()
-        self.main_box.sprite_selector.get_current_sprite_group_object().background.redraw_and_check_status()
-        self.main_box.sprite_selector.get_current_sprite_group_object().thumbnail.redraw_and_check_status()
-        self.main_box.sprite_selector.get_current_sprite_group_object().logo.redraw_and_check_status()
-
         if len(self.selected_scenes) == 0:
             return
         if len(self.selected_scenes) > 1:
@@ -1237,6 +1227,13 @@ class MainWindow(QMainWindow):
             width = 1920
             height = 1080
 
+        for sprite in self.main_box.sprite_selector.get_current_sprite_group_object().list:
+            for slave in sprite.sprite_slaves_list:
+                slave._hovered = False
+
+            sprite.update_sprite(hq_output=True)
+            sprite.redraw_and_check_status()
+
         preview = QImage(QSize(width,height),QImage.Format.Format_ARGB32)
         painter = QPainter(preview)
 
@@ -1245,7 +1242,6 @@ class MainWindow(QMainWindow):
         w = 0
         h = 0
         for scene in self.selected_scenes:
-            print(QRectF(x,y,scene.width(), scene.height()))
             scene.render(painter,target=QRectF(w,h,1920, 1080))
 
             if x == 1:
