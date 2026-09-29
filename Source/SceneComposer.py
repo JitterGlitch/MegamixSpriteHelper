@@ -3136,7 +3136,6 @@ class SpriteSelector(QWidget):
         self.current_sprite_combobox.addItem("Thumbnail")
         self.current_sprite_combobox.setToolTip("Current sprite")
 
-
         self.sprite_group_combobox = QEnumComboBox()
         self.sprite_group_combobox.setEnumClass(SpriteGroup)
         self.sprite_group_combobox.setToolTip("Sprite group")
@@ -3168,8 +3167,6 @@ class SpriteSelector(QWidget):
 
         self.sprite_controls = self.build_sprite_controls()
 
-
-
         self.first_line_layout.addWidget(self.current_sprite_combobox)
         self.first_line_layout.addWidget(self.sprite_group_combobox)
 
@@ -3200,7 +3197,6 @@ class SpriteSelector(QWidget):
 
     def flip_current_sprite(self,flip_type):
         self.get_current_sprite_object().toggle_flip(flip_type)
-
     def open_sprite_in_external_editor(self):
         current_sprite = self.get_current_sprite_object()
         return QDesktopServices.openUrl(QUrl.fromLocalFile(current_sprite.location))
@@ -3218,7 +3214,6 @@ class SpriteSelector(QWidget):
 
         self.update_tracked_sprite_status()
         self.update_shared_controls()
-
     def sprite_group_changed(self):
         current_enum = self.get_current_sprite_group_enum()
         current_sprite_group = self.get_current_sprite_group_object()
@@ -3250,7 +3245,6 @@ class SpriteSelector(QWidget):
         self.update_tracked_sprite_status()
         self.update_shared_controls()
 
-
     def update_tracked_sprite_status(self):
         current_sprite = self.get_current_sprite_object()
         tracked = self.sprite_status_display.tracked
@@ -3263,7 +3257,6 @@ class SpriteSelector(QWidget):
         new_tracked.SpriteStatusWait.connect(lambda: self.sprite_status_display.set_status(SpriteStatus.PLEASE_WAIT))
         new_tracked.SpriteRedraw.connect(lambda: self.sprite_status_display.update_status())
         self.sprite_status_display.update_status()
-
     def update_shared_controls(self):
         state = self.SC.enum_to_obj(self.sprite_group_combobox.currentEnum()).logo.is_visible
 
@@ -3277,6 +3270,5 @@ class SpriteSelector(QWidget):
         else:
             is_placeholder = False
 
-        #TODO Make this more obvious by changing color of the icon
         self.open_in_external_button.setEnabled(not is_placeholder)
 
