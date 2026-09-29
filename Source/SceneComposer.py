@@ -2090,6 +2090,7 @@ class SpriteGroupPreview(QWidget):
 
 class QControllableSprites(QObject):
     GroupRedraw = Signal()
+    SpriteUpdated = Signal()
     def __init__(self, /):
         super().__init__()
         self.thumbnail = QThumbnail(u":icon/Images/Dummy/SONG_JK_THUMBNAIL_DUMMY.png",
@@ -2112,7 +2113,7 @@ class QControllableSprites(QObject):
             sprite.SpriteRedraw.connect(self.sprite_updated_callback)
             sprite.update_all_ranges(sprite.t_rect)
     def sprite_updated_callback(self):
-        self.GroupRedraw.emit()
+        self.SpriteUpdated.emit()
     def update_sprites(self):
         for sprite in self.list:
             sprite.update_sprite()
@@ -2840,8 +2841,10 @@ class QPreviewScenes:
     def switch_sprite_group(self,sprite_object):
         for scene in self.scene_list:
             scene.switch_sprite_group(sprite_object)
-class SceneComposerObjects:
-    def __init__(self):
+class SceneComposerObjects(QObject):
+    SpriteUpdated = Signal()
+    def __init__(self, /):
+        super().__init__()
         self.Group_A_Sprites = QControllableSprites()
         self.Group_B_Sprites = QControllableSprites()
         self.Group_C_Sprites = QControllableSprites()
@@ -2854,9 +2857,11 @@ class SceneComposerObjects:
         }
 
         for group in self.sprite_groups.values():
+            group.SpriteUpdated.connect(self.sprite_updated_callback)
             for sprite in group.list:
                 sprite.redraw_and_check_status()
-
+    def sprite_updated_callback(self):
+        self.SpriteUpdated.emit()
     def enum_to_obj(self,sprite_group:SpriteGroup):
         return self.sprite_groups[sprite_group]
     def type_to_sprite(self,sprite_group:SpriteGroup,type:SpriteType):

@@ -857,13 +857,18 @@ class MainWindow(QMainWindow):
         self.recent_files = RecentFilesMenu(self, max_files=10)
         self.recent_files.file_selected.connect(self.open_mmsh_project_file)
 
+        self.current_project_file_path = None
+        self.changes_made_since_load = False
+        self.SC.SpriteUpdated.connect(self.sprite_changed_callback)
+
+
         preview_string = ""
         if config.is_pre_release:
             preview_string = " (Preview)"
         else:
             self.update_check()
-
-        self.setWindowTitle("Megamix Sprite Helper" + " " + str(config.version)+preview_string)
+        self.window_tite_base = "Megamix Sprite Helper" + " " + str(config.version)+preview_string
+        self.setWindowTitle(self.window_tite_base)
 
         self.thumbnail_creator = ThumbnailWindow()
         self.song_farc_creator = SongFarcCreatorWindow(self.SC)
@@ -961,9 +966,25 @@ class MainWindow(QMainWindow):
         else:
             path = Path(path)
             ProjectFile.load_project(self.SC,path,Path(config.saved_files_location))
+            self.current_project_file_path = path
+            self.changes_made_since_load = False
+            self.update_window_title()
             self.recent_files.add(path)
     def open_mmsh_config_folder(self):
         return QDesktopServices.openUrl(QUrl.fromLocalFile(config.saved_files_location))
+    def sprite_changed_callback(self):
+        self.changes_made_since_load = True
+        self.update_window_title()
+    def update_window_title(self):
+        if self.current_project_file_path is None:
+            self.setWindowTitle(f"{self.window_tite_base}")
+        else:
+            if self.changes_made_since_load:
+                self.setWindowTitle(f"{self.current_project_file_path.name}* - {self.window_tite_base}")
+            else:
+                self.setWindowTitle(f"{self.current_project_file_path.name} - {self.window_tite_base}")
+
+
 
     def resizeEvent(self,event):
         self.space_out_scenes()
