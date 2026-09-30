@@ -973,6 +973,12 @@ class MainWindow(QMainWindow):
             path = Path(path)
             self.close_mmsh_project_file()
             ProjectFile.load_project(self.SC,path,Path(config.saved_files_location))
+
+            if type(self.main_box.sprite_selector.get_current_sprite_object().location) == str:
+                self.main_box.sprite_selector.open_sprite_location_button.setEnabled(True)
+            else:
+                self.main_box.sprite_selector.open_sprite_location_button.setEnabled(False)
+
             self.current_project_file_path = path
             self.changes_made_since_load = False
             self.update_window_title()
