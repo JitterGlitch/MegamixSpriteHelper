@@ -7,7 +7,7 @@ from SceneComposer import SpriteStatus
 
 class Compression(Enum):
     BC7 = "BC7"
-    ATI2 = "YCbCr (Broken)" # Bugged in current version of KKdLib-sys
+    ATI2 = "YCbCr"
     DXT5 = "DXT5"
     RGBA = "Uncompressed"
 
