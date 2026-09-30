@@ -1,5 +1,4 @@
-from PySide6.QtCore import (QCoreApplication, QMetaObject, QRect,
-                            QSize, Qt)
+from PySide6.QtCore import (QRect,QSize, Qt)
 from PySide6.QtGui import (QIcon)
 from PySide6.QtWidgets import (QAbstractScrollArea, QGridLayout,
                                QLabel, QPushButton, QScrollArea,
@@ -7,8 +6,7 @@ from PySide6.QtWidgets import (QAbstractScrollArea, QGridLayout,
 from superqt import QEnumComboBox
 
 from FarcCreator import Compression
-from SceneComposer import SpriteStatusDisplay, SpriteStatus
-from widgets import SongpackNameInput
+from SceneComposer import SpriteStatusDisplay, SpriteStatus, SongpackNameInput
 
 
 class Ui_ThumbnailTextureCreator(object):
@@ -20,6 +18,8 @@ class Ui_ThumbnailTextureCreator(object):
         icon = QIcon()
         icon.addFile(u":/icon/Icon-red.png", QSize(), QIcon.Mode.Normal, QIcon.State.Off)
         ThumbnailTextureCreator.setWindowIcon(icon)
+        ThumbnailTextureCreator.setWindowTitle( u"Thumbnail Texture Creator")
+
         self.verticalLayout = QVBoxLayout(ThumbnailTextureCreator)
         self.verticalLayout.setSpacing(5)
         self.verticalLayout.setObjectName(u"verticalLayout")
@@ -28,6 +28,8 @@ class Ui_ThumbnailTextureCreator(object):
         self.thumbnails_to_fillout_label = QLabel(ThumbnailTextureCreator)
         self.thumbnails_to_fillout_label.setObjectName(u"thumbnails_to_fillout_label")
         self.thumbnails_to_fillout_label.setMinimumSize(QSize(330, 0))
+        self.thumbnails_to_fillout_label.setText( u"ID's left to fill out: 0")
+
 
         self.ignore_warnings_checkbox = QCheckBox(ThumbnailTextureCreator)
         self.ignore_warnings_checkbox.setText("Ignore warnings")
@@ -42,17 +44,25 @@ class Ui_ThumbnailTextureCreator(object):
 
         self.load_folder_button = QPushButton(ThumbnailTextureCreator)
         self.load_folder_button.setObjectName(u"load_folder_button")
+        self.load_folder_button.setText(u"Load from folder")
+
 
         self.load_image_button = QPushButton(ThumbnailTextureCreator)
         self.load_image_button.setObjectName(u"load_image_button")
+        self.load_image_button.setText( u"Load image")
+
 
         self.mod_name_lineedit = SongpackNameInput()
 
         self.export_farc_button = QPushButton(ThumbnailTextureCreator)
         self.export_farc_button.setObjectName(u"export_farc_button")
+        self.export_farc_button.setText( u"Export Farc")
+
 
         self.delete_all_thumbs_button = QPushButton(ThumbnailTextureCreator)
         self.delete_all_thumbs_button.setObjectName(u"delete_all_thumbs_button")
+        self.delete_all_thumbs_button.setText(u"Remove all thumbnails")
+
 
         self.H_Layout = QHBoxLayout()
         self.farc_compression_label = QLabel()
@@ -99,19 +109,4 @@ class Ui_ThumbnailTextureCreator(object):
         self.scrollArea.setWidget(self.scrollAreaWidgetContents)
 
         self.verticalLayout.addWidget(self.scrollArea)
-
-
-        self.retranslateUi(ThumbnailTextureCreator)
-
-        QMetaObject.connectSlotsByName(ThumbnailTextureCreator)
-    # setupUi
-
-    def retranslateUi(self, ThumbnailTextureCreator):
-        ThumbnailTextureCreator.setWindowTitle(QCoreApplication.translate("ThumbnailTextureCreator", u"Thumbnail Texture Creator", None))
-        self.thumbnails_to_fillout_label.setText(QCoreApplication.translate("ThumbnailTextureCreator", u"ID's left to fill out: 0", None))
-        self.load_folder_button.setText(QCoreApplication.translate("ThumbnailTextureCreator", u"Load from folder", None))
-        self.load_image_button.setText(QCoreApplication.translate("ThumbnailTextureCreator", u"Load image", None))
-        self.export_farc_button.setText(QCoreApplication.translate("ThumbnailTextureCreator", u"Export Farc", None))
-        self.delete_all_thumbs_button.setText(QCoreApplication.translate("ThumbnailTextureCreator", u"Remove all thumbnails", None))
-    # retranslateUi
 

@@ -1,40 +1,32 @@
 import io
 import math
-import os
-import tempfile
-from enum import Enum, auto, StrEnum, IntEnum
+import re
+from enum import Enum, auto, StrEnum
 from pathlib import Path
-from typing import cast
 
 import PySide6
 import hashlib
 from PIL import Image
-from PySide6.QtCore import Qt, QRectF, QPoint, Signal, QObject, QSize, QRect, QIODevice, QFile, QThread, QTimer, QLine, QStandardPaths, QUrl
-from PySide6.QtGui import QImage, QPixmap, QPainter, QTransform, QColor, QPen, QMouseEvent, QFont, QDesktopServices, QPalette
-from PySide6.QtWidgets import QGraphicsPixmapItem, QFileDialog, QGraphicsScene, QLayout, QGraphicsView, QWidget, QScrollArea, QCheckBox, QRadioButton, QLabel, QVBoxLayout, QDoubleSpinBox, QSlider, QColorDialog, QPushButton, QHBoxLayout, QGraphicsBlurEffect, QFrame, QStyleOptionSlider, QStyle, QComboBox, QSpacerItem, QSizePolicy, QStackedWidget
-from superqt import QDoubleSlider, QIconifyIcon, QEnumComboBox, QCollapsible
-from superqt.utils import qthrottled
-
-from widgets import QSmarterMenu
+from PySide6.QtCore import Qt, QRectF, QPoint, Signal, QObject, QSize, QRect, QIODevice, QFile, QThread, QTimer, QLine, QUrl
+from PySide6.QtGui import QImage, QPixmap, QPainter, QTransform, QColor, QPen, QMouseEvent, QFont, QDesktopServices, QPalette, QBrush
+from PySide6.QtWidgets import QGraphicsPixmapItem, QGraphicsScene, QLayout, QGraphicsView, QWidget, QScrollArea, QCheckBox, QRadioButton, QLabel, QVBoxLayout, QDoubleSpinBox, QSlider, QColorDialog, QPushButton, QHBoxLayout, QGraphicsBlurEffect, QFrame, QStyleOptionSlider, QStyle, QComboBox, QSpacerItem, QSizePolicy, QStackedWidget, QMenu, QSpinBox
+from superqt import QDoubleSlider, QIconifyIcon, QEnumComboBox, QSearchableComboBox
 
 class State(Enum):
     FALLBACK = auto()
     IMAGE_TOO_SMALL = auto()
     UPDATED = auto()
-
 class SpriteType(StrEnum):
     JACKET = "Jacket"
     BACKGROUND = "Background"
     THUMBNAIL = "Thumbnail"
     LOGO = "Logo"
     DROP_SHADOW = "Drop Shadow"
-
 class TextureType(StrEnum):
     JACKET_BACKGROUND = "Jacket & Background Texture"
     LOGO = "Logo Texture"
     THUMBNAIL = "Thumbnail Texture"
     PV_BACK = "PV_BACK Texture"
-
 class SpriteSetting(StrEnum):
     HORIZONTAL_OFFSET = "Horizontal Offset"
     VERTICAL_OFFSET = "Vertical Offset"
@@ -56,13 +48,11 @@ class SpriteSetting(StrEnum):
             cls.BLUR_STRENGTH,
             cls.OPACITY
         )
-
 class PvBackLayout(Enum):
     MMSongSelect = "Megamix Song Select"
     MMResult = "Megamix Result"
     FTResult = "Future Tone Result"
     BackgroundOnly = "Background Only"
-
 class SpriteGroup(StrEnum):
     A = "Group A"
     B = "Group B"
@@ -132,6 +122,88 @@ def compute_file_hash(file_path):
             return hash_func.hexdigest()
 
     return None
+
+######################################################
+class QSmarterMenu(QMenu):
+    def mouseReleaseEvent(self, event):
+        action = self.actionAt(event.pos())
+        if action and action.isCheckable():
+            action.trigger()
+            event.accept()
+        else:
+            super().mouseReleaseEvent(event)
+
+class SongpackNameInput(QWidget):
+    def __init__(self,parent=None):
+        super().__init__(parent)
+        self.combo_box = QSearchableComboBox()
+        self.combo_box.setEditable(True)
+        self.combo_box.lineEdit().setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.combo_box.lineEdit().editingFinished.connect(self.clean_up_text)
+        self.combo_box.lineEdit().setPlaceholderText("Enter your mod name here")
+
+        palette = QPalette()
+        brush = QBrush(QColor(235, 51, 101, 255))
+        brush.setStyle(Qt.BrushStyle.SolidPattern)
+        palette.setBrush(QPalette.ColorGroup.Active, QPalette.ColorRole.ButtonText, brush)
+
+        self.delete_button = QPushButton()
+        self.delete_button.setPalette(palette)
+        self.delete_button.setIcon(QIconifyIcon("tabler:minus", color="red").pixmap(27, 27))
+        self.delete_button.setFixedSize(30,27)
+
+        self.layout = QHBoxLayout(self)
+        self.layout.setContentsMargins(0,0,0,0)
+
+        self.layout.addWidget(self.combo_box)
+        self.layout.addWidget(self.delete_button)
+
+        self.combo_box.setVisible(True)
+
+    def get_filtered_text(self):
+        mod_string = self.combo_box.currentText()
+        mod_string = re.sub(r'[^A-Za-z0-9_ ]+', '', mod_string)
+
+        return "_".join(mod_string.split())
+    def clean_up_text(self):
+        self.combo_box.setCurrentText(self.get_filtered_text())
+
+class PlaceholderDoubleSpinBox(QDoubleSpinBox):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.workaround = True
+        self.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
+
+    def wheelEvent(self, event, /):
+        if self.hasFocus():
+            QSpinBox.wheelEvent(self, event)
+        else:
+            event.ignore()
+
+    def focusInEvent(self, event):
+        #TODO do it properly // Shitty workaround for setupUi being executed bit later than init
+        if self.workaround:
+            self.setSpecialValueText(self.specialValueText())
+            self.setPlaceholderText(self.specialValueText())
+            self.workaround = False
+
+        if self.value() == self.minimum():
+            self.setSpecialValueText("")
+        super().focusInEvent(event)
+        QTimer.singleShot(10, self.selectAll)
+
+
+    def focusOutEvent(self, event):
+        if self.value() == self.minimum():
+            self.setSpecialValueText(self.placeholderText())
+        super().focusOutEvent(event)
+
+    def setPlaceholderText(self, text):
+        self._placeholder_text = text
+        self.setSpecialValueText(text)
+
+    def placeholderText(self):
+        return getattr(self, '_placeholder_text', "")
 
 ######################################################
 class SpriteColorSquare(QLabel):

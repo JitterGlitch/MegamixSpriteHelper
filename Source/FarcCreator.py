@@ -1,7 +1,6 @@
-from enum import Enum
-
 import kkdlib
 
+from enum import Enum
 from SceneComposer import SpriteStatus
 
 

@@ -13,37 +13,35 @@ from concurrent.futures import ThreadPoolExecutor
 from enum import Enum, auto
 from pathlib import Path
 
-
 import PIL.ImageShow
-
-import kkdlib
 
 import yaml
 from PIL import Image
 from PySide6.QtCore import Qt, QSize, Signal, QRectF, QStandardPaths, QUrl, QPoint, QCoreApplication, QSettings, QObject
 from PySide6.QtGui import QPixmap, QPalette, QColor, QImage, QPainter, QGuiApplication, QDesktopServices, QAction, QImageReader
-from PySide6.QtWidgets import QApplication, QMainWindow, QWidget, QFileDialog, QMessageBox, QSizePolicy, QSpacerItem, QMenu, QDialog, QVBoxLayout, QLabel, QTextEdit, QHBoxLayout, QPushButton
+from PySide6.QtWidgets import QApplication, QMainWindow, QWidget, QFileDialog, QMessageBox, QSizePolicy,QMenu, QDialog, QVBoxLayout, QLabel, QTextEdit, QHBoxLayout, QPushButton
 
-import ProjectFile
-from SceneComposer import SpriteGroup, TextureType, SpriteStatus, SpriteSetting, QSpriteSlave, SpriteType, QScalingGraphicsScene, PvBackLayout, SpriteSelector, SceneComposerObjects
+from SceneComposer import SpriteGroup, TextureType, SpriteStatus, SpriteSetting,QScalingGraphicsScene, PvBackLayout, SceneComposerObjects, QSmarterMenu
 from ui_SongFarcCreator import Ui_SongFarcCreatorWindow
-from widgets import QSmarterMenu
-
+import ProjectFile
 from FarcCreator import FarcCreator
 from ThirdParty.auto_creat_mod_spr_db import Manager,add_farc_to_Manager,read_farc
 from ui_SpriteHelper import Ui_MainWindow
-from ui_ThumbnailIDField import Ui_ThumbnailIDField
 from ui_ThumbnailTextureCreator import Ui_ThumbnailTextureCreator
-from ui_ThumbnailWidget import Ui_ThumbnailWidget
-from widgets import Stylesheet
+from ui_ThumbnailWidget import Ui_ThumbnailWidget, Ui_ThumbnailIDField
 
-
+class Stylesheet(Enum):
+    SCROLL_AREA_CONFLICT = "#OuterFrame {border: 1px solid rgb(235,51,101);border-radius: 2px;}"
+    SCROLL_AREA_UNFILLED = "#OuterFrame {border: 1px solid rgb(123,104,238);border-radius: 2px;}"
+    ID_FIELD_CONFLICT = ".PlaceholderDoubleSpinBox {color: rgb(235,51,101);}"
+    ID_FIELD_PLACEHOLDER = ".PlaceholderDoubleSpinBox {color: rgb(155,155,155);}"
+    SPRITE_VALUE_LABEL =":hover {background-color: rgba(155,155,155,50);}"
+    LABEL_PLACEHOLDER = ".QLabel {color: rgb(155,155,155);}"
+    LINE_PLACEHOLDER = ".QLineEdit {color: rgb(155,155,155);}"
 class OutputTarget(Enum):
     CLIPBOARD = auto()
     IMAGE_VIEWER = auto()
     IMAGE = auto()
-
-
 
 class Configurable:
     def __init__(self):
@@ -197,9 +195,6 @@ class ThumbnailIDFieldWidget(QWidget):
 
             self.ui.song_id_spinbox.setSuffix("")
             self.ui.song_id_spinbox.editingFinished.emit()
-
-
-
 class ThumbnailWidget(QWidget):
     removeRequested = Signal(QWidget)
     thumb_count_request = Signal()
@@ -246,7 +241,6 @@ class ThumbnailWidget(QWidget):
 
         self.removeRequested.emit(self)
 
-
 def pad_number(number):
     if number >= 100:
         return str(number)
@@ -254,8 +248,6 @@ def pad_number(number):
         return "0"+ str(number)
     else:
         return "00" + str(number)
-
-
 def next_power_of_two(n):
     if n <= 0:
         return 1
@@ -263,7 +255,6 @@ def next_power_of_two(n):
     while p < n:
         p *= 2
     return p
-
 
 class ThumbnailWindow(QWidget):
     resized = Signal()
@@ -862,12 +853,10 @@ class MainWindow(QMainWindow):
         self.SC.SpriteUserEdit.connect(self.sprite_changed_callback)
 
 
-        preview_string = ""
-        if config.is_pre_release:
-            preview_string = " (Preview)"
-        else:
+        if not config.is_pre_release:
             self.update_check()
-        self.window_tite_base = "Megamix Sprite Helper" + " " + str(config.version)+preview_string
+
+        self.window_tite_base = "Megamix Sprite Helper" + " " + str(config.version_long)
         self.setWindowTitle(self.window_tite_base)
 
         self.thumbnail_creator = ThumbnailWindow()

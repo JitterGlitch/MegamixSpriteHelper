@@ -1,11 +1,11 @@
 from PySide6.QtCore import (QCoreApplication, QMetaObject, QRect, QSize, Qt)
+from PySide6.QtGui import QPalette, QBrush, QColor, QPixmap
 from PySide6.QtWidgets import ( QFormLayout, QHBoxLayout, QLabel,
     QLayout, QPushButton, QScrollArea, QSizePolicy,
     QVBoxLayout, QWidget)
+from superqt import QIconifyIcon
 
-from SceneComposer import SpriteStatusDisplay, SpriteStatus
-from widgets import OuterFrame
-
+from SceneComposer import SpriteStatusDisplay, SpriteStatus, PlaceholderDoubleSpinBox
 
 class Ui_ThumbnailWidget(object):
     def setupUi(self, ThumbnailWidget):
@@ -40,7 +40,8 @@ class Ui_ThumbnailWidget(object):
         self.thumbnail_image.setFixedSize(QSize(128, 64))
 
 
-        self.outer_frame_scrollArea = OuterFrame(ThumbnailWidget)
+        self.outer_frame_scrollArea = QScrollArea(ThumbnailWidget)
+        self.outer_frame_scrollArea.setObjectName("OuterFrame")
 
         self.thumbnail_info_scrollArea = QScrollArea()
 
@@ -120,4 +121,81 @@ class Ui_ThumbnailWidget(object):
         self.thumbnail_image.setText("")
         self.remove_thumbnail_button.setText(QCoreApplication.translate("ThumbnailWidget", u"Remove", None))
     # retranslateUi
+
+class Ui_ThumbnailIDField(object):
+    def setupUi(self, Form, variant):
+        if not Form.objectName():
+            Form.setObjectName(u"Form")
+        Form.resize(208, 45)
+        self.formLayout = QHBoxLayout(Form)
+        self.formLayout.setObjectName(u"formLayout")
+        self.formLayout.setContentsMargins(0, 0, 0, 0)
+        self.formLayout.setSpacing(0)
+
+        self.song_id_spinbox = PlaceholderDoubleSpinBox(Form)
+        self.song_id_spinbox.setObjectName(u"song_id_spinbox")
+        self.song_id_spinbox.setMinimumSize(QSize(154, 0))
+        self.song_id_spinbox.setDecimals(0)
+        self.song_id_spinbox.setMaximum(4294967295.000000000000000)
+        sizePolicy = QSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.song_id_spinbox.sizePolicy().hasHeightForWidth())
+        self.song_id_spinbox.setSizePolicy(sizePolicy)
+        self.song_id_spinbox.setMinimumSize(QSize(154, 27))
+        self.song_id_spinbox.setMaximumSize(QSize(154, 27))
+        self.song_id_spinbox.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+        self.formLayout.addWidget(self.song_id_spinbox)
+
+        match variant:
+            case False:
+                self.id_line_button = QPushButton(Form)
+                self.id_line_button.setObjectName(u"id_line_button")
+                sizePolicy1 = QSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Fixed)
+                sizePolicy1.setHorizontalStretch(0)
+                sizePolicy1.setVerticalStretch(0)
+                sizePolicy1.setHeightForWidth(self.id_line_button.sizePolicy().hasHeightForWidth())
+                self.id_line_button.setSizePolicy(sizePolicy1)
+                self.id_line_button.setMinimumSize(QSize(30, 27))
+                self.id_line_button.setMaximumSize(QSize(30, 27))
+                self.id_line_button.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+                self.id_line_button.setIcon(QIconifyIcon("tabler:minus", color="red").pixmap(27, 27))
+                palette = QPalette()
+                brush = QBrush(QColor(235, 51, 101, 255))
+                brush.setStyle(Qt.BrushStyle.SolidPattern)
+                palette.setBrush(QPalette.ColorGroup.Active, QPalette.ColorRole.ButtonText, brush)
+                self.id_line_button.setPalette(palette)
+
+                self.formLayout.addWidget(self.id_line_button)
+
+                self.song_id_spinbox.setSpecialValueText(u"Set additional ID")
+
+            case True:
+                self.id_line_button = QPushButton(Form)
+                self.id_line_button.setObjectName(u"id_line_button")
+                sizePolicy1 = QSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Fixed)
+                sizePolicy1.setHorizontalStretch(0)
+                sizePolicy1.setVerticalStretch(0)
+                sizePolicy1.setHeightForWidth(self.id_line_button.sizePolicy().hasHeightForWidth())
+                self.id_line_button.setMinimumSize(QSize(30, 27))
+                self.id_line_button.setMaximumSize(QSize(30, 27))
+                self.id_line_button.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+                self.id_line_button.setIcon(QIconifyIcon("tabler:plus", color="lightgreen").pixmap(27, 27))
+                palette = QPalette()
+                brush = QBrush(QColor(51, 235, 101, 255))
+                brush.setStyle(Qt.BrushStyle.SolidPattern)
+                palette.setBrush(QPalette.ColorGroup.Active, QPalette.ColorRole.ButtonText, brush)
+                self.id_line_button.setPalette(palette)
+
+                self.formLayout.addWidget(self.id_line_button)
+
+                self.song_id_spinbox.setSpecialValueText(u"Set Song ID")
+
+        self.config_button = QPushButton(Form)
+        self.config_button.setMinimumSize(QSize(30, 27))
+        self.config_button.setMaximumSize(QSize(30, 27))
+        self.config_button.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+        self.config_button.setIcon(QPixmap(":icon/Images/Wrench.png"))
+        self.formLayout.addWidget(self.config_button)
 

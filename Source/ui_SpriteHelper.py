@@ -1,17 +1,11 @@
-from PySide6.QtCore import (QCoreApplication, QLocale,
-                            QMetaObject, QRect,
+from PySide6.QtCore import (QLocale,
                             QSize, Qt)
-from PySide6.QtGui import (QFont, QIcon, QPixmap)
-from PySide6.QtWidgets import (QAbstractScrollArea, QComboBox,
-                               QDoubleSpinBox, QFrame, QGridLayout, QHBoxLayout,
-                               QLabel, QLayout, QPushButton,
-                               QScrollArea, QSizePolicy, QSpacerItem, QStackedWidget,
-                               QTabWidget, QVBoxLayout, QWidget, QMenuBar)
-from superqt import QEnumComboBox, QIconifyIcon
-from FarcCreator import Compression
-from SceneComposer import SpriteGroup, SpriteStatusDisplay, SpriteSelector, SceneComposerObjects
+from PySide6.QtGui import (QFont, QIcon)
+from PySide6.QtWidgets import (QGridLayout, QHBoxLayout,
+                               QLayout, QScrollArea, QSizePolicy, QSpacerItem, QVBoxLayout, QWidget, QMenuBar)
 
-import resources_rc
+from SceneComposer import SpriteSelector, SceneComposerObjects
+
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow,SC:SceneComposerObjects):
