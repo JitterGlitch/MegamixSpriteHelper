@@ -3059,7 +3059,7 @@ class SpriteSelector(QWidget):
         self.load_image_button.clicked.connect(self.ImageLoadRequested.emit)
         self.flip_horizontal_button.clicked.connect(lambda: self.flip_current_sprite(Qt.Orientation.Horizontal))
         self.flip_vertical_button.clicked.connect(lambda: self.flip_current_sprite(Qt.Orientation.Vertical))
-        self.open_in_external_button.clicked.connect(self.open_sprite_in_external_editor)
+        self.open_sprite_location_button.clicked.connect(self.open_sprite_location)
         self.current_sprite_combobox.currentIndexChanged.connect(self.current_sprite_tab_switcher)
         self.sprite_group_combobox.currentEnumChanged.connect(self.sprite_group_changed)
 
@@ -3154,11 +3154,11 @@ class SpriteSelector(QWidget):
         self.flip_vertical_button.setFixedWidth(35)
         self.flip_vertical_button.setToolTip("Vertical Flip")
 
-        self.open_in_external_button = QPushButton()
-        self.open_in_external_button.setIcon(QPixmap(":icon/Images/tabler--pencil-share.png"))
-        self.open_in_external_button.setIconSize(QSize(25, 25))
-        self.open_in_external_button.setFixedWidth(35)
-        self.open_in_external_button.setToolTip("Open current sprite in external editor")
+        self.open_sprite_location_button = QPushButton()
+        self.open_sprite_location_button.setIcon(QPixmap(":icon/Images/tabler--external-link.png"))
+        self.open_sprite_location_button.setIconSize(QSize(25, 25))
+        self.open_sprite_location_button.setFixedWidth(35)
+        self.open_sprite_location_button.setToolTip("Open current sprite's location")
 
         horizontal_spacer = QSpacerItem(660, 0, QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Minimum)
 
@@ -3175,7 +3175,7 @@ class SpriteSelector(QWidget):
         self.third_line_layout.addWidget(self.flip_horizontal_button)
         self.third_line_layout.addWidget(self.flip_vertical_button)
         self.third_line_layout.addSpacerItem(horizontal_spacer)
-        self.third_line_layout.addWidget(self.open_in_external_button)
+        self.third_line_layout.addWidget(self.open_sprite_location_button)
 
         self.fourth_line_layout.addWidget(self.sprite_status_display)
 
@@ -3197,10 +3197,9 @@ class SpriteSelector(QWidget):
 
     def flip_current_sprite(self,flip_type):
         self.get_current_sprite_object().toggle_flip(flip_type)
-    def open_sprite_in_external_editor(self):
+    def open_sprite_location(self):
         current_sprite = self.get_current_sprite_object()
-        return QDesktopServices.openUrl(QUrl.fromLocalFile(current_sprite.location))
-
+        return QDesktopServices.openUrl(QUrl.fromLocalFile(Path(current_sprite.location).parent))
     def current_sprite_tab_switcher(self):
         self.sprite_controls.setCurrentIndex(self.current_sprite_combobox.currentIndex())
 
@@ -3270,5 +3269,5 @@ class SpriteSelector(QWidget):
         else:
             is_placeholder = False
 
-        self.open_in_external_button.setEnabled(not is_placeholder)
+        self.open_sprite_location_button.setEnabled(not is_placeholder)
 

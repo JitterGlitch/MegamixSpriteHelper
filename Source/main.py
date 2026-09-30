@@ -1284,7 +1284,7 @@ class MainWindow(QMainWindow):
             ret= sprite_object.load_new_image(image_location)
             match ret[0]:
                 case "Updated":
-                    self.main_box.sprite_selector.open_in_external_button.setEnabled(True)
+                    self.main_box.sprite_selector.open_sprite_location_button.setEnabled(True)
                 case "Image too small":
                     iw = ret[1]
                     ih = ret[2]
