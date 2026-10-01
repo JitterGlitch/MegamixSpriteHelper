@@ -288,6 +288,15 @@ class QScalingGraphicsScene(QGraphicsView):
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
 
+    def dragEnterEvent(self, event):
+        self.window().dragEnterEvent(event)
+
+    def dragMoveEvent(self, event):
+        self.window().dragMoveEvent(event)
+
+    def dropEvent(self, event):
+        self.window().dropEvent(event)
+
     def resizeEvent(self, event):
         super().resizeEvent(event)
         self.lock_in()

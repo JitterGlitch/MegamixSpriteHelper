@@ -17,8 +17,8 @@ import PIL.ImageShow
 
 import yaml
 from PIL import Image
-from PySide6.QtCore import Qt, QSize, Signal, QRectF, QStandardPaths, QUrl, QPoint, QCoreApplication, QSettings, QObject
-from PySide6.QtGui import QPixmap, QPalette, QColor, QImage, QPainter, QGuiApplication, QDesktopServices, QAction, QImageReader
+from PySide6.QtCore import Qt, QSize, Signal, QRectF, QStandardPaths, QUrl, QPoint, QCoreApplication, QSettings, QObject, QTimer
+from PySide6.QtGui import QPixmap, QPalette, QColor, QImage, QPainter, QGuiApplication, QDesktopServices, QAction, QImageReader, QDragEnterEvent, QDropEvent
 from PySide6.QtWidgets import QApplication, QMainWindow, QWidget, QFileDialog, QMessageBox, QSizePolicy,QMenu, QDialog, QVBoxLayout, QLabel, QTextEdit, QHBoxLayout, QPushButton
 
 from SceneComposer import SpriteGroup, TextureType, SpriteStatus, SpriteSetting,QScalingGraphicsScene, PvBackLayout, SceneComposerObjects, QSmarterMenu
@@ -842,6 +842,7 @@ def parse_version(v: str):
 class MainWindow(QMainWindow):
     def __init__(self):
         super(MainWindow, self).__init__()
+        self.setAcceptDrops(True)
         self.main_box = Ui_MainWindow()
         self.SC = SceneComposerObjects()
         self.main_box.setupUi(self, self.SC)
@@ -929,6 +930,35 @@ class MainWindow(QMainWindow):
         dlg.exec()
     def _on_check_err(self, msg: str):
         print("Update check failed:", msg)
+
+    def _dropped_mmsh_path(self, mime) -> str | None:
+        if not mime.hasUrls():
+            return None
+        urls = mime.urls()
+        if len(urls) != 1 or not urls[0].isLocalFile():
+            return None
+        path = urls[0].toLocalFile()
+        return path if ProjectFile.is_valid_mmsh(path) else None
+
+    def dragEnterEvent(self, event):
+        if self._dropped_mmsh_path(event.mimeData()):
+            event.acceptProposedAction()
+        else:
+            event.ignore()
+
+    def dragMoveEvent(self, event):
+        if self._dropped_mmsh_path(event.mimeData()):
+            event.acceptProposedAction()
+        else:
+            event.ignore()
+
+    def dropEvent(self, event):
+        path = self._dropped_mmsh_path(event.mimeData())
+        if not path:
+            event.ignore()
+            return
+        event.acceptProposedAction()
+        self.open_mmsh_project_file(path)
 
     def save_mmsh_project_file(self):
         if self.current_project_file_path is None:

@@ -10,6 +10,16 @@ from main import Configurable
 MAGIC = b"JGMMSH\x01\x00"
 
 
+def is_valid_mmsh(path: str) -> bool:
+    p = Path(path)
+    if p.suffix.lower() != ".mmsh" or not p.is_file():
+        return False
+    try:
+        with open(p, "rb") as f:
+            return f.read(len(MAGIC)) == MAGIC
+    except OSError:
+        return False
+
 def save_project(SC:SceneComposerObjects, output_path:Path,config:Configurable):
 
         main_data = {}

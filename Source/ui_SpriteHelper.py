@@ -27,7 +27,6 @@ class Ui_MainWindow(object):
         font.setBold(False)
         font.setKerning(True)
         MainWindow.setFont(font)
-        MainWindow.setAcceptDrops(False)
         icon = QIcon()
         icon.addFile(u":/icon/Icon-red.png", QSize(), QIcon.Mode.Normal, QIcon.State.Off)
         MainWindow.setWindowIcon(icon)
