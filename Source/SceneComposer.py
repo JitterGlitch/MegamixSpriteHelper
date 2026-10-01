@@ -2217,6 +2217,7 @@ class QControllableSprites(QObject):
     def sprite_updated_callback(self):
         self.SpriteUpdated.emit()
     def sprite_user_edit_callback(self):
+        self.GroupRedraw.emit()
         self.GroupUserEdit.emit()
     def update_sprites(self):
         for sprite in self.list:
