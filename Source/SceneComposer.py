@@ -870,13 +870,19 @@ class QSpriteBase(QGraphicsPixmapItem, QObject):
             case SpriteSetting.HORIZONTAL_OFFSET:
                 area_over_req_size = rect.width() - self.required_size().width()
 
-                return -area_over_req_size-self.x, -self.x
+                s1 = -area_over_req_size-self.x
+                s2 = -self.x
+
+                return min(s1,s2),max(s1,s2)
 
 
             case SpriteSetting.VERTICAL_OFFSET:
                 area_over_req_size = rect.height() - self.required_size().height()
 
-                return -area_over_req_size-self.y, -self.y
+                s1 = -area_over_req_size-self.y
+                s2 = -self.y
+
+                return min(s1,s2),max(s1,s2)
 
             case SpriteSetting.ZOOM:
                 if self.required_size() == QSize(0,0):
