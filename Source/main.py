@@ -934,7 +934,7 @@ class MainWindow(QMainWindow):
         if self.current_project_file_path is None:
             output_path , _ = (QFileDialog.getSaveFileName(self,
                                                            f"Save MMSH project file",
-                                                           "Project.mmsh",
+                                                           str(config.last_used_directory),
                                                            "MMSH project files (*.mmsh);;All files (*)"))
         else:
             output_path = self.current_project_file_path
@@ -965,7 +965,7 @@ class MainWindow(QMainWindow):
         if path is None:
             path, _ = (QFileDialog.getOpenFileName(self,
                                                           f"Load MMSH project file",
-                                                          "Project.mmsh",
+                                                          str(config.last_used_directory),
                                                           "MMSH project files (*.mmsh)"))
         if path == "":
             print("User canceled out")
