@@ -6,6 +6,7 @@ import webbrowser
 import math
 import os
 import sys
+import shutil
 import urllib.request
 from urllib.error import URLError
 
@@ -839,6 +840,11 @@ def parse_version(v: str):
         parts.append(int(digits) if digits else 0)
     return tuple(parts)
 
+
+def open_mmsh_config_folder():
+    return QDesktopServices.openUrl(QUrl.fromLocalFile(config.saved_files_location))
+
+
 class MainWindow(QMainWindow):
     def __init__(self):
         super(MainWindow, self).__init__()
@@ -886,6 +892,7 @@ class MainWindow(QMainWindow):
         print(f"Required Size ={current_sprite.required_size()}")
         print(f"Horizontal range: {current_sprite.calculate_range(SpriteSetting.HORIZONTAL_OFFSET,current_sprite.t_rect)}, "
               f"area over: {current_sprite.t_rect.width() - current_sprite.required_size().width()}")
+        print(f"Location = {current_sprite.location}")
     def debug_print_save_info(self):
         group = self.main_box.sprite_selector.get_current_sprite_group_enum()
         current_sprite = self.main_box.sprite_selector.get_current_sprite_object()
@@ -939,19 +946,16 @@ class MainWindow(QMainWindow):
             return None
         path = urls[0].toLocalFile()
         return path if ProjectFile.is_valid_mmsh(path) else None
-
     def dragEnterEvent(self, event):
         if self._dropped_mmsh_path(event.mimeData()):
             event.acceptProposedAction()
         else:
             event.ignore()
-
     def dragMoveEvent(self, event):
         if self._dropped_mmsh_path(event.mimeData()):
             event.acceptProposedAction()
         else:
             event.ignore()
-
     def dropEvent(self, event):
         path = self._dropped_mmsh_path(event.mimeData())
         if not path:
@@ -1026,13 +1030,38 @@ class MainWindow(QMainWindow):
                         return
                     case "Discard":
                         pass
-
+        self.clean_up_mmsh_project_images()
         self.current_project_file_path = None
         self.changes_made_since_load = False
         self.close_project_action.setEnabled(False)
         for group in self.SC.sprite_groups.values():
             for sprite in group.list:
                 sprite.load_placeholder_sprites()
+    def clean_up_mmsh_project_images(self):
+        sprite_locations_set = set()
+        mmsh_projects_folder = Path(config.saved_files_location).joinpath("Project File Images")
+
+        if self.current_project_file_path is not None:
+            for sprite_group in self.SC.sprite_groups.values():
+                for sprite in sprite_group.list:
+                    if type(sprite.location) == str:
+                        sprite_locations_set.add(sprite.location)
+
+        project_name = None
+        for location in sprite_locations_set:
+            if Path(location).is_relative_to(config.saved_files_location):
+                project_name = Path(self.current_project_file_path).name.removesuffix(".mmsh")
+                break
+
+        if project_name:
+
+            folder_to_delete = mmsh_projects_folder.joinpath(project_name)
+            print(f"Deleting: {folder_to_delete}")
+            shutil.rmtree(folder_to_delete)
+
+        else:
+            print("Project used only local files , no delete")
+
     def project_not_saved_messagebox(self):
         msg_box = QMessageBox(self)
         msg_box.setWindowTitle("Project not saved")
@@ -1049,8 +1078,6 @@ class MainWindow(QMainWindow):
 
         clicked = msg_box.clickedButton()
         return clicked.text()
-    def open_mmsh_config_folder(self):
-        return QDesktopServices.openUrl(QUrl.fromLocalFile(config.saved_files_location))
     def sprite_changed_callback(self):
         self.changes_made_since_load = True
         self.update_window_title()
@@ -1075,7 +1102,7 @@ class MainWindow(QMainWindow):
                         event.ignore()
                     case "Discard":
                         pass
-
+        self.clean_up_mmsh_project_images()
     def display_scenes(self):
         self.populate_display_scene_menu()
 
@@ -1114,7 +1141,7 @@ class MainWindow(QMainWindow):
         self.close_project_action = self.file_menu.addAction("Close Project file", self.close_mmsh_project_file)
         self.close_project_action.setEnabled(False)
         self.file_menu.addAction("Save Project file", self.save_mmsh_project_file).setShortcut("Ctrl+S")
-        self.file_menu.addAction("Open MMSH folder" , self.open_mmsh_config_folder)
+        self.file_menu.addAction("Open MMSH folder" , open_mmsh_config_folder)
 
         self.export_menu = self.menu.addMenu("Export")
         self.export_menu.addAction("Create Song Sprite Farc", lambda: self.song_farc_creator.show())
@@ -1312,6 +1339,7 @@ class MainWindow(QMainWindow):
             match ret[0]:
                 case "Updated":
                     self.main_box.sprite_selector.open_sprite_location_button.setEnabled(True)
+                    self.sprite_changed_callback()
                 case "Image too small":
                     iw = ret[1]
                     ih = ret[2]
