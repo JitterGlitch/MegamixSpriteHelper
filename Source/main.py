@@ -18,8 +18,8 @@ import PIL.ImageShow
 
 import yaml
 from PIL import Image
-from PySide6.QtCore import Qt, QSize, Signal, QRectF, QStandardPaths, QUrl, QPoint, QCoreApplication, QSettings, QObject, QTimer
-from PySide6.QtGui import QPixmap, QPalette, QColor, QImage, QPainter, QGuiApplication, QDesktopServices, QAction, QImageReader, QDragEnterEvent, QDropEvent
+from PySide6.QtCore import Qt, QSize, Signal, QRectF, QStandardPaths, QUrl, QPoint, QCoreApplication, QSettings, QObject
+from PySide6.QtGui import QPixmap, QPalette, QColor, QImage, QPainter, QGuiApplication, QDesktopServices, QAction, QImageReader
 from PySide6.QtWidgets import QApplication, QMainWindow, QWidget, QFileDialog, QMessageBox, QSizePolicy,QMenu, QDialog, QVBoxLayout, QLabel, QTextEdit, QHBoxLayout, QPushButton
 
 from SceneComposer import SpriteGroup, TextureType, SpriteStatus, SpriteSetting,QScalingGraphicsScene, PvBackLayout, SceneComposerObjects, QSmarterMenu
@@ -47,7 +47,7 @@ class OutputTarget(Enum):
 class Configurable:
     def __init__(self):
         self.script_directory = Path.cwd()
-        self.is_pre_release = True
+        self.is_pre_release = False
         self.repo = "JitterGlitch/MegamixSpriteHelper"
         self.version = "1.3"
 
@@ -991,11 +991,9 @@ class MainWindow(QMainWindow):
         if self.current_project_file_path is not None:
             if self.changes_made_since_load:
                 match self.project_not_saved_messagebox():
-                    case "Save":
-                        self.save_mmsh_project_file()
                     case "Cancel":
                         return
-                    case "Discard":
+                    case _:
                         pass
 
         if path is None:
@@ -1007,7 +1005,7 @@ class MainWindow(QMainWindow):
             print("User canceled out")
         else:
             path = Path(path)
-            self.close_mmsh_project_file()
+            self.close_mmsh_project_file(pop_up=False)
             ProjectFile.load_project(self.SC,path,Path(config.saved_files_location))
 
             if type(self.main_box.sprite_selector.get_current_sprite_object().location) == str:
@@ -1020,19 +1018,19 @@ class MainWindow(QMainWindow):
             self.update_window_title()
             self.close_project_action.setEnabled(True)
             self.recent_files.add(path)
-    def close_mmsh_project_file(self):
-        if self.current_project_file_path is not None:
-            if self.changes_made_since_load:
-                match self.project_not_saved_messagebox():
-                    case "Save":
-                        self.save_mmsh_project_file()
-                    case "Cancel":
-                        return
-                    case "Discard":
-                        pass
+    def close_mmsh_project_file(self,pop_up = True):
+        if pop_up:
+            if self.current_project_file_path is not None:
+                if self.changes_made_since_load:
+                    match self.project_not_saved_messagebox():
+                        case "Cancel":
+                            return
+                        case _:
+                            pass
         self.clean_up_mmsh_project_images()
         self.current_project_file_path = None
         self.changes_made_since_load = False
+        self.update_window_title()
         self.close_project_action.setEnabled(False)
         for group in self.SC.sprite_groups.values():
             for sprite in group.list:
@@ -1059,9 +1057,6 @@ class MainWindow(QMainWindow):
             print(f"Deleting: {folder_to_delete}")
             shutil.rmtree(folder_to_delete)
 
-        else:
-            print("Project used only local files , no delete")
-
     def project_not_saved_messagebox(self):
         msg_box = QMessageBox(self)
         msg_box.setWindowTitle("Project not saved")
@@ -1077,6 +1072,14 @@ class MainWindow(QMainWindow):
         msg_box.exec()
 
         clicked = msg_box.clickedButton()
+
+        match clicked.text():
+            case "Save":
+                self.save_mmsh_project_file()
+            case "Cancel":
+                pass
+            case "Discard":
+                pass
         return clicked.text()
     def sprite_changed_callback(self):
         self.changes_made_since_load = True
