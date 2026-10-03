@@ -981,6 +981,8 @@ class MainWindow(QMainWindow):
             self.current_project_file_path = output_path
             self.changes_made_since_load = False
             self.update_window_title()
+            self.close_project_action.setEnabled(True)
+            self.recent_files.add(output_path)
     def open_mmsh_project_file(self,path=None):
         if self.current_project_file_path is not None:
             if self.changes_made_since_load:
