@@ -47,9 +47,9 @@ class OutputTarget(Enum):
 class Configurable:
     def __init__(self):
         self.script_directory = Path.cwd()
-        self.is_pre_release = False
+        self.is_pre_release = True
         self.repo = "JitterGlitch/MegamixSpriteHelper"
-        self.version = "1.3"
+        self.version = "1.3.1"
 
         if self.is_pre_release:
             self.version_long = f"{self.version} (Preview)"

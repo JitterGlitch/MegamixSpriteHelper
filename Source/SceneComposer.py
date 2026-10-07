@@ -2003,10 +2003,11 @@ def get_highest_status(status_list: list[tuple[SpriteStatus, str]]):
 
 class GroupStatusDisplay(QWidget):
     StatusUpdated = Signal()
-    def __init__(self, /):
+    def __init__(self, tracked_sprites, /):
         super().__init__()
 
         self.tracked_sprite_group = None
+        self.tracked_sprites = tracked_sprites
         self.status = SpriteStatus.PLEASE_WAIT
 
         self.icon = QIconifyIcon("material-symbols:check-circle-rounded", color="green").pixmap(20, 20)
@@ -2063,7 +2064,8 @@ class GroupStatusDisplay(QWidget):
     def update_status(self):
         status_list = []
         for sprite in self.tracked_sprite_group.list:
-            status_list.append(sprite.get_sprite_status())
+            if sprite.sprite_type in self.tracked_sprites:
+                status_list.append(sprite.get_sprite_status())
 
         self.set_status(status_list)
         self.StatusUpdated.emit()
@@ -2151,7 +2153,8 @@ class SpriteGroupPreview(QWidget):
         self.group_combobox.setToolTip("Sprite group")
         self._prev_enum = self.group_combobox.currentEnum()
 
-        self.sprite_group_status_display = GroupStatusDisplay()
+        tracked_sprites = [SpriteType.BACKGROUND,SpriteType.JACKET,SpriteType.LOGO]
+        self.sprite_group_status_display = GroupStatusDisplay(tracked_sprites)
 
         self.sprite_group_Hlayout.addWidget(self.sprite_group_status_display)
         self.sprite_group_Hlayout.addWidget(self.group_label)

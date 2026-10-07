@@ -17,7 +17,6 @@ class Ui_SongFarcCreatorWindow(object):
     def setupUi(self, Form, SC_obj,sprite_group_enum):
         if not Form.objectName():
             Form.setObjectName(u"SongFarcCreatorWindow")
-        #Form.resize(629, 731)
 
         icon = QIcon()
         icon.addFile(u":/icon/Icon-red.png", QSize(), QIcon.Mode.Normal, QIcon.State.Off)
