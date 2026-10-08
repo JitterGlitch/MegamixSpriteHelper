@@ -690,8 +690,22 @@ def is_fully_opaque(pixmap: QPixmap) -> bool:
     data = bytes(image.bits())
     alpha_bytes = data[3::4]
     return bool(alpha_bytes.count(255) == len(alpha_bytes))
-def has_any_alpha(img: QImage) -> bool:
-    mask = img.createAlphaMask()
+def is_image_in_mask(image: QImage, mask: QImage) -> bool:
+
+    binary = QImage(mask.width(), mask.height(), QImage.Format.Format_ARGB32_Premultiplied)
+    binary.fill(Qt.transparent)
+    painter = QPainter(binary)
+    painter.setCompositionMode(QPainter.CompositionMode.CompositionMode_Source)
+    painter.drawImage(0, 0, mask)
+
+    painter.setCompositionMode(QPainter.CompositionMode.CompositionMode_SourceIn)
+    painter.fillRect(binary.rect(), Qt.white)
+
+    painter.setCompositionMode(QPainter.CompositionMode.CompositionMode_DestinationOut)
+    painter.drawImage(0, 0, image)
+    painter.end()
+
+    mask = binary.createAlphaMask()
     return any(bytes(mask.constBits()))
 
 class QSpriteBase(QGraphicsPixmapItem, QObject):
@@ -1121,23 +1135,7 @@ class QThumbnail(QSpriteBase):
 
     def check_sprite_area(self):
         image = self.pixmap().toImage()
-        mw, mh = self.sprite_mask.width(), self.sprite_mask.height()
-
-        binary = QImage(mw, mh, QImage.Format.Format_ARGB32_Premultiplied)
-        binary.fill(Qt.transparent)
-        painter = QPainter(binary)
-        painter.setCompositionMode(QPainter.CompositionMode.CompositionMode_Source)
-        painter.drawImage(0, 0, self.sprite_mask)
-
-        painter.setCompositionMode(QPainter.CompositionMode.CompositionMode_SourceIn)
-        painter.fillRect(binary.rect(), Qt.white)
-
-        painter.setCompositionMode(QPainter.CompositionMode.CompositionMode_DestinationOut)
-        painter.drawImage(0, 0, image)
-        painter.end()
-
-        self.sprite_area_fully_filled = not has_any_alpha(binary)
-
+        self.sprite_area_fully_filled = not is_image_in_mask(image, self.sprite_mask)
 
     def required_size(self) -> QSize:
         return QSize(100,61)
@@ -1245,23 +1243,7 @@ class QLogo(QSpriteBase):
         image = self.pixmap().toImage()
         image_w_tolerance = self._threshold_alpha(image, 204)
 
-        mw, mh = self.ui_cover_mask.width(), self.ui_cover_mask.height()
-
-        binary = QImage(mw, mh, QImage.Format.Format_ARGB32_Premultiplied)
-        binary.fill(Qt.transparent)
-
-        painter = QPainter(binary)
-        painter.setCompositionMode(QPainter.CompositionMode.CompositionMode_Source)
-        painter.drawImage(0, 0, self.ui_cover_mask)
-
-        painter.setCompositionMode(QPainter.CompositionMode.CompositionMode_SourceIn)
-        painter.fillRect(binary.rect(), Qt.white)
-
-        painter.setCompositionMode(QPainter.CompositionMode.CompositionMode_DestinationIn)
-        painter.drawImage(0, 0, image_w_tolerance)
-        painter.end()
-
-        self.sprite_covered_by_ui = has_any_alpha(binary)
+        self.sprite_covered_by_ui = is_image_in_mask(image_w_tolerance, self.ui_cover_mask)
 
     def toggle_visibility(self,state):
         self.is_visible = state

@@ -22,7 +22,7 @@ from PySide6.QtCore import Qt, QSize, Signal, QRectF, QStandardPaths, QUrl, QPoi
 from PySide6.QtGui import QPixmap, QPalette, QColor, QImage, QPainter, QGuiApplication, QDesktopServices, QAction, QImageReader
 from PySide6.QtWidgets import QApplication, QMainWindow, QWidget, QFileDialog, QMessageBox, QSizePolicy,QMenu, QDialog, QVBoxLayout, QLabel, QTextEdit, QHBoxLayout, QPushButton
 
-from SceneComposer import SpriteGroup, TextureType, SpriteStatus, SpriteSetting,QScalingGraphicsScene, PvBackLayout, SceneComposerObjects, QSmarterMenu
+from SceneComposer import SpriteGroup, TextureType, SpriteStatus, SpriteSetting, QScalingGraphicsScene, PvBackLayout, SceneComposerObjects, QSmarterMenu, is_image_in_mask
 from ui_SongFarcCreator import Ui_SongFarcCreatorWindow
 import ProjectFile
 from FarcCreator import FarcCreator
@@ -373,30 +373,44 @@ class ThumbnailWindow(QWidget):
             self.main_box.export_farc_button.setDisabled(is_export_blocked)
             self.main_box.export_farc_button.setToolTip("")
 
-    def check_thumbnail_sprite(self,image_path):
-        thumbnail_image = QImage(image_path)
-        reference_image = QImage(u":icon/Images/Dummy/SONG_JK_THUMBNAIL_DUMMY.png")
+    def in_disallowed_area(self,image: QImage) -> bool:
+        image = image.convertToFormat(QImage.Format.Format_Alpha8)
 
-        width = reference_image.width()
-        height = reference_image.height()
+        allowed_area = QImage(u":icon/Images/Dummy/Allowed thumbnail area mask.png")
+        mw, mh = allowed_area.width(), allowed_area.height()
 
-        fmt = QImage.Format.Format_ARGB32
-        img1 = thumbnail_image.convertToFormat(fmt)
-        img2 = reference_image.convertToFormat(fmt)
+        leftover = QImage(mw, mh, QImage.Format.Format_ARGB32_Premultiplied)
+        leftover.fill(Qt.transparent)
+        painter = QPainter(leftover)
 
-        ptr1 = img1.constBits()
-        ptr2 = img2.constBits()
+        painter.setCompositionMode(QPainter.CompositionMode.CompositionMode_Source)
+        painter.drawImage(0, 0, image)
 
-        stride1 = img1.bytesPerLine()
-        stride2 = img2.bytesPerLine()
+        painter.setCompositionMode(QPainter.CompositionMode.CompositionMode_DestinationOut)
+        painter.drawImage(0, 0, allowed_area)
+        painter.end()
 
+        width, height, bpl = leftover.width(), leftover.height(), leftover.bytesPerLine()
+        data = bytes(leftover.constBits())
         for y in range(height):
-            row1 = ptr1[y * stride1: y * stride1 + width * 4]
-            row2 = ptr2[y * stride2: y * stride2 + width * 4]
-            if row1[3::4] != row2[3::4]:
-                return SpriteStatus.WARNING,"Thumbnail has wrong shape"
+            if max(data[y * bpl: y * bpl + width]):
+                return True
+        return False
 
-        return SpriteStatus.OK,"No issues"
+    def check_thumbnail_sprite(self, image_path):
+        image = QImage(image_path)
+        sprite_mask = QImage(u":icon/Images/Dummy/Thumbnail-Maskv3.png")
+        allowed_area_mask = QImage(u":icon/Images/Dummy/Allowed thumbnail area mask.png")
+
+        if not is_image_in_mask(image,allowed_area_mask):
+            return SpriteStatus.ERROR,"Thumbnail in disallowed area"
+
+        if is_image_in_mask(image, sprite_mask):
+            return SpriteStatus.WARNING, "Thumbnail isn't fully filled in"
+
+        return  SpriteStatus.OK,""
+    def check_thumbnail_area(self,img):
+        pass
 
     def add_thumbnail(self,image_path,inferred_id):
         if self.thumbnail_widgets:
