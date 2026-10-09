@@ -47,7 +47,7 @@ class OutputTarget(Enum):
 class Configurable:
     def __init__(self):
         self.script_directory = Path.cwd()
-        self.is_pre_release = True
+        self.is_pre_release = False
         self.repo = "JitterGlitch/MegamixSpriteHelper"
         self.version = "1.3.1"
 
@@ -302,6 +302,7 @@ class ThumbnailWindow(QWidget):
         loaded_thumbs = len(self.thumbnail_widgets)
         left_to_fillout = 0
         warning_count = 0
+        error_present = False
 
         id_seen = []
 
@@ -309,8 +310,12 @@ class ThumbnailWindow(QWidget):
         for thumbnail_widget in self.thumbnail_widgets:
             thumbnail_widget.setStyleSheet("")
 
-            if thumbnail_widget.ui.thumbnail_status_display.get_status() != SpriteStatus.OK:
+            thumb_status = thumbnail_widget.ui.thumbnail_status_display.get_status()
+
+            if thumb_status != SpriteStatus.OK:
                 warning_count = warning_count + 1
+                if thumb_status == SpriteStatus.ERROR:
+                    error_present = True
 
             for id_field in thumbnail_widget.id_field_list:
 
@@ -349,8 +354,10 @@ class ThumbnailWindow(QWidget):
         is_export_blocked = False
 
         if loaded_thumbs != 0:
-
-            if warning_count > 0:
+            if error_present:
+                self.main_box.thumbnail_status_display.set_status(SpriteStatus.ERROR, f"Thumbnails contain errors")
+                is_export_blocked = True
+            elif warning_count > 0:
                 self.main_box.thumbnail_status_display.set_status(SpriteStatus.WARNING,f"{warning_count} Thumbnails contain issues")
                 is_export_blocked = not warnings_ignored
             else:
