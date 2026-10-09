@@ -690,10 +690,11 @@ def is_fully_opaque(pixmap: QPixmap) -> bool:
     data = bytes(image.bits())
     alpha_bytes = data[3::4]
     return bool(alpha_bytes.count(255) == len(alpha_bytes))
-def is_image_in_mask(image: QImage, mask: QImage) -> bool:
+def is_image_in_mask(image: QImage, mask: QImage, last_step_mode: QPainter.CompositionMode = QPainter.CompositionMode.CompositionMode_DestinationOut) -> bool:
 
     binary = QImage(mask.width(), mask.height(), QImage.Format.Format_ARGB32_Premultiplied)
     binary.fill(Qt.transparent)
+
     painter = QPainter(binary)
     painter.setCompositionMode(QPainter.CompositionMode.CompositionMode_Source)
     painter.drawImage(0, 0, mask)
@@ -701,7 +702,7 @@ def is_image_in_mask(image: QImage, mask: QImage) -> bool:
     painter.setCompositionMode(QPainter.CompositionMode.CompositionMode_SourceIn)
     painter.fillRect(binary.rect(), Qt.white)
 
-    painter.setCompositionMode(QPainter.CompositionMode.CompositionMode_DestinationOut)
+    painter.setCompositionMode(last_step_mode)
     painter.drawImage(0, 0, image)
     painter.end()
 
@@ -1243,7 +1244,7 @@ class QLogo(QSpriteBase):
         image = self.pixmap().toImage()
         image_w_tolerance = self._threshold_alpha(image, 204)
 
-        self.sprite_covered_by_ui = is_image_in_mask(image_w_tolerance, self.ui_cover_mask)
+        self.sprite_covered_by_ui = is_image_in_mask(image_w_tolerance, self.ui_cover_mask, QPainter.CompositionMode.CompositionMode_DestinationIn)
 
     def toggle_visibility(self,state):
         self.is_visible = state
