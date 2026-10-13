@@ -49,7 +49,7 @@ class Configurable:
         self.script_directory = Path.cwd()
         self.is_pre_release = False
         self.repo = "JitterGlitch/MegamixSpriteHelper"
-        self.version = "1.3.1"
+        self.version = "1.3.2"
 
         if self.is_pre_release:
             self.version_long = f"{self.version} (Preview)"
