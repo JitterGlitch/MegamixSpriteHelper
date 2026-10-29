@@ -836,7 +836,7 @@ def export_texture_button_callback(texture:TextureType):
         case TextureType.JACKET_BACKGROUND:
             texture_image,_ = main_window.SC.create_background_jacket_texture(main_window.main_box.sprite_selector.get_current_sprite_group_object())
         case TextureType.LOGO:
-            texture_image,_ = main_window.SC.create_logo_texture([(main_window.main_box.sprite_selector.get_current_sprite_group_object(),"")])
+            texture_image,_,_ = main_window.SC.create_logo_texture([(main_window.main_box.sprite_selector.get_current_sprite_group_object(),"")])
         case TextureType.THUMBNAIL:
             texture_image,_ = main_window.SC.create_thumbnail_texture(main_window.main_box.sprite_selector.get_current_sprite_group_object())
         case TextureType.PV_BACK:
